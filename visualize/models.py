@@ -5,6 +5,9 @@ from tinymce.models import HTMLField
 
 @register
 class Bookmark(Feature):
+    class Meta:
+        app_label = 'visualize'
+        
     url_hash = models.CharField(max_length=2050)
 
     class Options:
@@ -17,3 +20,6 @@ class Content(models.Model):
     description = models.TextField()
     content = HTMLField()
     live = models.BooleanField(default=False)
+
+    class Meta:
+        app_label = 'visualize'
