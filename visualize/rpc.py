@@ -1,14 +1,11 @@
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.models import Group
 from django.http import JsonResponse, HttpResponse
 from django.shortcuts import get_object_or_404
 from rpc4django import rpcmethod
-from features.registry import get_feature_by_uid
-from mapgroups.models import MapGroup, MapGroupMember
-from visualize.models import Bookmark
 
 @rpcmethod(login_required=True)
 def add_bookmark(name, url_hash, **kwargs):
+    from visualize.models import Bookmark
     request = kwargs['request']
 
     bookmark = Bookmark(user=request.user, name=name, url_hash=url_hash)
@@ -16,8 +13,8 @@ def add_bookmark(name, url_hash, **kwargs):
     sharing_groups = [group.name for group in bookmark.sharing_groups.all()]
     content = [{
         'uid': bookmark.uid,
-        'name': bookmark.name, 
-        'hash': bookmark.url_hash, 
+        'name': bookmark.name,
+        'hash': bookmark.url_hash,
         'sharing_groups': sharing_groups,
     }]
     return content
@@ -27,6 +24,8 @@ def add_bookmark(name, url_hash, **kwargs):
 def get_bookmarks(**kwargs):
     """Return a list of bookmark object for the current user.
     """
+    from mapgroups.models import MapGroup, MapGroupMember
+    from visualize.models import Bookmark
     request = kwargs['request']
 
     #grab all bookmarks belonging to this user
@@ -76,6 +75,7 @@ def get_bookmarks(**kwargs):
 
 @rpcmethod(login_required=True)
 def remove_bookmark(key, **kwargs):
+    from visualize.models import Bookmark
     request = kwargs['request']
     # uid = appname_modelname_pk
     key = int(key.split('_')[-1])
@@ -84,6 +84,8 @@ def remove_bookmark(key, **kwargs):
 
 @rpcmethod(login_required=True)
 def share_bookmark(bookmark_uid, group_names, **kwargs):
+    from django.contrib.auth.models import Group
+    from features.registry import get_feature_by_uid
     request = kwargs['request']
     # group_names = request.POST.getlist('groups[]')
     # bookmark_uid = request.POST['bookmark']
@@ -102,5 +104,3 @@ def share_bookmark(bookmark_uid, group_names, **kwargs):
         groups.append(g)
 
     bookmark.share_with(groups, append=False)
-
-

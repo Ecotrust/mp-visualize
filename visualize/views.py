@@ -10,7 +10,7 @@ from functools import cmp_to_key
 import locale
 
 from django.conf import settings
-from models import *
+from visualize.models import *
 from data_manager.models import *
 from django.views.decorators.csrf import csrf_exempt
 from django.http.response import JsonResponse
