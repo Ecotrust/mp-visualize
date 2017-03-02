@@ -1,5 +1,9 @@
 from django import template
-from django.utils.encoding import force_unicode
+try:
+    from django.utils.encoding import force_unicode
+except:
+    #py 3 compatability
+    from django.utils.encoding import force_text as force_unicode
 
 register = template.Library()
 
