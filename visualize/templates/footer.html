@@ -3,9 +3,13 @@
 <div class="footer-inner">
     <div class="info">
         <a class="footer-brand" href="/">
+            {% block footer-brand %}
             <img src="{% static 'brand/logo.svg' %}"></img>
+            {% endblock %}
         </a>
+        {% block footer-blurb %}
         <p class="about-text">Welcome to the <a href="{% url 'planner' %}">Marine Planner</a>, an Interactive mapping tool.</p>
+        {% endblock %}
 
     <!--
     <form id="mailinglist-form" action="http://point97.createsend.com/t/d/s/jruluy/" method="post" class="form-inline">
@@ -22,6 +26,7 @@
     </form>
   -->
     <div class="social-links">
+      {% block social-links %}
       <!--
         <a class="fa-stack fa-lg" href="https://www.facebook.com/acctname" target="_blank">
             <i class="fa fa-circle fa-stack-2x"></i>
@@ -32,10 +37,13 @@
             <i class="fa fa-twitter fa-stack-1x deep-blue"></i>
         </a>
       -->
+      {% endblock %}
     </div>
 
     <div class="contact">
+      {% block contact %}
       <a class="email" href="mailto:ksdev@ecotrust.org">ksdev@ecotrust.org</a>
+      {% endblock %}
     </div>
 
   </div>
