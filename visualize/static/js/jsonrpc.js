@@ -1,7 +1,7 @@
 /**
-Quick jquery extension for jsonrpc. 
+Quick jquery extension for jsonrpc.
 
-Usage: 
+Usage:
 
 $.jsonrpc('method.name', [1, 2, "Hi"], {
     success: function(success / *, full_response * /) {
@@ -21,21 +21,21 @@ SRH 16-Mar-2015
 
 function jsonrpc_call(method, args, options) {
     options = options || {};
-    
+
     function parse_response(rpc_response, status /*, xhr*/) {
         if (rpc_response.jsonrpc != '2.0') {
             console.error("RPC Fault: bad version", rpc_response);
-            return; 
+            return;
         }
-        
+
         if (rpc_response.id != 7) {
             console.error("RPC Fault: bad ID", rpc_response);
-            return; 
+            return;
         }
-        
+
         var has_error = rpc_response.error && (rpc_response.error != null);
         var has_result = rpc_response.result && (rpc_response.result != null);
-        
+
         if (has_result && !has_error) {
             if (options.success) {
                 options.success(rpc_response.result, rpc_response);
@@ -46,11 +46,11 @@ function jsonrpc_call(method, args, options) {
                 options.error(rpc_response.error, rpc_response);
             }
         }
-        // else: if both have a result, it's an rpc fault. 
+        // else: if both have a result, it's an rpc fault.
         // otherwise there was no return value (a jsonrpc command)
 
     }
-    
+
     request = {
         'jsonrpc': '2.0',
         'method': method,
@@ -58,18 +58,18 @@ function jsonrpc_call(method, args, options) {
         'id': 7
     };
     request_encoded = JSON.stringify(request);
-        
+
     $.ajax({
-        url: '/rpc',
+        url: '/drawing/rpc',
         method: 'POST',
-        data: request_encoded, 
+        data: request_encoded,
         dataType: 'json',
         contentType: 'application/json',
         success: parse_response,
         error: parse_response,
         complete: function() {
             if (options.complete) {
-                options.complete(); 
+                options.complete();
             }
         }
     });
