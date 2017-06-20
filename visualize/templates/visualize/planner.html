@@ -127,7 +127,7 @@
                             <form class="form-search hide-collapsed" data-bind="submit: layerSearch">
                                 <div class="input-group inner-addon">
                                     <!-- data-provide="typeahead"  -->
-                                    <input type="text" class="search-box main-search form-control" 
+                                    <input type="text" class="search-box main-search form-control"
                                            data-bind="value: searchTerm, event: { keyup: keySearch }"
                                            style="text-overflow: ellipsis;"
                                            placeholder="Search data" id="data-search-input">
@@ -149,7 +149,7 @@
                     </div>
                     <div class="panel-body">
                         <div class="frame tabs" id="data-panel" data-bind="visible: showLayers()">
-                        
+
                             <div class="sidebar-nav">
                                 <ul id="myTab" class="nav nav-tabs">
                                     <li data-tab="active">
@@ -164,7 +164,7 @@
                                     <li data-tab="designs">
                                         <h4>
                                             <a href="#designs" data-toggle="tab" id="designsTab">MyPlanner</a>
-                                        </h4> 
+                                        </h4>
                                     </li>
                                     <li class="active" data-tab="data" >
                                         <h4>
@@ -268,7 +268,7 @@
                                                     <li>Creating and sharing of Map View Bookmarks</li>
                                                     <li>Drawing and highlighting map areas</li>
                                                     <li>Ocean area comparisions by lease blocks grids</li>
-                                                </ul> 
+                                                </ul>
                                             <p>
                                                 <a data-bind='attr: { href: "{% url 'account:index' %}" + "?next=" + encodeURIComponent(currentURL()) }'>Log in here</a>.  If you do not have an account,
                                                 <a data-bind='attr: { href: "{% url 'account:register' %}" + "?next=" + encodeURIComponent(currentURL()) }'>register here</a>.
@@ -339,29 +339,51 @@
 {% endblock %}
 
 {% block extra_js %}
+    {% block bower_jquery %}
     <script src="{% static 'bower_components/amplify/lib/amplify.min.js' %}"></script>
     <script src="{% static 'bower_components/jquery-migrate/jquery-migrate.min.js' %}"></script>
     <script src="{% static 'bower_components/jquery.bbq/jquery.ba-bbq.js' %}"></script>
     <script src="{% static 'bower_components/bootstrap3-typeahead/bootstrap3-typeahead.js' %}"></script>
     <script src="{% static 'bower_components/jquery-ui/jquery-ui.min.js' %}"></script>
+    {% endblock %}
+
+    {% block jqui_widget_bridge %}
     <script charset="utf-8">
         $.widget.bridge('uitooltip', $.ui.tooltip);
     </script>
-    <script src="{% static 'js/jsonrpc.js' %}"></script>
+    {% endblock %}
 
+    {% block js_misc_1 %}
+    <script src="{% static 'js/jsonrpc.js' %}"></script>
     <script src="{% static 'js/lib/lodash.min.js' %}"></script>
+    {% endblock %}
+
+    {% block knockout %}
     <script src="{% static 'js/lib/knockout-3.3.0.js' %}"></script>
     <script src="{% static 'js/lib/knockout.mapping-2.4.1.js' %}"></script>
     <script src="{% static 'js/knockout-bindings.js' %}"></script>
+    {% endblock %}
+
+    {% block highcharts %}
     <script src="{% static 'js/lib/highcharts/highcharts.js' %}" type="text/javascript"></script>
     <script src="{% static 'js/lib/highcharts/highcharts-more.js' %}" type="text/javascript"></script>
+    {% endblock %}
+
+    {% block gmaps_api_call %}
     <script src="http://maps.google.com/maps/api/js?v=3.6&amp;sensor=false"></script>
+    {% endblock %}
+
+    {% block custom_marco_ol3 %}
     <script src="{% static 'js/lib/openlayers/OpenLayers-marco-min.js' %}"></script>
+    {% endblock %}
+    
+    {% block js_misc_2 %}
     <script src="{% static 'bower_components/bigscreen/bigscreen.js' %}"></script>
     <script src="{% static 'bower_components/jqueryui-touch-punch/jquery.ui.touch-punch.min.js' %}"></script>
+    {% endblock %}
 
+    {% block mp_js %}
     <script src="{% static 'js/controls.js' %}"></script>
-
     <script src="{% static 'js/contextual_menu.js' %}"></script>
     <script src="{% static 'js/fixtures.js' %}"></script>
     <script src="{% static 'js/map.js' %}"></script>
@@ -373,6 +395,7 @@
     <script src="{% static 'js/models.js' %}"></script>
     <script src="{% static 'js/server.js' %}"></script>
     <script src="{% static 'js/app.js' %}"></script>
+    {% endblock %}
 
     <!--<script src="{% static 'js/html2canvas.js' %}"></script>-->
     <!--<script src="{% static 'js/html2canvas.svg.js' %}"></script>-->
