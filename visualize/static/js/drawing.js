@@ -110,7 +110,9 @@ function polygonFormModel(options) {
     self.isEditing = ko.observable(false);
     self.hasShape = ko.observable(false);
 
-    self.polygonLayer = new OpenLayers.Layer.Vector(self.newPolygonLayerName);
+    self.polygonLayer = new OpenLayers.Layer.Vector(self.newPolygonLayerName, {
+      eventListeners: settings.drawing.polygonLayer.eventListeners
+    });
     app.map.addLayer(self.polygonLayer);
 
     self.polygonControl = new OpenLayers.Control.DrawFeature(self.polygonLayer, OpenLayers.Handler.Polygon, {multi:false});
