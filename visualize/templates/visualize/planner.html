@@ -345,6 +345,12 @@
     <script src="{% static 'bower_components/jquery.bbq/jquery.ba-bbq.js' %}"></script>
     <script src="{% static 'bower_components/bootstrap3-typeahead/bootstrap3-typeahead.js' %}"></script>
     <script src="{% static 'bower_components/jquery-ui/jquery-ui.min.js' %}"></script>
+    <script src="{% static 'bower_components/bigscreen/bigscreen.js' %}"></script>
+    <script src="{% static 'bower_components/jqueryui-touch-punch/jquery.ui.touch-punch.min.js' %}"></script>
+    {% endblock %}
+
+    {% block lodash %}
+    <script src="{% static 'js/lib/lodash.min.js' %}"></script>
     {% endblock %}
 
     {% block jqui_widget_bridge %}
@@ -353,9 +359,8 @@
     </script>
     {% endblock %}
 
-    {% block js_misc_1 %}
+    {% block jsonrpc %}
     <script src="{% static 'js/jsonrpc.js' %}"></script>
-    <script src="{% static 'js/lib/lodash.min.js' %}"></script>
     {% endblock %}
 
     {% block knockout %}
@@ -377,27 +382,22 @@
     <script src="{% static 'js/lib/openlayers/OpenLayers-marco-min.js' %}"></script>
     {% endblock %}
 
-    {% block js_misc_2 %}
-    <script src="{% static 'bower_components/bigscreen/bigscreen.js' %}"></script>
-    <script src="{% static 'bower_components/jqueryui-touch-punch/jquery.ui.touch-punch.min.js' %}"></script>
-    {% endblock %}
-
     {% block mp_js %}
-    <script src="{% static 'js/settings.js' %}"></script>
-    <script src="{% static 'js/controls.js' %}"></script>
-    <script src="{% static 'js/contextual_menu.js' %}"></script>
-    <script src="{% static 'js/fixtures.js' %}"></script>
-    <script src="{% static 'js/map.js' %}"></script>
-    <script src="{% static 'js/state.js' %}"></script>
-    <script src="{% static 'js/bookmarks.js' %}"></script>
-    <script src="{% static 'js/scenarios.js' %}"></script>
-    <script src="{% static 'js/reports.js' %}"></script>
-    <script src="{% static 'js/drawing.js' %}"></script>
-    <script src="{% static 'js/models.js' %}"></script>
-    <script src="{% static 'js/server.js' %}"></script>
-    <script src="{% static 'js/app.js' %}"></script>
-    {% endblock %}
+        <script src="{% static 'js/settings.js' %}"></script>
+        <script src="{% static 'js/controls.js' %}"></script>
+        <script src="{% static 'js/contextual_menu.js' %}"></script>
+        <script src="{% static 'js/fixtures.js' %}"></script>
+        <script src="{% static 'js/map.js' %}"></script>
+        <script src="{% static 'js/state.js' %}"></script>
+        <script src="{% static 'js/bookmarks.js' %}"></script>
+        <script src="{% static 'js/scenarios.js' %}"></script>
+        <script src="{% static 'js/reports.js' %}"></script>
+        <script src="{% static 'js/drawing.js' %}"></script>
+        <script src="{% static 'js/models.js' %}"></script>
+        <script src="{% static 'js/server.js' %}"></script>
+        <script src="{% static 'js/app.js' %}"></script>
 
-    <!--<script src="{% static 'js/html2canvas.js' %}"></script>-->
-    <!--<script src="{% static 'js/html2canvas.svg.js' %}"></script>-->
+        <!--<script src="{% static 'js/html2canvas.js' %}"></script>-->
+        <!--<script src="{% static 'js/html2canvas.svg.js' %}"></script>-->
+    {% endblock %}
 {% endblock %}
