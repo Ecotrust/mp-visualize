@@ -78,22 +78,22 @@ var mapSettings = {
   },
   addPopup: function(action, fillPopupFunction) {
 
-    var popup = new ol.Overlay({
+    app.map.popup = new ol.Overlay({
       element: document.getElementById('popup')
     });
-    app.map.addOverlay(popup);
-    app.map.popup = popup.getElement();
+    app.map.addOverlay(app.map.popup);
+    // app.map.popup = popup.getElement();
 
     if (!fillPopupFunction) {
       fillPopupFunction = function(evt) {
-        app.map.popup = popup.getElement();
+        var element = app.map.popup.getElement();
         var coordinate = evt.coordinate;
         var hdms = ol.coordinate.toStringHDMS(ol.proj.transform(
           coordinate, 'EPSG:3857', 'EPSG:4326'
         ));
-        $(app.map.popup).popover('dispose');
+        $(element).popover('dispose');
         // $(app.map.popup).popover('hide');
-        popup.setPosition(coordinate);
+        app.map.popup.setPosition(coordinate);
         let markup = '';
         featureCount = 0;
         map.forEachFeatureAtPixel(evt.pixel, function(feature) {
@@ -107,14 +107,14 @@ var mapSettings = {
           markup += '</table>';
         }, {hitTolerance: 1});
         if (markup) {
-          $(app.map.popup).popover({
+          $(element).popover({
           // $(element).popover({
             'placement': 'top',
             'animation': false,
             'html': true,
             'content': markup
           });
-          $(app.map.popup).popover('show');
+          $(element).popover('show');
         }
       }
     }
