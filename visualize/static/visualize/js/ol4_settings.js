@@ -1,7 +1,12 @@
 class madronaMap extends ol.Map {
-  getLayers() {
-    return ol.Map.prototype.getLayers.call(this).getArray();
-  }
+  // getLayers() {
+  //   var getLayers = ol.Map.prototype.getLayers.call(this).getArray();
+  //   getLayers.getArray = function(){
+  //     ol.Map.prototype.getLayers.call(this).getArray();
+  //   }
+  //   // return ol.Map.prototype.getLayers.call(this).getArray();
+  //   return getLayers;
+  // }
   zoomToExtent(extent) {
     ol.Map.prototype.getView.call(this).fit(extent, {duration: 1500});
   }
@@ -27,13 +32,32 @@ app.updateUrl = function () {
 var mapSettings = {
   getInitMap: function() {
     map = new madronaMap({
+      target: 'map',
       layers: [
-        new ol.layer.Tile({
-          source: new ol.source.OSM(),
-          name: 'OSM Base Layer'
+        new ol.layer.Group({
+          'title': 'Base maps',
+          layers: [
+            new ol.layer.Tile({
+              title: 'OSM Base Layer',
+              source: new ol.source.OSM(),
+              name: 'OSM Base Layer',
+              type: 'base'
+            }),
+            new ol.layer.Tile({
+              title: 'ESRI Topo',
+              source: new ol.source.XYZ({
+                url: 'http://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}.png'
+              }),
+              name: 'OSM Base Layer',
+              type: 'base'
+            })
+          ],
+        }),
+        new ol.layer.Group({
+          title: 'Overlays',
+          layers: []
         })
       ],
-      target: 'map',
       view: new ol.View({
         center: [0, 0],
         zoom: 2
