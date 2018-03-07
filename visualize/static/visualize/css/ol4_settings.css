@@ -1,0 +1,9 @@
+.layer-switcher {
+  top: 13px;
+  left: 10px;
+  right: auto;
+  background-color: rgba(255, 255, 255, 0.8);
+}
+.layer-switcher:hover {
+  background-color: rgba(255, 255, 255, 1);
+}
