@@ -24,7 +24,13 @@ def add_bookmark(name, url_hash, **kwargs):
 def get_bookmarks(**kwargs):
     """Return a list of bookmark object for the current user.
     """
+    # There are no map groups outside of MidAtlanticPortal org repos
+    # map group model and views are currently not included in a marine planner app
+    # https://github.com/MidAtlanticPortal/marco-map_groups
+    # TODO make decision about included map groups in planner apps
+    # ---vvvvvvvvv----
     from mapgroups.models import MapGroup, MapGroupMember
+
     from visualize.models import Bookmark
     request = kwargs['request']
 
