@@ -81,6 +81,7 @@ $(".nav-tabs li.disabled").on("click", function(e) {
 app.init();
 // Google.v3 uses EPSG:900913 as projection, so we have to
 // transform our coordinates
+// TODO: MAPTECH OL2 assumption
 app.map.setCenter(new OpenLayers.LonLat(initial_x, initial_y).transform(
 new OpenLayers.Projection("EPSG:4326"), new OpenLayers.Projection("EPSG:900913")), initial_z);
 
