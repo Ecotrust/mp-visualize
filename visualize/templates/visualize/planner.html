@@ -339,6 +339,12 @@
 {% endblock %}
 
 {% block extra_js %}
+    <script>
+      initial_x = {{ initial_x }}
+      initial_y = {{ initial_y }}
+      initial_z = {{ initial_z }}
+    </script>
+
     {% block bower_jquery %}
     <script src="{% static 'bower_components/amplify/lib/amplify.min.js' %}"></script>
     <script src="{% static 'bower_components/jquery-migrate/jquery-migrate.min.js' %}"></script>

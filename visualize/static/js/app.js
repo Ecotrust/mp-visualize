@@ -81,9 +81,8 @@ $(".nav-tabs li.disabled").on("click", function(e) {
 app.init();
 // Google.v3 uses EPSG:900913 as projection, so we have to
 // transform our coordinates
-// TODO: Make map center a configuration value
-app.map.setCenter(new OpenLayers.LonLat(-73.24, 38.93).transform(
-new OpenLayers.Projection("EPSG:4326"), new OpenLayers.Projection("EPSG:900913")), 7);
+app.map.setCenter(new OpenLayers.LonLat(initial_x, initial_y).transform(
+new OpenLayers.Projection("EPSG:4326"), new OpenLayers.Projection("EPSG:900913")), initial_z);
 
 $(document).ready(function() {
   app.onResize();
@@ -233,7 +232,7 @@ $(document).ready(function() {
         app.viewModel.activateMDATLayer(item);
       },
       minLength: 2,
-      items: 14, 
+      items: 14,
     })
   });
 
@@ -255,7 +254,7 @@ $(document).on('focusin', '.port-input', function(){
       app.viewModel.activateVTRLayer(item);
     },
     minLength: 2,
-    items: 12, 
+    items: 12,
   })
 });
 

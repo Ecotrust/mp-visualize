@@ -15,7 +15,7 @@ from data_manager.models import *
 from django.views.decorators.csrf import csrf_exempt
 from django.http.response import JsonResponse
 
-def show_planner(request, template='visualize/planner.html'):
+def show_planner(request, template=settings.VISUALIZE_PLANNER_TEMPLATE):
     try:
         socket_url = settings.SOCKET_URL
     except AttributeError:
@@ -53,7 +53,32 @@ def show_planner(request, template='visualize/planner.html'):
         if len(Content.objects.filter(name='disclaimer_decline_url',live=True)) > 0:
             disclaimer_content['decline_url'] = strip_tags(Content.objects.filter(name='disclaimer_decline_url',live=True)[0].content)
 
-    context = {'MEDIA_URL': settings.MEDIA_URL, 'SOCKET_URL': socket_url, 'login': 'true', 'disclaimer': disclaimer_content}
+    if hasattr(settings, 'INITIAL_X'):
+        initial_x = settings.INITIAL_X
+    else:
+        initial_x = -73.24
+    if hasattr(settings, 'INITIAL_Y'):
+        initial_y = settings.INITIAL_Y
+    else:
+        initial_y = 38.93
+    if hasattr(settings, 'INITIAL_Z'):
+        initial_z = settings.INITIAL_Z
+    else:
+        initial_z = 7
+    if hasattr(settings, 'INITIAL_BASEMAP'):
+        initial_basemap = settings.INITIAL_BASEMAP
+    else:
+        initial_basemap = "Ocean"
+
+    context = {
+        'MEDIA_URL': settings.MEDIA_URL,
+        'SOCKET_URL': socket_url,
+        'login': 'true',
+        'disclaimer': disclaimer_content,
+        'initial_x': initial_x,
+        'initial_y': initial_y,
+        'initial_z': initial_z,
+    }
 
     if request.user.is_authenticated:
         context['session'] = request.session._session_key
