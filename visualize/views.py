@@ -78,6 +78,7 @@ def show_planner(request, template=settings.VISUALIZE_PLANNER_TEMPLATE):
         'initial_x': initial_x,
         'initial_y': initial_y,
         'initial_z': initial_z,
+        'SEARCH_DISABLED': settings.SEARCH_DISABLED
     }
 
     if request.user.is_authenticated:
