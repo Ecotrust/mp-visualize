@@ -15,7 +15,7 @@ from data_manager.models import *
 from django.views.decorators.csrf import csrf_exempt
 from django.http.response import JsonResponse
 
-def show_planner(request, template=settings.VISUALIZE_PLANNER_TEMPLATE):
+def show_planner(request, template=settings.VISUALIZE_PLANNER_TEMPLATE, render_response=True):
     try:
         socket_url = settings.SOCKET_URL
     except AttributeError:
@@ -84,7 +84,14 @@ def show_planner(request, template=settings.VISUALIZE_PLANNER_TEMPLATE):
     if request.user.is_authenticated:
         context['session'] = request.session._session_key
 
-    return render(request, template, context)
+    if render_response:
+        return render(request, template, context)
+    else:
+        return {
+            'request': request,
+            'template': template,
+            'context': context
+        }
 
 def show_embedded_map(request, template='visualize/map.html'):
     context = {'MEDIA_URL': settings.MEDIA_URL}
