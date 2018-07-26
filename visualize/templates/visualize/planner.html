@@ -32,7 +32,9 @@
     {% endif %}
 
     <div class="container-fluid" id="primary-content">
+    {% block primary_content_start %}
         <div id="fullscreen">
+    {% endblock %}
             <div id="map-wrapper">
                 <div id="map" click="click: outsideSubLayer"></div>
                 <div id="map-controls"> <!-- Basemaps, Legends, Layers, Bookmarks, and FullScreen buttons -->
@@ -327,6 +329,7 @@
                 </div>
             </div>
             <span class="timestamp" data-bind="visible: mapTitle"><span data-bind="text: new Date().toString('M/d/yyyy HH:mm')"></span></span>
+        {% block primary_content_end %}
         </div>
 
         <!-- transparency tool -->
@@ -341,6 +344,8 @@
         </div>
 
         {% include "visualize/bookmarks.html" %}
+        {% endblock %}
+        
     </div>
 {% endblock %}
 
