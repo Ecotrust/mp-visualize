@@ -85,9 +85,15 @@ app.init();
 app.map.setCenter(new OpenLayers.LonLat(initial_x, initial_y).transform(
 new OpenLayers.Projection("EPSG:4326"), new OpenLayers.Projection("EPSG:900913")), initial_z);
 
+get_layerswitcher_id = function() {
+  return $("[id^=SimpleLayerSwitcher_]")[0].id.split('_').slice(0,2).join('_');
+}
+
 $(document).ready(function() {
   app.onResize();
   $(window).resize(app.onResize);
+
+  app.map.layerswitcher_id = get_layerswitcher_id();
 
   //Do not display any warning for missing tiles
   OpenLayers.Util.onImageLoadError = function(){
@@ -139,27 +145,27 @@ $(document).ready(function() {
     } else if ( $(e.relatedTarget).hasClass('basey') ) { //handler for ff
         $('#basemaps').addClass('open');
     } else {
-        $('#SimpleLayerSwitcher_29').hide();
+        $('#' + app.map.layerswitcher_id).hide();
     }
   });
 
   //hide basemaps drop-down on mouseout
-  $('#SimpleLayerSwitcher_29').mouseleave( function() {
-    $('#SimpleLayerSwitcher_29').hide();
+  $('#' + app.map.layerswitcher_id).mouseleave( function() {
+    $('#' + app.map.layerswitcher_id).hide();
     // if (app.mafmc || !app.pageguide.preventBasemapsClose) {
     //     $('#basemaps').removeClass('open');
     // }
   });
 
   //hide basemaps drop-down on mouseout
-  $('#SimpleLayerSwitcher_29').mousedown( function() {
+  $('#' + app.map.layerswitcher_id).mousedown( function() {
     // if (app.mafmc || !app.pageguide.preventBasemapsClose) {
     //     $('#basemaps').removeClass('open');
     // }
   });
 
   //hide basemaps drop-down on mouseout
-  $('#SimpleLayerSwitcher_29').mouseenter( function() {
+  $('#' + app.map.layerswitcher_id).mouseenter( function() {
     //$('#basemaps').addClass('open');
   });
 
@@ -404,7 +410,7 @@ $(document).mousedown(function(e) {
     return;
 
   //ensure layer switcher is removed
-  $('#SimpleLayerSwitcher_29').hide();
+  $('#' + app.map.layerswitcher_id).hide();
 
   //removing layer tooltip popover from view
   var layer_pvr_event = $(e.target).closest(".layer-popover").length;

@@ -687,7 +687,7 @@ function layerModel(options, parent) {
             self.showSublayers(false);
             return false;
         }
-        
+
         self.showSublayers(true);
 
         var layer = this,
@@ -1444,7 +1444,7 @@ function viewModel() {
 
     //show/hide the list of basemaps
     self.showBasemaps = function(self, event) {
-        var $layerSwitcher = $('#SimpleLayerSwitcher_29'),
+        var $layerSwitcher = $('#' + app.map.layerswitcher_id),
             $button = $('#basemaps'); //$(event.target).closest('.btn');
         if ($layerSwitcher.is(":visible")) {
             $layerSwitcher.hide();
@@ -1453,7 +1453,7 @@ function viewModel() {
         }
     };
     self.showMAFMCBasemaps = function(self) {
-        var $layerSwitcher = $('#SimpleLayerSwitcher_29');
+        var $layerSwitcher = $('#' + app.map.layerswitcher_id);
         $layerSwitcher.css({ "bottom": "42px", "right": "12px", "width": "138px" });
         setTimeout( function() {
             $layerSwitcher.slideDown(150);
