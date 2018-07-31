@@ -979,7 +979,9 @@ function themeModel(options) {
 
     //theme tracking Google Analytics
     self.trackTheme = function(action) {
+      if (typeof ga != 'undefined') {
         ga('send', 'event', 'Themes Activated', action);
+      }
     };
 
     //add to open themes
