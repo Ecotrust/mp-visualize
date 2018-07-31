@@ -218,13 +218,13 @@
                                                 <div class="accordion" data-bind="foreach: themes">
                                                     <!-- ko ifnot: isCompanionTheme() -->
                                                     <div class="accordion-group">
-                                                        <div class="accordion-heading" data-bind="click: setOpenTheme, css: { 'active': isOpenTheme() }">
+                                                        <div class="accordion-heading" data-bind="click: setOpenTheme, css: { 'active': isOpenTheme() }, attr: { id: 'theme_'+id}">
                                                             <div>
                                                                 <a class="accordion-toggle">
                                                                     <span data-bind="text: name">Themes</span></a>
                                                             </div>
                                                         </div>
-                                                        <div class="accordion-body collapse" data-bind="css: { 'in': isOpenTheme() }">
+                                                        <div class="accordion-body collapse" data-bind="css: { 'in': isOpenTheme() }, attr: { id: 'theme_'+id+'_layers'}">
                                                             <div class="accordion-inner">
                                                                 <!-- ko if: isMarineLife() -->
                                                                 <img src="/static/visualize/img/mdat-ajax.gif"
@@ -399,7 +399,7 @@
     {% block custom_marco_ol3 %}
     <script src="{% static 'js/lib/openlayers/OpenLayers-marco-min.js' %}"></script>
     {% endblock %}
-    
+
     {% block map_settings %}
     <script src="{% static 'visualize/js/' %}{{ MAP_TECH }}_settings.js"></script>
     {% endblock %}
