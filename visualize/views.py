@@ -15,7 +15,12 @@ from data_manager.models import *
 from django.views.decorators.csrf import csrf_exempt
 from django.http.response import JsonResponse
 
-def show_planner(request, template=settings.VISUALIZE_PLANNER_TEMPLATE, render_response=True):
+def show_planner(request, template=None, render_response=True):
+    if not template:
+        if hasattr(settings, 'VISUALIZE_PLANNER_TEMPLATE'):
+            template = settings.VISUALIZE_PLANNER_TEMPLATE
+        else:
+            template = 'visualize/planner.html'
     try:
         socket_url = settings.SOCKET_URL
     except AttributeError:
