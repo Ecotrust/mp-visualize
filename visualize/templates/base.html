@@ -7,12 +7,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <title>{% block title %}{% if self.seo_title %}{{ self.seo_title }}{% else %}{{ self.title }}{% endif %}{% endblock %}{% block title_suffix %}{% endblock %}</title>
     {% block site_style %}
-      <link rel="shortcut icon" href="{% static 'favicon.ico?v=1' %}" />
+      <!-- <link rel="shortcut icon" href="{% static 'favicon.ico?v=1' %}" /> -->
       {% compress css %}
         <link rel="stylesheet" type="text/x-scss" href="{% static 'mp_site.scss' %}" />
       {% endcompress %}
       <link rel="stylesheet" href="{% static 'bower_components/font-awesome/css/font-awesome.min.css' %}">
-      <link rel="stylesheet" href="{% static 'icomoon/style.css' %}">
+      <!-- <link rel="stylesheet" href="{% static 'icomoon/style.css' %}"> -->
     {% endblock site_style %}
     {% block extra_css %}{% endblock %}
     <script type="text/javascript">
