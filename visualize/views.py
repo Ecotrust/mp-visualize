@@ -81,6 +81,12 @@ def show_planner(request, template=settings.VISUALIZE_PLANNER_TEMPLATE, render_r
         'SEARCH_DISABLED': settings.SEARCH_DISABLED
     }
 
+    if hasattr(settings, 'MAP_TECH'):
+        context['MAP_TECH'] = settings.MAP_TECH
+    else:
+        context['MAP_TECH'] = 'ol2'
+
+
     if request.user.is_authenticated:
         context['session'] = request.session._session_key
 

@@ -24,157 +24,10 @@ app.init = function () {
 
     }));
 
-    esriOcean = new OpenLayers.Layer.XYZ("Ocean", "http://services.arcgisonline.com/ArcGIS/rest/services/Ocean_Basemap/MapServer/tile/${z}/${y}/${x}", {
-        sphericalMercator: true,
-        isBaseLayer: true,
-        numZoomLevels: 13,
-        attribution: "Sources: Esri, GEBCO, NOAA, National Geographic, DeLorme, NAVTEQ, Geonames.org, and others",
-        textColor: "black"
-    });
 
-    openStreetMap = new OpenLayers.Layer.OSM("Open Street Map", "http://a.tile.openstreetmap.org/${z}/${x}/${y}.png", {
-        sphericalMercator: true,
-        isBaseLayer: true,
-        numZoomLevels: 13,
-        visibility: false,
-        textColor: "black"
-    });
-    googleStreet = new OpenLayers.Layer.Google("Streets", {
-        sphericalMercator: true,
-        isBaseLayer: true,
-        numZoomLevels: 13,
-        visibility: false,
-        textColor: "black"
-    });
-    googleTerrain = new OpenLayers.Layer.Google("Physical", {
-        type: google.maps.MapTypeId.TERRAIN,
-        sphericalMercator: true,
-        isBaseLayer: true,
-        numZoomLevels: 13,
-        visibility: false,
-        textColor: "black"
-    });
-    googleSatellite = new OpenLayers.Layer.Google("Satellite", {
-        type: google.maps.MapTypeId.SATELLITE,
-        sphericalMercator: true,
-        isBaseLayer: true,
-        numZoomLevels: 13,
-        visibility: false,
-        textColor: "white"
-    });
-
-
-        openStreetMap = new OpenLayers.Layer.OSM(
-            "Open Street Map",
-            [
-              "http://a.tile.openstreetmap.org/${z}/${x}/${y}.png",
-              "http://b.tile.openstreetmap.org/${z}/${x}/${y}.png",
-              "http://c.tile.openstreetmap.org/${z}/${x}/${y}.png"
-            ],
-            {
-                sphericalMercator: true,
-                isBaseLayer: true,
-                textColor: "black",
-                numZoomLevels: 20,
-                minZoomLevel: 0,
-                maxZoomLevel: 19
-            });
-
-        mapboxKey = 'create new key at mapbox.com'
-        MapBoxHybrid = new OpenLayers.Layer.XYZ(
-          "Hybrid",
-          [
-            "http://a.tiles.mapbox.com/v4/mapbox.streets-satellite/${z}/${x}/${y}@2x.png?access_token=" + mapboxKey,
-            "http://b.tiles.mapbox.com/v4/mapbox.streets-satellite/${z}/${x}/${y}@2x.png?access_token=" + mapboxKey,
-            "http://c.tiles.mapbox.com/v4/mapbox.streets-satellite/${z}/${x}/${y}@2x.png?access_token=" + mapboxKey,
-            "http://d.tiles.mapbox.com/v4/mapbox.streets-satellite/${z}/${x}/${y}@2x.png?access_token=" + mapboxKey
-          ], {
-              attribution: "<div style='background-color:#CCC; padding: 3px 8px; margin-bottom: 2px;'>Tiles &copy; <a href='http://mapbox.com/'>MapBox</a></div>",
-              sphericalMercator: true,
-              wrapDateLine: true,
-              textColor: "white",
-              numZoomLevels: 20,
-          });
-
-        MapBoxSat = new OpenLayers.Layer.XYZ(
-          "Satellite",
-          [
-            "http://a.tiles.mapbox.com/v4/mapbox.satellite/${z}/${x}/${y}@2x.png?access_token=" + mapboxKey,
-            "http://b.tiles.mapbox.com/v4/mapbox.satellite/${z}/${x}/${y}@2x.png?access_token=" + mapboxKey,
-            "http://c.tiles.mapbox.com/v4/mapbox.satellite/${z}/${x}/${y}@2x.png?access_token=" + mapboxKey,
-            "http://d.tiles.mapbox.com/v4/mapbox.satellite/${z}/${x}/${y}@2x.png?access_token=" + mapboxKey
-          ], {
-              attribution: "<div style='background-color:#CCC; padding: 3px 8px; margin-bottom: 2px;'>Tiles &copy; <a href='http://mapbox.com/'>MapBox</a></div>",
-              sphericalMercator: true,
-              wrapDateLine: true,
-              textColor: "white",
-              numZoomLevels: 20
-          });
-
-        ESRITopo = new OpenLayers.Layer.XYZ(
-          "Terrain",
-          "http://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/${z}/${y}/${x}",
-          {
-              sphericalMercator: true,
-              textColor: "black",
-              numZoomLevels: 20,
-              wrapDateLine: true,
-              attribution: "<div style='background-color:#CCC; padding: 3px 8px; margin-bottom: 2px;'>Basemap by ESRI, USGS</div>"
-          }
-        );
-
-    /*var bingHybrid = new OpenLayers.Layer.Bing( {
-        name: "Bing Hybrid",
-        key: "AvD-cuulbvBqwFDQGNB1gCXDEH4S6sEkS7Yw9r79gOyCvd2hBvQYPaRBem8cpkjv",
-        type: "AerialWithLabels",
-        sphericalMercator: true,
-        isBaseLayer: true,
-        numZoomLevels: 13
-    });*/
-
-    // need api key from http://bingmapsportal.com/
-    /*var bingHybrid = new OpenLayers.Layer.Bing({
-        name: "Bing Hybrid",
-        key: "AvD-cuulbvBqwFDQGNB1gCXDEH4S6sEkS7Yw9r79gOyCvd2hBvQYPaRBem8cpkjv",
-        type: "AerialWithLabels"
-    });*/
-
-    nauticalCharts = new OpenLayers.Layer.ArcGIS93Rest("Nautical Charts", "http://seamlessrnc.nauticalcharts.noaa.gov/arcgis/rest/services/RNC/NOAA_RNC/ImageServer/exportImage",
-        {
-            layers: 'null'
-        },
-        {
-            isBaseLayer: true,
-            numZoomLevels: 13,
-            projection: "EPSG:3857",
-            visibility: false,
-            textColor: "black"
-        }
-    );
-    // nauticalCharts = new OpenLayers.Layer.TMS("Nautical Charts", ["http://c3429629.r29.cf0.rackcdn.com/stache/NETiles_layer/"],
-    //     {
-    //         buffer: 1,
-    //         'isBaseLayer': true,
-    //         'sphericalMercator': true,
-    //         getURL: function (bounds) {
-    //             var z = map.getZoom();
-    //             var url = this.url;
-    //             var path = 'blank.png' ;
-    //             if ( z <= 13 && z >= 0 ) {
-    //                 var res = map.getResolution();
-    //                 var x = Math.round((bounds.left - this.maxExtent.left) / (res * this.tileSize.w));
-    //                 var y = Math.round((this.maxExtent.top - bounds.top) / (res * this.tileSize.h));
-    //                 var limit = Math.pow(2, z);
-    //                 var path = (z) + "/" + x + "/" + y + ".png";
-    //             }
-    //             tilepath = url + path;
-    //             return url + path;
-    //         }
-    //     }
-    // );
 
     // app.map.addLayers([MapBoxHybrid, openStreetMap, ESRITopo, MapBoxSat]);
-    map.addLayers([esriOcean, openStreetMap, googleStreet, ESRITopo, googleSatellite, nauticalCharts]);
+    map.addLayers(app_settings.baselayers);
 
     map.addControl(new SimpleLayerSwitcher());
 
@@ -200,13 +53,13 @@ app.init = function () {
         if (map.zoomBox.active) {
             app.viewModel.deactivateZoomBox();
         }
-        if( map.getZoom() < 5)
+        if( map.getZoom() < app_settings.minzoom)
         {
-            map.zoomTo(5);
+            map.zoomTo(app_settings.minzoom);
         }
-        if (map.getZoom() > 13)
+        if (map.getZoom() > app_settings.maxzoom)
         {
-            map.zoomTo(13);
+            map.zoomTo(app_settings.maxzoom);
         }
         app.viewModel.zoomLevel(map.getZoom());
         /*if ( app.viewModel.activeLayers().length ) {

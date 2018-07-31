@@ -345,9 +345,10 @@
 
         {% include "visualize/bookmarks.html" %}
         {% endblock %}
-        
+
     </div>
 {% endblock %}
+
 
 {% block extra_js %}
     <script>
@@ -397,6 +398,10 @@
 
     {% block custom_marco_ol3 %}
     <script src="{% static 'js/lib/openlayers/OpenLayers-marco-min.js' %}"></script>
+    {% endblock %}
+    
+    {% block map_settings %}
+    <script src="{% static 'visualize/js/' %}{{ MAP_TECH }}_settings.js"></script>
     {% endblock %}
 
     {% block mp_js %}
