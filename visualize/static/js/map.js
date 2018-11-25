@@ -27,7 +27,10 @@ app.init = function () {
 
 
     // app.map.addLayers([MapBoxHybrid, openStreetMap, ESRITopo, MapBoxSat]);
-    map.addLayers(app_settings.baselayers);
+    // RDH: ol4_settings no longer has app_settings defined. We should create a better solution for this file in the future.
+    if (typeof app_settings !== "undefined") {
+      map.addLayers(app_settings.baselayers);
+    }
 
     map.addControl(new SimpleLayerSwitcher());
 
@@ -53,13 +56,15 @@ app.init = function () {
         if (map.zoomBox.active) {
             app.viewModel.deactivateZoomBox();
         }
-        if( map.getZoom() < app_settings.minzoom)
-        {
+        if (typeof app_settings !== "undefined") {
+          if( map.getZoom() < app_settings.minzoom)
+          {
             map.zoomTo(app_settings.minzoom);
-        }
-        if (map.getZoom() > app_settings.maxzoom)
-        {
+          }
+          if (map.getZoom() > app_settings.maxzoom)
+          {
             map.zoomTo(app_settings.maxzoom);
+          }
         }
         app.viewModel.zoomLevel(map.getZoom());
         /*if ( app.viewModel.activeLayers().length ) {
