@@ -1,15 +1,18 @@
-class madronaMap extends ol.Map {
-  // getLayers() {
-  //   var getLayers = ol.Map.prototype.getLayers.call(this).getArray();
-  //   getLayers.getArray = function(){
-  //     ol.Map.prototype.getLayers.call(this).getArray();
-  //   }
-  //   // return ol.Map.prototype.getLayers.call(this).getArray();
-  //   return getLayers;
-  // }
-  zoomToExtent(extent) {
-    ol.Map.prototype.getView.call(this).fit(extent, {duration: 1500});
-  }
+// class madronaMap extends ol.Map {
+//   // getLayers() {
+//   //   var getLayers = ol.Map.prototype.getLayers.call(this).getArray();
+//   //   getLayers.getArray = function(){
+//   //     ol.Map.prototype.getLayers.call(this).getArray();
+//   //   }
+//   //   // return ol.Map.prototype.getLayers.call(this).getArray();
+//   //   return getLayers;
+//   // }
+//   zoomToExtent(extent) {
+//     ol.Map.prototype.getView.call(this).fit(extent, {duration: 1500});
+//   }
+// }
+ol.Map.zoomToExtent = function(extent) {
+  ol.Map.prototype.getView.call(this).fit(extent, {duration: 1500});
 }
 
 app.setLayerZIndex = function(layer, index) {
@@ -31,7 +34,10 @@ app.updateUrl = function () {
 
 var mapSettings = {
   getInitMap: function() {
-    map = new madronaMap({
+    // ol.Map.zoomToExtent = function(extent) {
+    //   ol.Map.prototype.getView.call(this).fit(extent, {duration: 1500});
+    // }
+    map = new ol.Map({
       target: 'map',
       layers: [
         new ol.layer.Group({
@@ -118,15 +124,21 @@ var mapSettings = {
         $(element).popover('dispose');
         // $(app.map.popup).popover('hide');
         app.map.popup.setPosition(coordinate);
-        let markup = '';
+        var markup = '';
         featureCount = 0;
         map.forEachFeatureAtPixel(evt.pixel, function(feature) {
           featureCount += 1;
           console.log('feature: ' + featureCount);
-          markup += `${markup && '<hr>'}<table>`;
-          const properties = feature.getProperties();
-          for (const property in properties) {
-            markup += `<tr><th>${property}</th><td>${properties[property]}</td></tr>`;
+          if (markup) {
+            markup += '<hr><table>';
+          } else {
+            markup = '<table>';
+          }
+          properties = feature.getProperties();
+          // for (const property in properties) {
+          for (var i = 0; i < properties.length; i++) {
+            var property = properties[i];
+            markup += '<tr><th>' + property + '</th><td>' + properties[property] + '</td></tr>';
           }
           markup += '</table>';
         }, {hitTolerance: 1});
