@@ -52,7 +52,7 @@ var mapSettings = {
             new ol.layer.Tile({
               title: 'ESRI Topo',
               source: new ol.source.XYZ({
-                url: 'http://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}.png'
+                url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}.png'
               }),
               name: 'OSM Base Layer',
               type: 'base'

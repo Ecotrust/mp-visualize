@@ -1075,7 +1075,7 @@ function mapLinksModel() {
 
     self.getURL = function() {
         //return window.location.href;
-        return 'http://portal.midatlanticocean.org' + app.viewModel.currentURL();
+        return 'https://portal.midatlanticocean.org' + app.viewModel.currentURL();
     };
 
     self.shrinkURL = ko.observable();
@@ -1130,7 +1130,7 @@ function mapLinksModel() {
             urlHash = '#' + bookmarkState;
         }
         if ( !urlOrigin ) {
-            urlOrigin = 'http://' + window.location.host;
+            urlOrigin = window.location.protocol + '//' + window.location.host;
         }
         var embedURL = urlOrigin + '/embed/map/' + urlHash;
         //console.log(embedURL);
@@ -1146,7 +1146,7 @@ function mapLinksModel() {
             mapWindow = window.open('', windowName, windowSize);
         var urlOrigin = window.location.origin;
         if ( !urlOrigin ) {
-            urlOrigin = 'http://' + window.location.host;
+            urlOrigin = window.location.protocol + '//' + window.location.host;
         }
         var header = '<a href="/visualize"><img src="'+urlOrigin+'/media/marco/img/marco-logo_planner.jpg" style="border: 0px;"/></a>';
         var iframeID = '';

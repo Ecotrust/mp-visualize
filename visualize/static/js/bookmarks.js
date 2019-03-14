@@ -5,7 +5,7 @@ function bookmarkModel(options) {
     self.uid = options.uid;
     self.name = options.name;
     self.state = options.state || null;
-    
+
     self.shared = ko.observable();
     self.sharedByName = options.sharedByName || null;
     self.sharedByUser = options.sharedByUser;
@@ -26,14 +26,14 @@ function bookmarkModel(options) {
         self.shared(false);
         self.sharedBy(false);
     }
-    
+
     self.selectedGroups = ko.observableArray();
     self.sharedGroupsList = [];
     if (options.sharingGroups && options.sharingGroups.length) {
         self.selectedGroups(options.sharingGroups);
-    } 
+    }
     self.temporarilySelectedGroups = ko.observableArray();
-    
+
     // load state from bookmark
     self.loadBookmark = function() {
         app.saveStateMode = false;
@@ -44,7 +44,7 @@ function bookmarkModel(options) {
         // show the alert for resting state
         app.viewModel.error("restoreState");
     };
-    
+
     self.showSharingModal = function() {
         // app.viewModel.bookmarks.sharingBookmark(app.viewModel.bookmarks.activeBookmark);
         app.viewModel.bookmarks.sharingBookmark(self);
@@ -54,62 +54,62 @@ function bookmarkModel(options) {
         }
         $('#bookmark-share-modal').modal('show');
     };
-    
+
     /** Return true if this bookmark is shared with the specified groupName
      */
     self.sharedWithGroup = function(groupName) {
-        return self.selectedGroups.indexOf(groupName) != -1; 
+        return self.selectedGroups.indexOf(groupName) != -1;
     }
-    
+
     // get the url from a bookmark
     self.getBookmarkUrl = function() {
         var host = window.location.href.split('#')[0];
         return host + "#" + self.getBookmarkHash();
         //return host + "#" + self.state;
     };
-    
+
     self.getBookmarkState = function() {
         return self.state;
     };
-    
+
     self.getBookmarkHash = function() {
         return $.param(self.getBookmarkState());
     };
-    
+
     return self;
 } // end of bookmarkModel
 
 function bookmarksModel(options) {
     var self = this;
-    
+
     // list of bookmarks
     self.bookmarksList = ko.observableArray();
-    
+
     self.activeBookmark = ko.observable();
-    
+
     // current bookmark for sharing modal or map links modal
     self.sharingBookmark = ko.observable();
-    
+
     // groups a bookmark may be shared with
     self.sharingGroups = ko.observableArray();
-    
+
     // name of newly created bookmark
     self.newBookmarkName = ko.observable();
 
     // check for duplicate naming
     self.duplicateBookmark = ko.observable(false);
-        
+
     self.toggleGroup = function(obj) {
         var groupName = obj.group_name,
             indexOf = self.sharingBookmark().temporarilySelectedGroups.indexOf(groupName);
-    
+
         if ( indexOf === -1 ) {  //add group to list
             self.sharingBookmark().temporarilySelectedGroups.push(groupName);
         } else { //remove group from list
             self.sharingBookmark().temporarilySelectedGroups.splice(indexOf, 1);
         }
     };
-    
+
     self.groupIsSelected = function(groupName) {
         if (!self.sharingBookmark()) {
             return false;
@@ -117,7 +117,7 @@ function bookmarksModel(options) {
         var indexOf = self.sharingBookmark().temporarilySelectedGroups.indexOf(groupName);
         return indexOf !== -1;
     };
-    
+
     self.groupMembers = function(groupName) {
         var memberList = "";
         for (var i=0; i<self.sharingGroups().length; i++) {
@@ -131,7 +131,7 @@ function bookmarksModel(options) {
         }
         return memberList;
     };
-          
+
     self.getCurrentBookmarkURL = function() {
         if ( self.sharingBookmark() ) {
             self.shrinkBookmarkURL(true);
@@ -141,7 +141,7 @@ function bookmarksModel(options) {
             return '';
         }
     };
-    
+
     self.shrinkBookmarkURL = ko.observable(true);
     self.shrinkBookmarkURL.subscribe( function() {
         if (self.shrinkBookmarkURL()) {
@@ -150,7 +150,7 @@ function bookmarksModel(options) {
             self.useLongBookmarkURL();
         }
     });
-    
+
     self.resetBookmarkMapLinks = function(bookmark) {
         self.sharingBookmark(bookmark);
         self.shrinkBookmarkURL(true);
@@ -197,7 +197,7 @@ function bookmarksModel(options) {
             urlHash = $.param(self.sharingBookmark().state);
 
         if ( !urlOrigin ) {
-            urlOrigin = 'http://' + window.location.host;
+            urlOrigin = window.location.protocol + '//' + window.location.host;
         }
         var embedURL = urlOrigin + '/embed/map/#' + urlHash
         $('#bookmark-iframe-html')[0].value = '<iframe width="600" height="450" frameborder="0" scrolling="no" marginheight="0" marginwidth="0" ' +
@@ -212,7 +212,7 @@ function bookmarksModel(options) {
 
         var urlOrigin = window.location.origin;
         if ( !urlOrigin ) {
-            urlOrigin = 'http://' + window.location.host;
+            urlOrigin = window.location.protocol + '//' + window.location.host;
         }
         var header = '<a href="/visualize"><img src="'+urlOrigin+'/media/marco/img/marco-logo_planner.jpg" style="border: 0px;"/></a>';
         var iframeID = '#iframe-html';
@@ -228,7 +228,7 @@ function bookmarksModel(options) {
             mapWindow = window.open('', windowName, windowSize);
         var urlOrigin = window.location.origin;
         if ( !urlOrigin ) {
-            urlOrigin = 'http://' + window.location.host;
+            urlOrigin = window.location.protocol + '//' + window.location.host;
         }
         var header = '<header role="banner"><div class="navbar navbar-fixed-top"><div class="navbar-inner"><div class="container-fluid"><div class="row-fluid"><div class="span12"><a href="/visualize"><img src="'+urlOrigin+'/media/marco/img/marco-logo_planner.jpg"/></a><h3 class="pull-right" data-bind="visible: mapTitle, text: mapTitle"></h3></div></div></div></div></div></header>';
         mapWindow.document.write('<html><body>' + header + $('#bookmark-iframe-html')[0].value + '</body></html>');
@@ -243,12 +243,12 @@ function bookmarksModel(options) {
 
     // handle the bookmark submit
     self.addBookmark = function(name) {
-        $.jsonrpc('add_bookmark', 
+        $.jsonrpc('add_bookmark',
                   [name,
                    window.location.hash.slice(1)], // TODO: self.get_location()
                   {complete: self.getBookmarks});
     }
-    
+
     // get bookmark sharing groups for this user
     self.getSharingGroups = function() {
         // borrow groups from the scenarios model instead of fetching them again
@@ -266,7 +266,7 @@ function bookmarksModel(options) {
         }
         amplify.store("marco-bookmarks", ownedBookmarks);
     };
-    
+
     // method for loading existing bookmarks
     self.getBookmarks = function() {
         //get bookmarks from local storage
@@ -282,9 +282,9 @@ function bookmarksModel(options) {
                 });
             }
         }
-        
-        // load bookmarks from server while syncing with client 
-        //if the user is logged in, ajax call to sync bookmarks with server 
+
+        // load bookmarks from server while syncing with client
+        //if the user is logged in, ajax call to sync bookmarks with server
         $.jsonrpc('get_bookmarks', [], {
             success: function(result) {
                 var bookmarks = result || [];
@@ -299,7 +299,7 @@ function bookmarksModel(options) {
                         sharedByName: bookmarks[i].shared_by_name,
                         sharingGroups: bookmarks[i].sharing_groups,
                         sharedToGroups: bookmarks[i].shared_to_groups
-                    });   
+                    });
                     blist.push(bookmark);
                 }
 
@@ -310,7 +310,7 @@ function bookmarksModel(options) {
                       if (!b.name) return 0;
 
                       a = (a.name || '').toLowerCase();
-                      b = (b.name || '').toLowerCase(); 
+                      b = (b.name || '').toLowerCase();
 
                       return (a > b) ? 1 : ((a < b) ? -1 : 0);
                     });
@@ -318,21 +318,21 @@ function bookmarksModel(options) {
                 self.bookmarksList(blist);
             },
             error: function(result) {
-                
+
             }
         });
 
         self.getSharingGroups();
     };
-    
+
     //sharing bookmark
     self.submitShare = function() {
         self.sharingBookmark().selectedGroups(self.sharingBookmark().temporarilySelectedGroups());
-        var data = { 'bookmark': self.sharingBookmark().uid, 
+        var data = { 'bookmark': self.sharingBookmark().uid,
         'groups': self.sharingBookmark().selectedGroups() };
 
-        $.jsonrpc('share_bookmark', 
-                  [self.sharingBookmark().uid, 
+        $.jsonrpc('share_bookmark',
+                  [self.sharingBookmark().uid,
                    self.sharingBookmark().selectedGroups()],
                   {complete: self.getBookmarks});
     };

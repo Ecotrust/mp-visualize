@@ -1,6 +1,6 @@
 app_settings = {};
 
-esriOcean = new OpenLayers.Layer.XYZ("Ocean", "http://services.arcgisonline.com/ArcGIS/rest/services/Ocean_Basemap/MapServer/tile/${z}/${y}/${x}", {
+esriOcean = new OpenLayers.Layer.XYZ("Ocean", "https://services.arcgisonline.com/ArcGIS/rest/services/Ocean_Basemap/MapServer/tile/${z}/${y}/${x}", {
     sphericalMercator: true,
     isBaseLayer: true,
     numZoomLevels: 13,
@@ -8,7 +8,7 @@ esriOcean = new OpenLayers.Layer.XYZ("Ocean", "http://services.arcgisonline.com/
     textColor: "black"
 });
 
-openStreetMap = new OpenLayers.Layer.OSM("Open Street Map", "http://a.tile.openstreetmap.org/${z}/${x}/${y}.png", {
+openStreetMap = new OpenLayers.Layer.OSM("Open Street Map", "https://a.tile.openstreetmap.org/${z}/${x}/${y}.png", {
     sphericalMercator: true,
     isBaseLayer: true,
     numZoomLevels: 13,
@@ -43,9 +43,9 @@ googleSatellite = new OpenLayers.Layer.Google("Satellite", {
     openStreetMap = new OpenLayers.Layer.OSM(
     "Open Street Map",
     [
-      "http://a.tile.openstreetmap.org/${z}/${x}/${y}.png",
-      "http://b.tile.openstreetmap.org/${z}/${x}/${y}.png",
-      "http://c.tile.openstreetmap.org/${z}/${x}/${y}.png"
+      "https://a.tile.openstreetmap.org/${z}/${x}/${y}.png",
+      "https://b.tile.openstreetmap.org/${z}/${x}/${y}.png",
+      "https://c.tile.openstreetmap.org/${z}/${x}/${y}.png"
     ],
     {
         sphericalMercator: true,
@@ -60,12 +60,12 @@ mapboxKey = 'create new key at mapbox.com'
 MapBoxHybrid = new OpenLayers.Layer.XYZ(
   "Hybrid",
   [
-    "http://a.tiles.mapbox.com/v4/mapbox.streets-satellite/${z}/${x}/${y}@2x.png?access_token=" + mapboxKey,
-    "http://b.tiles.mapbox.com/v4/mapbox.streets-satellite/${z}/${x}/${y}@2x.png?access_token=" + mapboxKey,
-    "http://c.tiles.mapbox.com/v4/mapbox.streets-satellite/${z}/${x}/${y}@2x.png?access_token=" + mapboxKey,
-    "http://d.tiles.mapbox.com/v4/mapbox.streets-satellite/${z}/${x}/${y}@2x.png?access_token=" + mapboxKey
+    "https://a.tiles.mapbox.com/v4/mapbox.streets-satellite/${z}/${x}/${y}@2x.png?access_token=" + mapboxKey,
+    "https://b.tiles.mapbox.com/v4/mapbox.streets-satellite/${z}/${x}/${y}@2x.png?access_token=" + mapboxKey,
+    "https://c.tiles.mapbox.com/v4/mapbox.streets-satellite/${z}/${x}/${y}@2x.png?access_token=" + mapboxKey,
+    "https://d.tiles.mapbox.com/v4/mapbox.streets-satellite/${z}/${x}/${y}@2x.png?access_token=" + mapboxKey
   ], {
-      attribution: "<div style='background-color:#CCC; padding: 3px 8px; margin-bottom: 2px;'>Tiles &copy; <a href='http://mapbox.com/'>MapBox</a></div>",
+      attribution: "<div style='background-color:#CCC; padding: 3px 8px; margin-bottom: 2px;'>Tiles &copy; <a href='https://mapbox.com/'>MapBox</a></div>",
       sphericalMercator: true,
       wrapDateLine: true,
       textColor: "white",
@@ -75,12 +75,12 @@ MapBoxHybrid = new OpenLayers.Layer.XYZ(
 MapBoxSat = new OpenLayers.Layer.XYZ(
   "Satellite",
   [
-    "http://a.tiles.mapbox.com/v4/mapbox.satellite/${z}/${x}/${y}@2x.png?access_token=" + mapboxKey,
-    "http://b.tiles.mapbox.com/v4/mapbox.satellite/${z}/${x}/${y}@2x.png?access_token=" + mapboxKey,
-    "http://c.tiles.mapbox.com/v4/mapbox.satellite/${z}/${x}/${y}@2x.png?access_token=" + mapboxKey,
-    "http://d.tiles.mapbox.com/v4/mapbox.satellite/${z}/${x}/${y}@2x.png?access_token=" + mapboxKey
+    "https://a.tiles.mapbox.com/v4/mapbox.satellite/${z}/${x}/${y}@2x.png?access_token=" + mapboxKey,
+    "https://b.tiles.mapbox.com/v4/mapbox.satellite/${z}/${x}/${y}@2x.png?access_token=" + mapboxKey,
+    "https://c.tiles.mapbox.com/v4/mapbox.satellite/${z}/${x}/${y}@2x.png?access_token=" + mapboxKey,
+    "https://d.tiles.mapbox.com/v4/mapbox.satellite/${z}/${x}/${y}@2x.png?access_token=" + mapboxKey
   ], {
-      attribution: "<div style='background-color:#CCC; padding: 3px 8px; margin-bottom: 2px;'>Tiles &copy; <a href='http://mapbox.com/'>MapBox</a></div>",
+      attribution: "<div style='background-color:#CCC; padding: 3px 8px; margin-bottom: 2px;'>Tiles &copy; <a href='https://mapbox.com/'>MapBox</a></div>",
       sphericalMercator: true,
       wrapDateLine: true,
       textColor: "white",
@@ -89,7 +89,7 @@ MapBoxSat = new OpenLayers.Layer.XYZ(
 
 ESRITopo = new OpenLayers.Layer.XYZ(
   "Terrain",
-  "http://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/${z}/${y}/${x}",
+  "https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/${z}/${y}/${x}",
   {
       sphericalMercator: true,
       textColor: "black",
@@ -99,7 +99,7 @@ ESRITopo = new OpenLayers.Layer.XYZ(
   }
 );
 
-nauticalCharts = new OpenLayers.Layer.ArcGIS93Rest("Nautical Charts", "http://seamlessrnc.nauticalcharts.noaa.gov/arcgis/rest/services/RNC/NOAA_RNC/ImageServer/exportImage",
+nauticalCharts = new OpenLayers.Layer.ArcGIS93Rest("Nautical Charts", "https://seamlessrnc.nauticalcharts.noaa.gov/arcgis/rest/services/RNC/NOAA_RNC/ImageServer/exportImage",
     {
         layers: 'null'
     },
@@ -111,7 +111,7 @@ nauticalCharts = new OpenLayers.Layer.ArcGIS93Rest("Nautical Charts", "http://se
         textColor: "black"
     }
 );
-// nauticalCharts = new OpenLayers.Layer.TMS("Nautical Charts", ["http://c3429629.r29.cf0.rackcdn.com/stache/NETiles_layer/"],
+// nauticalCharts = new OpenLayers.Layer.TMS("Nautical Charts", ["https://c3429629.r29.cf0.rackcdn.com/stache/NETiles_layer/"],
 //     {
 //         buffer: 1,
 //         'isBaseLayer': true,
