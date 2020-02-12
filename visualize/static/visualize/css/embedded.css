@@ -1,0 +1,137 @@
+html {
+  height: 100%;
+}
+body {
+  margin: 0px;
+  padding: 0px;
+  height: 100%;
+}
+#primary-content {
+  height: 100%;
+  padding: 0px;
+}
+#fullscreen {
+  height: 100%;
+  margin-top: 0px;
+}
+#map-panel {
+  height: 100%;
+}
+.navbar .nav > li:hover > a, .navbar .nav > li.active > a, .navbar .nav > li:hover > a:visited {
+    height: 30px;
+}
+.navbar .nav > li > a {
+    height: 25px;
+}
+#aggregated-attribute-overlay {
+    position: absolute;
+    /*border-radius: 4px; can't tell if I want this or not...*/
+    bottom: 0;
+    left: 0;
+    top: auto;
+    height: 130px;
+    min-width: 100%;
+    max-width: 100%;
+    z-index: 950;
+    /*overflow-x: hidden;
+    overflow-y: auto;*/
+    /*overflow: auto;*/
+    font-size: 12px;
+    /* RGBa with 0.6 opacity */
+    background-color: rgba(60, 110, 160, 0.65);
+    /* For IE 5.5 - 7*/
+    filter:progid:DXImageTransform.Microsoft.gradient(startColorstr=#bb2d8998, endColorstr=#bb2d8998);
+    /* For IE 8*/
+    -ms-filter: "progid:DXImageTransform.Microsoft.gradient(startColorstr=#bb2d8998, endColorstr=#bb2d8998)";
+}
+#aggregated-attribute-content {
+    height: 110px;
+}
+#aggregated-attribute-content .mCustomScrollBox {
+    height: 110px;
+}
+#aggregated-attribute-content .mCSB_scrollTools {
+    height: 80px;
+}
+#embedded-marco-logo {
+    position: absolute;
+    top: 12px;
+    left: 53px;
+    z-index: 800;
+    width: 20%;
+    background: transparent;
+}
+#embedded-legend-button {
+    background: rgba(0, 60, 136, 0.5);
+    color: white;
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    z-index: 800;
+}
+#embedded-legend {
+    position: absolute;
+    max-width: 30%;
+    min-width: 200px;
+    max-height: 80%;
+    top: 42px;
+    right: 13px;
+    padding: 10px;
+    background-color: white;
+    border-radius: 5px;
+    z-index: 800;
+}
+.jspVerticalBar {
+    right: 21px;
+}
+.olControlZoom {
+    background: transparent !important;
+}
+.olControlZoomIn {
+    padding: 1px !important;
+}
+.olControlZoomOut {
+    padding: 1px !important;
+}
+.olControlAttribution {
+    right: 200px;
+    left: 10px !important;
+    bottom: 5px !important;
+}
+body.template-visualize #left-panel .panel-heading {
+  height: 0px !important;
+  padding: 0 !important;
+}
+body.template-visualize #left-panel .panel-body {
+  height: 100% !important;
+}
+body.template-visualize .sidebar-nav .nav-tabs {
+  border-top: none !important;
+}
+.collapse-button {
+  margin: 9px;
+}
+.navbar-toggle {
+  visibility: hidden;
+  display: none;
+}
+.navbar-header {
+  margin-left: 35% !important;
+  display: block !important;
+}
+#left-panel.collapsed {
+  height: 44px !important;
+}
+div.olControlMousePosition {
+    top: 0! important;
+    right: 0 !important;
+    left: auto !important;
+    bottom: auto !important;
+    display: block;
+    position: absolute;
+    font-family: Arial;
+    font-size: smaller;
+}
+.navbar-right {
+  display: none;
+}

@@ -1,30 +1,136 @@
+@page {
+	margin: 0.25in;
+	orientation: landscape;
+}
 
 @media print {
-	html {
+	body.template-visualize #map-wrapper {
+    height: 100%;
+    width: 100%;
+  }
+}
+
+@media print and (orientation: landscape) {
+	body.template-visualize #map-wrapper {
+    height: 8.25in !important;
+    width: 11in !important;
+  }
+}
+
+@media print and (orientation: portrait) {
+	body.template-visualize #map-wrapper {
+    height: 11in !important;
+    width: 8.5in !important;
+  }
+}
+
+@media print {
+
+	/**
+	 * css border hack for printing background color on IE and Edge
+	 */
+	body.template-visualize #left-panel div.panel-heading {
+		border: 210px solid #fff;
+		box-sizing: border-box;
 		height: 100%;
-	}
-	@page {
-		size: landscape;
-		margin: 0;
-	}
-
-	#map-wrapper {
+		left: 0;
+		padding: 0;
 		position: absolute;
-		height: 100% !important;
-		width: 100% !important;
+		top: 0;
+		width: 0;
+		z-index: -2;
 	}
 
-	#map {
-		height: 100% !important;
-		width: 100% !important;
+	body.template-visualize #left-panel .panel-heading .panel-title {
+		display: none;
 	}
-	/* override bootstrap 3 print stylesheet */
-  #map img {
-      max-width: inherit !important;
+
+	body.template-visualize #left-panel {
+		background: none !important;
+		border: none;
+		content: '';
+		overflow: hidden;
+		top: 24px !important;
+		height: auto !important;
+		max-height: none !important;
+		z-index: 9999;
   }
 
-	#left-panel,
-	.olControlScaleBar,
+  body.template-visualize #left-panel.collapsed {
+	  page-break-before: always;
+	  position: relative !important;
+  }
+
+	body.template-visualize #left-panel.collapsed .panel-body {
+		height: 100% !important;
+	}
+
+  body.template-visualize #left-panel.collapsed #data-panel {
+	  display: block !important;
+  }
+
+	body.template-visualize .sidebar-nav .nav-tabs > li.active a {
+		border-bottom: none !important;
+	}
+
+	body.template-visualize .sidebar-nav .nav-tabs li {
+		display: none;
+	}
+	body.template-visualize .sidebar-nav .nav-tabs li[data-tab=legend],
+	body.template-visualize .sidebar-nav .nav-tabs li:last-of-type {
+		display: block;
+	}
+
+	body.template-visualize .tab-content .tab-pane {
+		overflow-y: hidden;
+		overflow-x: hidden;
+	}
+
+	body.template-visualize .tab-pane {
+		display: none;
+	}
+
+	body.template-visualize .tab-content #legend {
+		display: block;
+		overflow: visible;
+		visibility: visible;
+	}
+
+	#myTab h4 {
+		font-size: 14px;
+	}
+
+	/* overwrite bootstrap print */
+	img {
+		max-width: none !important;
+	}
+
+  .olTileImage {
+    max-width: none !important;
+  }
+
+	#map .olControlAttribution {
+		font-size: 8px;
+		left: 50%;
+		text-align: center;
+		transform: translate(-120px,0);
+		width: 240px;
+	}
+
+	body.template-visualize .olControlScaleBar,
+	.olControlAttribution {
+		bottom: .5in;
+	}
+
+	.olControlScaleBarGraphics div {
+		background: #f3f3f3 !important;
+		border: 1px solid #000;
+		color: #333 !important;
+	}
+
+  .gmnoscreen,
+  .navicon,
+  #OpenLayers.Control.MousePosition_43,
 	.olControlZoom,
 	#baselayers,
 	#map-controls,
@@ -32,11 +138,11 @@
   #aggregated-attribute-content h4,
   #close-attribute-overlay,
 	#bookmark-popover,
-	#pageGuideMessage {
+	#pageGuideMessage,
+	.form-search,
+	.modal {
 		display: none;
 	}
 
-	.modal {
-		display: none !important;
-	}
+  /*.panel-open #OpenLayers\2e Map_2_OpenLayers_Container {}*/
 }

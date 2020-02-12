@@ -1,0 +1,63 @@
+/* CONTROLS */
+
+body.template-visualize .olControlMousePosition {
+  position: absolute;
+}
+
+.ol-zoom {
+  position: absolute;
+  bottom: 44px;
+  right: 30px;
+  top: auto;
+  left: auto;
+  border-radius: 0px;
+  padding: 2px;
+}
+
+
+.ol-zoom button:focus {
+  background-color: rgba(231,231,232,1);
+  color: #58585b;
+  border: 1px solid #58585b;
+}
+
+.ol-zoom button:hover {
+  background-color: rgba(0,60,136,1);
+}
+
+.ol-zoom button {
+  width: 3rem;
+  height: 3rem;
+  /* OL5 Default */
+  /* background-color: rgba(0,60,136,.5); */
+  /* Original OL2 values */
+  background-color: rgba(231,231,232,1);
+  color: #58585b;
+  border: 1px solid #58585b;
+}
+
+.ol-attribution {
+  left: 0.5em;
+  right: auto;
+}
+
+.ol-scale-line {
+  left: unset;
+}
+
+body.template-visualize #map-controls #get-link-button {
+  border: 2px solid #58585b;
+  border-radius: 5px;
+  width: 31px;
+  height: 29px;
+  padding: 2px;
+}
+
+body.template-visualize #map-controls #get-link-button:hover {
+  border: 2px solid #00a564;
+}
+
+body.template-visualize #map-controls #btn-print,
+body.template-visualize #map-controls #wms-button {
+  display: none;
+}

@@ -1,0 +1,111 @@
+.multilayerslider label {
+    font-size: 12px;
+    font-family: arial;
+    position: absolute;
+    width: 20px;
+    /* margin-left: -10px; */
+    text-align: center;
+    margin-top: 20px;
+}
+
+/* below is not necessary, just for style */
+.multilayerslider {
+    width: 75%;
+    margin: 2em auto;
+}
+
+.slider-row,
+.slider-table {
+  min-width: 100%;
+}
+
+.slider-cell {
+  min-width: 100%;
+}
+
+.animated-slider-cell {
+  width: 100%;
+}
+
+.animation-check-container {
+  display: block;
+  position: relative;
+  margin-bottom: 12px;
+  margin-top: 9px;
+  left: -20px;
+  cursor: pointer;
+  font-size: 14px;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+.animation-check-container input {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.animate-checkmark {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 25px;
+  width: 25px;
+}
+
+
+.animate-checkmark ~ label i{
+  color: #00a564;
+  border: 2px solid;
+  padding: 3px;
+  border-radius: 4px;
+  width: 22px;
+  height: 24px;
+
+}
+
+.animate-checkmark:checked ~ label i{
+  background-color: #d7d7d8;
+}
+
+.animate-checkmark:checked ~ label i:before{
+  /* pause */
+  content: "\f04c";
+}
+
+#active.tab-pane.active {
+  overflow-x: hidden;
+}
+
+body.template-visualize .btn.btn-planner {
+  background-color: #00a564;
+  border-radius: 0.3rem;
+  border: 1px solid #00a564;
+}
+
+body.template-visualize .btn.btn-planner:hover {
+  background-color: black;
+  border: 1px solid black;
+}
+
+body.template-visualize .btn.btn-slider {
+    height: 25px;
+    padding: 3px;
+    font-size: 11px;
+}
+
+body.template-visualize .btn.btn-slider  i.fa.fa-play {
+  font-size: 8px;
+}
+
+div.tooltip.fade.right.in {
+  border: 1px solid black;
+  padding: 0px;
+  border-radius: 2px;
+}
+
+div.tooltip.fade.right.in div.tooltip-arrow {
+  margin-left: -5px;
+}

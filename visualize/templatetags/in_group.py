@@ -1,4 +1,5 @@
 from django import template
+
 try:
     from django.utils.encoding import force_unicode
 except:

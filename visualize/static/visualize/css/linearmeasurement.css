@@ -1,0 +1,46 @@
+html, body {
+  overflow: hidden;
+}
+
+#measurement-display {
+  left: 40vw;
+  bottom: -2rem;
+  position: absolute;
+  background-color: #e7e7e8;
+  border: 1px solid #ddd;
+  border-radius: 2rem;
+  z-index: 1000;
+  padding: 0 2rem 3rem 3rem;
+  min-width: 360px;
+}
+
+#measurement-output {
+  min-height: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+#linear-measurement-box-header i {
+  float: right;
+  margin-top: 1.5rem;
+  cursor: pointer;
+}
+
+#linear-measurement-box-header i:hover {
+  color: #00a564;
+}
+/* ol5 */
+.ol-scale-line,
+/* ol2*/
+.olControlScaleLine {
+  bottom: 5px;
+  right: 35px;
+  left: auto;
+}
+
+.fas.fa-ruler-vertical.outline {
+  padding: 2px 1px 2px 2px;
+  color: rgb(231, 231, 232);
+  background-color: #58585b;
+  transform: rotate(-125deg);
+  border-radius: 3px;
+}

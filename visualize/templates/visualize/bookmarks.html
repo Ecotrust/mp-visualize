@@ -13,6 +13,7 @@
             <form id="addBookmarkForm" class="form-inline" data-bind="submit: app.viewModel.addBookmark">
                 <div class="form-group">
                     Bookmark Name: <input id="new_bookmark_name" data-bind="value: app.viewModel.bookmarks.newBookmarkName" type="text" class="input form-control" placeholder="Add New" required>
+                    Bookmark Description: <input id="new_bookmark_description" data-bind="value: app.viewModel.bookmarks.newBookmarkDescription" type="text" class="input form-control" placeholder="Description">
                     <button type="submit" class="btn btn-primary">Add Bookmark</button>
                 </div>
             </form>

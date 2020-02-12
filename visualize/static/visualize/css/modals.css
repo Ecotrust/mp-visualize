@@ -1,0 +1,56 @@
+.modal-help-container {
+  overflow: auto;
+  max-height: 35vh;
+}
+
+body.template-visualize .btn-link.modal-help-toggle {
+  color: #00a564;
+}
+
+#map-wms-modal .remove-wms {
+  display: unset;
+}
+
+.close-arcRest-modal {
+  float: left;
+}
+
+.remove-wms-form,
+.clone-wms-form {
+  color: #22408f;
+}
+
+.remove-wms-form:hover,
+.clone-wms-form:hover {
+  color: #00a564;
+}
+
+.arcRest-example-url {
+  overflow-wrap: break-word;
+}
+
+.modal-content {
+  max-height: 88vh;
+}
+
+#map-wms-modal #arcRestFormBody.modal-body{
+  max-height: calc(100vh - 201px);
+}
+.modal-body {
+  overflow: auto;
+  max-height: calc(100vh - 250px);
+}
+
+.modal-footer {
+  bottom: 0;
+}
+
+#feedback-modal .modal-content .modal-body .wrap iframe,
+#feedback-modal iframe {
+  height: 81vh;
+}
+
+#feedback-modal .modal-body {
+  max-height: unset;
+  padding: 0;
+}

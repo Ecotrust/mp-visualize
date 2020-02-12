@@ -8,12 +8,28 @@ import json
 from features.registry import user_sharing_groups
 from functools import cmp_to_key
 import locale
+from django.views.decorators.clickjacking import xframe_options_exempt
 
 from django.conf import settings
 from visualize.models import *
 from data_manager.models import *
 from django.views.decorators.csrf import csrf_exempt
 from django.http.response import JsonResponse
+from visualize import settings as viz_settings
+
+import urllib
+
+def proxy_request(request):
+    url = request.GET['url']
+    try:
+        proxied_request = urllib.request.urlopen(url)
+        status_code = proxied_request.code
+        mimetype = proxied_request.info().get_content_type()
+        content = proxied_request.read()
+    except urllib.error.HTTPError as e:
+        return HttpResponse(e.msg, status=e.code, content_type='text/plain')
+    else:
+        return HttpResponse(content, status=status_code, content_type=mimetype)
 
 def show_planner(request, template=None, render_response=True):
     if not template:
@@ -58,39 +74,37 @@ def show_planner(request, template=None, render_response=True):
         if len(Content.objects.filter(name='disclaimer_decline_url',live=True)) > 0:
             disclaimer_content['decline_url'] = strip_tags(Content.objects.filter(name='disclaimer_decline_url',live=True)[0].content)
 
-    if hasattr(settings, 'INITIAL_X'):
-        initial_x = settings.INITIAL_X
-    else:
-        initial_x = -73.24
-    if hasattr(settings, 'INITIAL_Y'):
-        initial_y = settings.INITIAL_Y
-    else:
-        initial_y = 38.93
-    if hasattr(settings, 'INITIAL_Z'):
-        initial_z = settings.INITIAL_Z
-    else:
-        initial_z = 7
-    if hasattr(settings, 'INITIAL_BASEMAP'):
-        initial_basemap = settings.INITIAL_BASEMAP
-    else:
-        initial_basemap = "Ocean"
-
     context = {
         'MEDIA_URL': settings.MEDIA_URL,
         'SOCKET_URL': socket_url,
+        'REGION': settings.PROJECT_REGION,
         'login': 'true',
         'disclaimer': disclaimer_content,
-        'initial_x': initial_x,
-        'initial_y': initial_y,
-        'initial_z': initial_z,
-        'SEARCH_DISABLED': settings.SEARCH_DISABLED
+        'SEARCH_DISABLED': settings.SEARCH_DISABLED,
+        # WMS Proxy support:
+        'wms_proxy_url': settings.WMS_PROXY,
+        'wms_proxy_mapfile_field': settings.WMS_PROXY_MAPFILE_FIELD,
+        'wms_proxy_mapfile': settings.WMS_PROXY_MAPFILE,
+        'layer_name_param_key': settings.WMS_PROXY_LAYERNAME,
+        'conn_param_key': settings.WMS_PROXY_CONNECTION,
+        'format_param_key': settings.WMS_PROXY_FORMAT,
+        'version_param_key': settings.WMS_PROXY_VERSION,
+        'source_srs_param_key': settings.WMS_PROXY_SOURCE_SRS,
+        'style_param_key': settings.WMS_PROXY_SOURCE_STYLE,
+        'time_param_key': settings.WMS_PROXY_TIME,
+        'time_item_param_key': settings.WMS_PROXY_TIME_ITEM,
+        'time_def_param_key': settings.WMS_PROXY_TIME_DEFAULT,
+        'proxy_generic_layer': settings.WMS_PROXY_GENERIC_LAYER,
+        'proxy_time_layer': settings.WMS_PROXY_TIME_LAYER,
+        'show_watermark': viz_settings.SHOW_WATERMARK,
+        'MAP_LIBRARY': settings.MAP_LIBRARY,
     }
 
-    if hasattr(settings, 'MAP_TECH'):
-        context['MAP_TECH'] = settings.MAP_TECH
-    else:
-        context['MAP_TECH'] = 'ol2'
-
+    ### RDH 2020-02-11: This should be covered by MAP_LIBRARY now
+    # if hasattr(settings, 'MAP_TECH'):
+    #     context['MAP_TECH'] = settings.MAP_TECH
+    # else:
+    #     context['MAP_TECH'] = 'ol2'
 
     if request.user.is_authenticated:
         context['session'] = request.session._session_key
@@ -104,7 +118,8 @@ def show_planner(request, template=None, render_response=True):
             'context': context
         }
 
-def show_embedded_map(request, template='visualize/map.html'):
+@xframe_options_exempt
+def show_embedded_map(request, template='visualize/embedded.html'):
     context = {'MEDIA_URL': settings.MEDIA_URL}
     return render(request, template, context)
 

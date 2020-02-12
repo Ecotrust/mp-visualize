@@ -1,12 +1,14 @@
 // save the initial load hash so we can use it if set
 app.hash = window.location.hash;
-app.onResize = function(percent) {
-    app.map.render('map');
-};
+// if (!app.hasOwnProperty('onResize')) {
+//   app.onResize = function(percent) {
+//     app.map.render('map');
+//   };
+// }
 
-$(window).on('resize', function() {
-    app.onResize();
-});
+// $(window).on('resize', function() {
+//     app.onResize();
+// });
 
 // add indexof for typeahead
 if (!Array.prototype.indexOf) {
@@ -32,8 +34,9 @@ app.state = {
 app.restoreState = {};
 
 ko.applyBindings(app.viewModel);
-app.viewModel.loadLayersFromServer().done(function() {
-  app.onResize();
+// app.viewModel.loadLayersFromServer().done(function() {
+app.viewModel.initLeftNav().done(function() {
+  // app.onResize(); // RDH 20191119 - this was commented out for 2019 upgrades, but may be needed for cacheless.
 
   // trigger events that depend on the map
   $(document).trigger('map-ready');
@@ -43,63 +46,41 @@ app.viewModel.loadLayersFromServer().done(function() {
     app.loadStateFromHash(app.hash);
   }
 
-  // autocomplete for filter
-  // See bootstrap3-typeahead docs
-  $('.main-search').typeahead({
-    source: app.typeAheadSource,
-    displayText: function(item) {
-      return item.name;
-    },
-    matcher: function (item) {
-      // custom search matching on object titles
-      var it = item.name;
-      return ~it.toLowerCase().indexOf(this.query.toLowerCase());
-    },
-    afterSelect: function() {
-      // replace the search box contents with the user's actual input
-      // otherwise it will be replaced by the display text of the chosen item
-      $('#data-search-input').val(app.viewModel.searchTermInput());
-    },
-    autoSelect: true,
-    items: 20,
-    minLength: 2
+  $('[data-toggle="tooltip"]').tooltip();
+
+  $('#toggleBaselayer').css({'background-image':"url(/static/visualize/img/baselayer-"+app.wrapper.map.getBasemap().name.split(' ').join('_')+".png)", "color":+app.wrapper.map.getBasemap().textColor});
+
+  $(".nav-tabs li.disabled").on("click", function(e) {
+    console.log("SDFA");
+      e.preventDefault();
+      return false;
   });
 
-  $('[data-toggle="tooltip"]').tooltip()
+  setTimeout(function() {
+    app.viewModel.showSliderButtons(app.viewModel.checkShowSliderButtons());
+  }, 10);
 
-  $('#toggleBaselayer').css({'background-image':"url(/static/visualize/img/baselayer-"+app.map.baseLayer.name.split(' ').join('_')+".png)", "color":+app.map.baseLayer.textColor});
 
-$(".nav-tabs li.disabled").on("click", function(e) {
-  console.log("SDFA");
-    e.preventDefault();
-    return false;
-});
-  // }
 });
 
 // initialize the map
 app.init();
-// Google.v3 uses EPSG:900913 as projection, so we have to
-// transform our coordinates
-// TODO: MAPTECH OL2 assumption
-app.map.setCenter(new OpenLayers.LonLat(initial_x, initial_y).transform(
-new OpenLayers.Projection("EPSG:4326"), new OpenLayers.Projection("EPSG:900913")), initial_z);
 
 get_layerswitcher_id = function() {
   return $("[id^=SimpleLayerSwitcher_]")[0].id.split('_').slice(0,2).join('_');
 }
 
+// TODO: Make map center a configuration value
+// app.wrapper.map.setCenter(-73.24, 38.93);
+
 $(document).ready(function() {
-  app.onResize();
-  $(window).resize(app.onResize);
+  // app.onResize();
+  // $(window).resize(app.onResize);
 
   app.map.layerswitcher_id = get_layerswitcher_id();
 
   //Do not display any warning for missing tiles
-  OpenLayers.Util.onImageLoadError = function(){
-    this.src = 'https://openlayers.org/api/img/blank.gif';
-  };
-  OpenLayers.Tile.Image.useBlankTile=false;
+  // Be sure to set your map tech accordingly.
 
   // if we have the hash state go ahead and load it now
   /*if (app.hash && !app.loginHash) {
@@ -145,12 +126,16 @@ $(document).ready(function() {
     } else if ( $(e.relatedTarget).hasClass('basey') ) { //handler for ff
         $('#basemaps').addClass('open');
     } else {
+
         $('#' + app.map.layerswitcher_id).hide();
+        // $('#SimpleLayerSwitcher').hide();
     }
   });
 
   //hide basemaps drop-down on mouseout
+  // $('#SimpleLayerSwitcher').mouseleave( function() {
   $('#' + app.map.layerswitcher_id).mouseleave( function() {
+    // $('#SimpleLayerSwitcher').hide();
     $('#' + app.map.layerswitcher_id).hide();
     // if (app.mafmc || !app.pageguide.preventBasemapsClose) {
     //     $('#basemaps').removeClass('open');
@@ -158,6 +143,7 @@ $(document).ready(function() {
   });
 
   //hide basemaps drop-down on mouseout
+  // $('#SimpleLayerSwitcher').mousedown( function() {
   $('#' + app.map.layerswitcher_id).mousedown( function() {
     // if (app.mafmc || !app.pageguide.preventBasemapsClose) {
     //     $('#basemaps').removeClass('open');
@@ -165,6 +151,7 @@ $(document).ready(function() {
   });
 
   //hide basemaps drop-down on mouseout
+  // $('#SimpleLayerSwitcher').mouseenter( function() {
   $('#' + app.map.layerswitcher_id).mouseenter( function() {
     //$('#basemaps').addClass('open');
   });
@@ -243,45 +230,56 @@ $(document).ready(function() {
     })
   });
 
-//typeahead autocomplete for VTR port layers
-$(document).on('focusin', '.port-input', function(){
-  var activateVTRParent = app.viewModel.activeLayer();
+  //typeahead autocomplete for VTR port layers
+  $(document).on('focusin', '.port-input', function(){
+    var activateVTRParent = app.viewModel.activeLayer();
 
-  $(this).typeahead({
-    source:  activateVTRParent.serviceLayers,
-    matcher: function (item) {
-      var it = item.name;
-      // custom search matching on object titles
-      if (it.toLowerCase().indexOf(this.query.trim().toLowerCase()) != -1) {
-          return true;
-      }
-    },
-    afterSelect: function(item) {
-      item.url = activateVTRParent.url;
-      app.viewModel.activateVTRLayer(item);
-    },
-    minLength: 2,
-    items: 12,
-  })
-});
+    $(this).typeahead({
+      source:  activateVTRParent.serviceLayers,
+      matcher: function (item) {
+        var it = item.name;
+        // custom search matching on object titles
+        if (it.toLowerCase().indexOf(this.query.trim().toLowerCase()) != -1) {
+            return true;
+        }
+      },
+      afterSelect: function(item) {
+        item.url = activateVTRParent.url;
+        app.viewModel.activateVTRLayer(item);
+      },
+      minLength: 2,
+      items: 12,
+    })
+  });
 
   // hiding feature attributes on new click events (but ignoring map pan events)
-  app.map.events.register('move', app.map, function() {
-    app.map.mousedrag = true;
-  });
-  $('#map').mouseup( function() {
-    if ( !app.map.mousedrag ) {
-      app.map.clickOutput.attributes = {};
+  var isDragging = false;
+  $('#map')
+  .mousedown(function() {
+    isDragging = false;
+  })
+  .mousemove(function() {
+    isDragging = true;
+  })
+  .mouseup( function() {
+    if ( !isDragging ) {
+      app.wrapper.map.clickOutput.attributes = {};
       app.viewModel.closeAttribution();
     }
-    app.map.mousedrag = false;
+    isDragging = false;
   });
 
-  $('a[data-toggle="tab"]').on('shown', function (e) {
-    app.updateUrl();
+  // $('a[data-toggle="tab"]').on('shown', function (e) {
+  $('#myTab li').on('click', function(e) {
+    setTimeout(function() {
+      app.viewModel.showSliderButtons(app.viewModel.checkShowSliderButtons());
+    }, 10);
+    setTimeout(function() {
+      app.updateUrl();
+    }, 100);
   });
 
-  $('[data-toggle="tooltip"]').tooltip()
+  $('[data-toggle="tooltip"]').tooltip();
 
 });
 
@@ -311,6 +309,15 @@ $('#feedback-form').on('submit', function (event) {
       //$('#thankyou-modal').modal('show');
    });
    $form.closest('.modal').modal('hide');
+});
+
+// add panel class for printing
+$('#map-wrapper').toggleClass('panel-open');
+// toggle panel class for printing
+// when map-wrapper has class panel-open the map is translated left by the width of left panel
+// this allows the print area to match what the user sees in window
+$('.collapse-button').click( function() {
+  $('#map-wrapper').toggleClass('panel-open');
 });
 
 $('#left-panel .panel-heading h4 a.collapse-button').click(function(){
@@ -352,6 +359,8 @@ $('#map-wms-modal').on('click', cloneForm, function() {
   toggleFormClone(cloneForm, elm);
 
   formCount++;
+  template.find('.modal-help-toggle').remove();
+  template.find('.modal-form-help').remove();
   var form = template.clone().find(':input').val("").each(function(){
       //set id to store the updated form number
       var newId = this.id + formCount;
@@ -396,6 +405,80 @@ function toggleFormClone(cloneForm, elm) {
   }
 }
 
+function returnPxOver(pxOver) {
+  var printWidthRatio = pxOver / 18;
+  if (pxOver < 300) {
+    printWidthRatio = pxOver / 13;
+  } else if (pxOver < 400) {
+    printWidthRatio = pxOver / 14;
+  } else if (pxOver < 500) {
+    printWidthRatio = pxOver / 15;
+  } else if (pxOver < 625) {
+    printWidthRatio = pxOver / 16;
+  } else if (pxOver < 750) {
+    printWidthRatio = pxOver / 17;
+  }
+  if (printWidthRatio > 0) {
+    return printWidthRatio;
+  } else {
+    return 0;
+  }
+};
+
+
+/* TODO: move this logic into a wrapper */
+$('#btn-print').click(function() {
+  var olimgs = document.getElementById('OpenLayers.Map_2_OpenLayers_Container'),
+      $olsvgs = $('#map svg'),
+      leftPanel = document.getElementById('left-panel'),
+      $lpWidth = $('#left-panel:not(.collapsed)').width(),
+      $mapWidth = $('#map-wrapper').width();
+
+  /**
+   * check to see if portrait then overwrite landscape px over
+   */
+  var pxOver = $mapWidth - 1056;
+  if (window.innerHeight > window.innerWidth) {
+    pxOver = $('#map-wrapper').height() - 812;
+  }
+  var printWidthRatio = returnPxOver(pxOver),
+      olTilePrintWidth = 100 - printWidthRatio,
+      printTileWidth = olTilePrintWidth + 'px';
+
+  olimgs.style.width = printTileWidth;
+  olimgs.style.height = printTileWidth;
+
+  if ($lpWidth !== null) {
+    var lpPrintWidth = $lpWidth - ($lpWidth * printWidthRatio / 100);
+    leftPanel.style.width = lpPrintWidth + 'px';
+  }
+
+  $olsvgs.each(function(i,e) {
+    var $svgWidth = $(this).width(),
+      $svgHeight = $(this).height(),
+      svgRatio = $svgHeight / $svgWidth;
+    $(this).width($mapWidth - pxOver);
+    $(this).height(($mapWidth - pxOver) * svgRatio);
+  });
+
+  window.setTimeout(function() {
+    window.print();
+    window.setTimeout(function() {
+      olimgs.style.width = '100px';
+      olimgs.style.height = '100px';
+      if ($lpWidth !== null) {
+        leftPanel.style.width = $lpWidth + 'px';
+      }
+      $olsvgs.each(function(i,e) {
+        $(this).width($('#map').width());
+        $(this).height($('#map').height());
+      });
+      app.map.updateSize();
+    }, 1500);
+  }, 1000);
+
+});
+
 $(document).mousedown(function(e) {
 
     // Process "outside" clicks
@@ -411,6 +494,7 @@ $(document).mousedown(function(e) {
 
   //ensure layer switcher is removed
   $('#' + app.map.layerswitcher_id).hide();
+  // $('#SimpleLayerSwitcher').hide();
 
   //removing layer tooltip popover from view
   var layer_pvr_event = $(e.target).closest(".layer-popover").length;

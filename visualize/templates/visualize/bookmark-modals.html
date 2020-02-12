@@ -51,8 +51,8 @@
                     <ul class="unstyled" id="bookmark-sharing-groups" style="margin-left: 1px; height: 165px; outline: none;">
                         <span data-bind="foreach: sharingGroups">
                             <li><div style="text-align: left; margin-left: 50px;"><div class="share-checkbox" data-bind="click: $parent.toggleGroup">
-                                <i class="fa" data-bind="css: {'fa-check-square-o': $parent.groupIsSelected(group_name), 
-                                                               'fa-square-o': !$parent.groupIsSelected(group_name)}"
+                                <i class="far" data-bind="css: {'fa-check-square': $parent.groupIsSelected(group_name),
+                                                               'fa-square': !$parent.groupIsSelected(group_name)}"
                                    style="width: 14px;"></i>
 
                                 <span data-bind="text: group_name"></span>
@@ -85,31 +85,31 @@
         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
         <h3>Map Links</h3>
     </div>
-    
-    <div class="modal-body" style="height: 165px; overflow: hidden"> 
+
+    <div class="modal-body" style="height: 165px; overflow: hidden">
         <div class="row-fluid" style="padding-top: 5px">
             <div>
-                Paste Link in email or browser  
+                Paste Link in email or browser
                 <span class="pull-right">
-                    <label> 
-                        <input class="short-url-checkbox" type="checkbox" data-bind="checked: shrinkBookmarkURL" style="margin-top: 0px; margin-bottom: 3px"> 
-                        Short URL 
+                    <label>
+                        <input class="short-url-checkbox" type="checkbox" data-bind="checked: shrinkBookmarkURL" style="margin-top: 0px; margin-bottom: 3px">
+                        Short URL
                     </label>
                 </span>
             </div>
             <div>
-                <input id="bookmark-short-url" type="text" style="width: 96%" data-bind="attr: {value: getCurrentBookmarkURL}"> 
+                <input id="bookmark-short-url" type="text" style="width: 96%" data-bind="attr: {value: getCurrentBookmarkURL}">
             </div>
-            <div style="padding-top: 12px; padding-bottom: 5px"> 
-                Paste HTML to embed in website 
-            </div> 
-            <div> 
-                <input id="bookmark-iframe-html" type="text" style="width: 96%" data-bind="attr: {value: setBookmarkIFrameHTML}"> 
-            </div> 
-            <div style="margin-top: -4px"> 
-                <a href="#" data-bind="click: openBookmarkIFrameExample"> 
-                    Customize and preview embedded map 
-                </a> 
+            <div style="padding-top: 12px; padding-bottom: 5px">
+                Paste HTML to embed in website
+            </div>
+            <div>
+                <input id="bookmark-iframe-html" type="text" style="width: 96%" data-bind="attr: {value: setBookmarkIFrameHTML}">
+            </div>
+            <div style="margin-top: -4px">
+                <a href="#" data-bind="click: openBookmarkIFrameExample">
+                    Customize and preview embedded map
+                </a>
             </div>
         </div>
     </div>

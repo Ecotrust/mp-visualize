@@ -1,0 +1,6 @@
+body.template-visualize #toggleBaselayer:hover {
+    color: #22408f;
+    border: 2px solid #22408f;
+    font-weight: bold;
+    cursor: pointer;
+}

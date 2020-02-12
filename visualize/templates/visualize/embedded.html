@@ -1,0 +1,199 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Mid-Atlantic Ocean Data Portal - Marine Planner{% endblock %}
+
+{% block extra_css %}
+        <link href="{% static 'visualize/css/print.css' %}" rel="stylesheet" media="print">
+        <link href="{% static 'visualize/css/scalebar-thin.css' %}" rel="stylesheet">
+        <link rel="stylesheet" type="text/css" href="{% static 'js/lib/openlayers/theme/default/style.css' %}">
+        <link href="{% static 'jquery-ui/themes/smoothness/jquery-ui.min.css' %}" rel="stylesheet">
+        <link href="{% static 'visualize/css/embedded.css' %}" rel="stylesheet">
+{% endblock%}
+
+{% block body_class %}template-visualize{% endblock %}
+
+{% block top-level %}
+{% endblock %}
+
+
+{% block outer_content %}
+
+    <div class="container-fluid" id="primary-content">
+        <div id="fullscreen">
+            <div id="map-wrapper">
+                <div id="map" click="click: outsideSubLayer"></div>
+                <div id="map-controls"></div>
+                <!-- the following container is used to estimate width for the actual Aggregated Attribution Overlay -->
+                <div id="aggregated-attribute-overlay-test" style="position: absolute; visibility: hidden; height: auto; width: auto; top:0px">
+                    <div data-bind="foreach: attributeLayers()" style="overflow: hidden; max-height: 10px;">
+                        <div data-bind="css: {display: $root.aggregatedAttributes()[featureAttributionName] ? 'block' : 'none'}">
+                            <h4 data-bind="text: featureAttributionName"></h4>
+                            <dl data-bind="foreach: { data: $root.aggregatedAttributes()[featureAttributionName], afterAdd:$root.updateMarker }">
+                                <dt>
+                                    <span data-bind="text: display"></span><span data-bind="visible: display && data ? true : data===0">:</span>
+                                    <span style="font-weight: normal" data-bind="html: data"></span>
+                                </dt>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+                <!-- Aggregated Attribution Overlay -->
+                <div id="aggregated-attribute-overlay" data-bind="visible: aggregatedAttributes && showFeatureAttribution, style: {width: aggregatedAttributesWidth}" style="display: none">
+                    <div id="aggregated-attribute-heading">
+                        <h4>Available Information</h4>
+                    </div>
+                    <div id="aggregated-attribute-content" class="accordion">
+                        <div data-bind="foreach: attributeLayers()">
+                            <div class="accordion-group">
+                                <div data-bind="visible: $root.aggregatedAttributes()[featureAttributionName]">
+                                    <div class="accordion-heading" data-bind="click: toggleLayerAttribution, css: { 'active': showingLayerAttribution }">
+                                        <a class="accordion-toggle">
+                                            <span data-bind="text: featureAttributionName"></span>
+                                        </a>
+                                    </div>
+                                    <div class="accordion-body collapse in" data-bind="attr: { id: $root.convertToSlug(featureAttributionName) }" >
+                                        <div class="accordion-inner">
+                                            <dl data-bind="foreach: { data: $root.aggregatedAttributes()[featureAttributionName], afterAdd:$root.updateMarker }">
+                                                <dt>
+                                                    <!-- ko if: $data.hasOwnProperty("tab") -->
+                                                    <span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                                                    <!-- /ko -->
+                                                    <span data-bind="text: display"></span><span data-bind="visible: display && data ? true : data===0">:</span>
+                                                    <span style="font-weight: normal" data-bind="html: data"></span>
+                                                </dt>
+                                            </dl>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <span id="close-attribute-overlay" class="pull-right"><a href="#" style="position: absolute; top: 0px; right: 0px; opacity: .6;" class="btn btn-mini close" data-bind="click: closeAttribution"> x </a> </span>
+                </div>
+
+                <div id="left-panel" class="panel panel-default collapsible" data-bind="css: { collapsed: !showLayers() }">
+                    <div class="panel-heading">
+                        <div class="panel-title">
+                            <a data-bind="click: toggleLayers" class="collapse-button">
+                                <i class="fa fa-angle-double-left"></i>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="panel-body">
+                        <div class="frame tabs" id="data-panel" data-bind="visible: showLayers()">
+
+                            <div class="sidebar-nav">
+                                <ul id="myTab" class="nav nav-tabs">
+                                    <li data-tab="legend" >
+                                        <h4>
+                                            <a href="#legend" data-toggle="tab" id="legendTab">Legend</a>
+                                        </h4>
+                                    </li>
+                                </ul>
+                                <div id="myTabContent" class="tab-content">
+
+                                    <!-- LEGEND TAB -->
+                                    <div class="tab-pane" id="legend">
+                                        <div id="embedded-legend-wrapper">
+                                            <div id="embedded-legend-content">
+                                                <div style="padding: 10px">
+                                                    <div data-bind="visible: activeLegendLayers().length == 0">
+                                                        No data layers containing legends are activated.
+                                                    </div>
+
+                                                    <div data-bind="foreach: activeLegendLayers">
+                                                    <!--<div data-bind="foreach: { data: activeLegendLayers, afterRender: updateScrollBars }">-->
+                                                        <div style="padding-bottom: 18px;">
+                                                            <span class="pagination-centered legend-title" data-bind="html: legendTitle ? legendTitle : name"></span>
+                                                            <p class="legend-subtitle" data-bind="visible: legendSubTitle, html: legendSubTitle"></p>
+                                                            <span data-bind="if: legend">
+                                                                <div data-bind="if: legend['elements']">
+                                                                    <div data-bind="foreach: legend['elements']">
+                                                                        <div>
+                                                                            <img data-bind="attr: {src: swatch}" />
+                                                                            <span data-bind="text: label" style="font-size: 11px; font-weight: bold;"></span>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                                <div data-bind="if: !legend['elements']">
+                                                                    <div data-bind="css: { 'in': legendVisibility }" style="padding: 5px 0 0 10px;">
+                                                                        <img data-bind="attr: { src: legend }" />
+                                                                    </div>
+                                                                </div>
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- END LEGEND TAB -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <span class="timestamp" data-bind="visible: mapTitle"><span data-bind="text: new Date().toString('M/d/yyyy HH:mm')"></span></span>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_js %}
+    <script src="{% static 'amplify/lib/amplify.min.js' %}"></script>
+    <script src="{% static 'jquery-migrate/jquery-migrate.min.js' %}"></script>
+    <script src="{% static 'jquery.bbq/jquery.ba-bbq.js' %}"></script>
+    <script src="{% static 'bootstrap3-typeahead/bootstrap3-typeahead.js' %}"></script>
+    <script src="{% static 'jquery-ui/jquery-ui.min.js' %}"></script>
+    <script charset="utf-8">
+        $.widget.bridge('uitooltip', $.ui.tooltip);
+    </script>
+    <script src="{% static 'js/jsonrpc.js' %}"></script>
+
+    <script src="{% static 'js/lib/lodash.min.js' %}"></script>
+    <script src="{% static 'js/lib/knockout-3.3.0.js' %}"></script>
+    <script src="{% static 'js/lib/knockout.mapping-2.4.1.js' %}"></script>
+    <script src="{% static 'js/knockout-bindings.js' %}"></script>
+    <script src="{% static 'js/lib/highcharts/highcharts.js' %}" type="text/javascript"></script>
+    <script src="{% static 'js/lib/highcharts/highcharts-more.js' %}" type="text/javascript"></script>
+    <script src="{% static 'js/lib/openlayers/OpenLayers-marco-min.js' %}"></script>
+    <script src="{% static 'bigscreen/bigscreen.js' %}"></script>
+    <script src="{% static 'jqueryui-touch-punch/jquery.ui.touch-punch.min.js' %}"></script>
+
+    <script src="{% static 'js/controls.js' %}"></script>
+
+    <script src="{% static 'js/contextual_menu.js' %}"></script>
+    <script src="{% static 'js/fixtures.js' %}"></script>
+    <script src="{% static 'js/map.js' %}"></script>
+    <script>
+      app.server_constants = {
+        'wms_proxy_url': '{{ wms_proxy_url }}',
+        'wms_proxy_mapfile_field': '{{ wms_proxy_mapfile_field }}',
+        'wms_proxy_mapfile': '{{ wms_proxy_mapfile }}',
+        'source_srs_param_key': '{{ source_srs_param_key }}',
+        'conn_param_key': '{{ conn_param_key }}',
+        'layer_name_param_key': '{{ layer_name_param_key }}',
+        'format_param_key': '{{ format_param_key }}',
+        'version_param_key': '{{ version_param_key }}',
+        'style_param_key': '{{ style_param_key }}',
+        'time_param_key': '{{ time_param_key }}',
+        'time_item_param_key': '{{ time_item_param_key }}',
+        'time_def_param_key': '{{ time_def_param_key }}',
+        'proxy_generic_layer': '{{ proxy_generic_layer }}',
+        'proxy_time_layer': '{{ proxy_time_layer }}'
+      }
+    </script>
+    <script src="{% static 'js/state.js' %}"></script>
+    <script src="{% static 'js/bookmarks.js' %}"></script>
+    <script src="{% static 'js/scenarios.js' %}"></script>
+    <script src="{% static 'js/reports.js' %}"></script>
+    <!-- <script src="{% static 'js/drawing.js' %}"></script> -->
+    <script src="{% static 'js/models.js' %}"></script>
+    <script src="{% static 'js/server.js' %}"></script>
+    <script src="{% static 'js/app.js' %}"></script>
+
+{% endblock %}
+
+{% block sticky_footer %}
+{% endblock %} <!-- Sticky footer -->

@@ -3,93 +3,22 @@ function layerModel(options, parent) {
         $descriptionTemp;
 
     // properties
-    self.id = options.id || null;
-    self.name = options.name || null;
-    self.featureAttributionName = self.name;
-    self.order = options.order;
-    self.url = options.url || null;
-    self.data_url = options.data_url || null;
-    self.arcgislayers = options.arcgis_layers || 0;
-    self.wms_slug = options.wms_slug || null;
-    self.wms_version = options.wms_version || false;
-    self.type = options.type || null
-    self.utfurl = options.utfurl || false;
-    self.legend = options.legend || false;
-    self.legendVisibility = ko.observable(false);
-    self.legendTitle = options.legend_title || false;
-    self.legendSubTitle = options.legend_subtitle || false;
-    self.themes = ko.observableArray();
-    self.attributes = options.attributes ? options.attributes.attributes : [];
-    self.compress_attributes = options.attributes ? options.attributes.compress_attributes : false;
-    self.attributeEvent = options.attributes ? options.attributes.event : [];
-    self.mouseoverAttribute = options.attributes ? options.attributes.mouseover_attribute : false;
-    self.lookupField = options.lookups ? options.lookups.field : null;
-    self.lookupDetails = options.lookups ? options.lookups.details : [];
-    self.color = options.color || "#ee9900";
-    self.outline_color = options.outline_color || self.color;
-    self.fillOpacity = options.fill_opacity || 0.0;
-    self.disable_click = options.disable_arcgis_attributes || false;
+    self.fullyLoaded = false;
 
-    if ( options.opacity === 0 ) {
-        self.defaultOpacity = options.opacity;
-    } else {
-        self.defaultOpacity = options.opacity || 0.5;
-    }
-    self.opacity = ko.observable(self.defaultOpacity);
-    self.outline_opacity = options.outline_opacity || self.defaultOpacity;
-    self.point_radius = options.point_radius || 2;
-    self.graphic = options.graphic || null;
-    self.annotated = options.annotated || false;
+    self.legendVisibility = ko.observable(false);
+
+    self.themes = ko.observableArray();
+    self.description = ko.observable();
 
     self.isDisabled = ko.observable(false);
-    if (options.is_disabled) {
-        self.isDisabled(options.is_disabled);
-    }
     self.disabledMessage = ko.observable(false);
-    if (options.disabled_message) {
-        self.disabledMessage(options.disabled_message);
-    }
-    if (self.annotated && app.viewModel.zoomLevel() < 9) {
-        self.isDisabled(true);
-        self.disabledMessage(options.disabled_message);
-    }
+
+    self.loadStatus = ko.observable(false);
 
     //on-the-fly session layers
     self.wmsSession = ko.observable(false);
-    if (options.wmsSession) {
-        self.wmsSession(options.wmsSession)
-    }
 
-    // mdat/marine life layers
-    self.isMDAT = options.isMDAT || false;
-    self.parentMDATDirectory = options.parentDirectory || null;
-
-    // VTR/CAS life layers
-    self.isVTR = options.isVTR || false;
-    self.dateRangeDirectory = options.dateRangeDirectory || null;
-
-    //tied to the layer that's a companion of another layer
-    self.companionLayers = options.companion_layers || false;
-    //has companion layer(s)
-    self.hasCompanion = options.has_companion || false;
-
-    self.searchQueryable = options.search_query || false;
-
-    app.viewModel.zoomLevel.subscribe( function() {
-        if (self.annotated && app.viewModel.zoomLevel() < 9) {
-            self.isDisabled(true);
-            self.disabledMessage(options.disabled_message);
-            $('.annotated.disabled').popover({
-                delay: {'show': 500},
-                trigger: 'hover'//,
-                //template: '<div class="popover layer-popover"><div class="arrow"></div><div class="popover-inner layer-tooltip"><div class="popover-content"><p></p></div></div></div>'
-            });
-        } else if (self.annotated && app.viewModel.zoomLevel() >= 9) {
-            self.isDisabled(false);
-            self.disabledMessage(false);
-            $('.annotated').popover('destroy');
-        }
-    });
+    self.is_visible_multilayer = ko.observable(false);
 
     //these are necessary to prevent knockout errors when offering non-designs in Active panel
     self.sharedBy = ko.observable(false);
@@ -97,151 +26,8 @@ function layerModel(options, parent) {
     self.selectedGroups = ko.observableArray();
     self.shared = ko.observable(false);
 
-    if (self.featureAttributionName === 'OCS Lease Blocks') {
-        self.featureAttributionName = 'OCS Lease Blocks';
-    } else if (self.featureAttributionName === 'Party & Charter Boat') {
-        self.featureAttributionName = 'Party & Charter Boat Trips';
-    } else if (self.featureAttributionName === 'Benthic Habitats (North)' ) {
-        self.featureAttributionName = 'Benthic Habitats';
-    } else if (self.featureAttributionName === 'Benthic Habitats (South)' ) {
-        self.featureAttributionName = 'Benthic Habitats';
-    }
-
-
-    // if legend is not provided, try using legend from web services
-    if ( !self.legend && self.url && (self.arcgislayers !== -1) ) {
-        $.ajax({
-            dataType: "jsonp",
-            //http://ocean.floridamarine.org/arcgis/rest/services/SAFMC/SAFMC_Regulations/MapServer/legend/?f=pjson
-            url: self.url.replace('/export', '/legend/?f=pjson'),
-            type: 'GET',
-            success: function(data) {
-                if (data['layers']) {
-                    $.each(data['layers'], function(i, layerobj) {
-                        if (parseInt(layerobj['layerId'], 10) === parseInt(self.arcgislayers, 10)) {
-                            self.legend = {'elements': []};
-                            $.each(layerobj['legend'], function(j, legendobj) {
-                                //http://ocean.floridamarine.org/arcgis/rest/services/SAFMC/SAFMC_Regulations/MapServer/13/images/94ed037ab533027972ba3fc4a7c9d05c
-                                var swatchURL = self.url.replace('/export', '/'+self.arcgislayers+'/images/'+legendobj['url']),
-                                    label = legendobj['label'];
-                                if (label === "") {
-                                    label = layerobj['layerName'];
-                                }
-                                self.legend['elements'].push({'swatch': swatchURL, 'label': label});
-                                //console.log(self.legend);
-                            });
-                        }
-                    });
-                    //reset visibility (to reset activeLegendLayers)
-                    var visible = self.visible();
-                    self.visible(false);
-                    self.visible(visible);
-                } else {
-                    //debugger;
-                }
-            },
-            error: function(error) {
-                //debugger;
-            }
-        });
-    }
-
-    //legends for actual WMS LAYERS
-    if (!self.legend && self.url && self.type=='WMS' && self.wms_slug && self.wms_version) {
-        self.legend = self.url + 'SERVICE=WMS&VERSION=' +
-                      self.wms_version + '&layer=' +
-                      self.wms_slug +
-                      "&REQUEST=getlegendgraphic&FORMAT=image/png"
-    }
-
-    // set target blank for all links
-    if (options.description) {
-        $descriptionTemp = $("<div/>", {
-            html: options.description
-        });
-        $descriptionTemp.find('a').each(function() {
-            $(this).attr('target', '_blank');
-        });
-        self.description = $descriptionTemp.html();
-    } else {
-        self.description = null;
-    }
-
-    // set overview text for Learn More option
-    if (options.overview) {
-        $overviewTemp = $("<div/>", {
-            html: options.overview
-        });
-        $overviewTemp.find('a').each(function() {
-            $(this).attr('target', '_blank');
-        });
-        self.overview = $overviewTemp.html();
-    } else if (parent && parent.overview) {
-        self.overview = parent.overview;
-    } else if (self.description) {
-        self.overview = self.description;
-    } else if (parent && parent.description) {
-        self.overview = parent.description;
-    } else {
-        self.overview = null;
-    }
-
-    // if no description is provided, try using the web services description
-    if ( !self.overview && self.url && (self.arcgislayers !== -1) ) {
-        $.ajax({
-            dataType: "jsonp",
-            url: self.url.replace('/export', '/'+self.arcgislayers) + '?f=pjson',
-            type: 'GET',
-            success: function(data) {
-                self.overview = data['description'];
-            }
-        });
-    }
-
-    // set data source and data notes text
-    self.data_source = options.data_source || null;
-    if (! self.data_source && parent && parent.data_source) {
-        self.data_source = parent.data_source;
-    }
-    self.data_notes = options.data_notes || null;
-    if (! self.data_notes && parent && parent.data_notes) {
-        self.data_notes = parent.data_notes;
-    }
-
-    // set download links
-    self.kml = options.kml || null;
-    self.data_download = options.data_download || null;
-    self.learn_more = options.learn_more || null;
-    self.metadata = options.metadata || null;
-    self.source = options.source || null;
-    self.tiles = options.tiles || null;
-
-    // opacity
-    self.opacity.subscribe(function(newOpacity) {
-        if (self.layer.CLASS_NAME === "OpenLayers.Layer.Vector") {
-            self.layer.styleMap.styles['default'].defaultStyle.strokeOpacity = newOpacity;
-            self.layer.styleMap.styles['default'].defaultStyle.graphicOpacity = newOpacity;
-            //fill is currently turned off for many of the vector layers
-            //the following should not override the zeroed out fill opacity
-            //however we do still need to account for shipping lanes (in which styling is handled via lookup)
-            if (self.fillOpacity > 0) {
-                var newFillOpacity = self.fillOpacity - (self.defaultOpacity - newOpacity);
-                self.layer.styleMap.styles['default'].defaultStyle.fillOpacity = newFillOpacity;
-            }
-            self.layer.redraw();
-        } else {
-            self.layer.setOpacity(newOpacity);
-        }
-    });
-
     // is description active
     self.infoActive = ko.observable(false);
-
-    // is the layer a checkbox layer
-    self.isCheckBoxLayer = ko.observable(false);
-    if (self.type === 'checkbox') {
-        self.isCheckBoxLayer(true);
-    }
 
     // is the layer in the active panel?
     self.active = ko.observable(false);
@@ -251,20 +37,323 @@ function layerModel(options, parent) {
     self.activeSublayer = ko.observable(false);
     self.visibleSublayer = ko.observable(false);
 
-    self.subLayers = [];
+    // is the layer a checkbox layer
+    self.isCheckBoxLayer = ko.observable(false);
 
-    // save a ref to the parent, if it exists
-    if (parent) {
+    self.data_url = ko.observable(options.data_url || null);
+    self.kml = ko.observable(options.kml || null);
+    self.data_download = ko.observable(options.data_download || null);
+    self.metadata = ko.observable(options.metadata || null);
+    self.source = ko.observable(options.source || null);
+
+    self.setOptions = function(options, parent) {
+
+      self.id = options.id || null;
+      self.name = options.name || null;
+      self.featureAttributionName = self.name;
+      self.order = options.order;
+      self.url = options.url || null;
+      self.data_url(options.data_url || null);
+      self.arcgislayers = options.arcgis_layers || 0;
+      self.wms_slug = options.wms_slug || null;
+      self.wms_version = options.wms_version || null;
+      self.wms_format = options.wms_format || null;
+      self.wms_srs = options.wms_srs || null;
+      self.wms_styles = options.wms_styles || null;
+      self.wms_timing = options.wms_timing || null;
+      self.wms_time_item = options.wms_time_item || null;
+      self.wms_additional = options.wms_additional || null;
+      self.wms_info = options.wms_info || false;
+      self.wms_info_format = options.wms_info_format || null;
+      self.type = options.type || null
+      self.utfurl = options.utfurl || false;
+      self.legend = options.legend || false;
+
+      app.viewModel.zoomLevel.subscribe( function() {
+          if (self.annotated && app.viewModel.zoomLevel() < 9) {
+              self.isDisabled(true);
+              self.disabledMessage(options.disabled_message);
+              $('.annotated.disabled').popover({
+                  delay: {'show': 500},
+                  trigger: 'hover'//,
+                  //template: '<div class="popover layer-popover"><div class="arrow"></div><div class="popover-inner layer-tooltip"><div class="popover-content"><p></p></div></div></div>'
+              });
+          } else if (self.annotated && app.viewModel.zoomLevel() >= 9) {
+              self.isDisabled(false);
+              self.disabledMessage(false);
+              $('.annotated').popover('destroy');
+          }
+      });
+
+      self.legendTitle = options.legend_title || false;
+      self.legendSubTitle = options.legend_subtitle || false;
+      if (options.hasOwnProperty('show_legend') && options.show_legend == false) {
+        self.show_legend = false;
+      } else {
+        self.show_legend = true;
+      }
+
+      self.attributes = options.attributes ? options.attributes.attributes : [];
+      self.compress_attributes = options.attributes ? options.attributes.compress_attributes : false;
+      self.attributeEvent = options.attributes ? options.attributes.event : [];
+      self.mouseoverAttribute = options.attributes ? options.attributes.mouseover_attribute : false;
+      self.lookupField = options.lookups ? options.lookups.field : null;
+      self.lookupDetails = options.lookups ? options.lookups.details : [];
+      self.color = options.color || "#ee9900";
+      self.outline_color = options.outline_color || self.color;
+      self.fillOpacity = options.fill_opacity || 0.0;
+      self.disable_click = options.disable_arcgis_attributes || false;
+
+      if (!self.hasOwnProperty('opacity')) {
+        if ( !options.opacity === 0 ) {
+          self.defaultOpacity = options.opacity;
+        } else {
+          self.defaultOpacity = options.opacity || 0.5;
+        }
+        self.opacity = ko.observable(self.defaultOpacity);
+      } else {
+        if (options.hasOwnProperty('opacity') && options.opacity) {
+          self.opacity(options.opacity);
+        }
+      }
+      self.outline_opacity = options.outline_opacity || self.defaultOpacity;
+      self.outline_width = options.outline_width || 1;
+      self.point_radius = options.point_radius || 2;
+      self.graphic = options.graphic || null;
+      self.graphic_scale = options.graphic_scale || null;
+      self.annotated = options.annotated || false;
+
+      if (options.is_disabled) {
+        self.isDisabled(options.is_disabled);
+      }
+      if (options.disabled_message) {
+        self.disabledMessage(options.disabled_message);
+      }
+      if (self.annotated && app.viewModel.zoomLevel() < 9) {
+        self.isDisabled(true);
+        self.disabledMessage(options.disabled_message);
+      }
+
+      if (options.wmsSession) {
+        self.wmsSession(options.wmsSession)
+      }
+
+      // mdat/marine life layers
+      self.isMDAT = options.isMDAT || false;
+      self.parentMDATDirectory = options.parentDirectory || null;
+
+      // VTR/CAS life layers
+      self.isVTR = options.isVTR || false;
+      self.dateRangeDirectory = options.dateRangeDirectory || null;
+
+      //tied to the layer that's a companion of another layer
+      self.companionLayers = options.companion_layers || false;
+      //has companion layer(s)
+      self.hasCompanion = options.has_companion || false;
+
+      self.is_multilayer_parent = ko.observable(options.is_multilayer_parent || false);
+      self.is_multilayer = ko.observable((options.is_multilayer && !options.is_multilayer_parent) || false);
+
+      self.associated_multilayers = options.associated_multilayers || [];
+      self.dimensions = options.dimensions || [];
+      self.multilayerValueLookup = {};
+      self.activeMultilayer = false;
+      self.multilayerSliderState = [];
+
+      self.searchQueryable = options.search_query || false;
+
+      if (self.featureAttributionName === 'OCS Lease Blocks') {
+        self.featureAttributionName = 'OCS Lease Blocks';
+      } else if (self.featureAttributionName === 'Party & Charter Boat') {
+        self.featureAttributionName = 'Party & Charter Boat Trips';
+      } else if (self.featureAttributionName === 'Benthic Habitats (North)' ) {
+        self.featureAttributionName = 'Benthic Habitats';
+      } else if (self.featureAttributionName === 'Benthic Habitats (South)' ) {
+        self.featureAttributionName = 'Benthic Habitats';
+      }
+
+      //legends for actual WMS LAYERS
+      if (!self.legend && self.url && self.type=='WMS' && self.wms_slug && self.wms_version) {
+        self.legend = self.url + 'SERVICE=WMS&VERSION=' +
+        self.wms_version + '&layer=' +
+        self.wms_slug +
+        "&REQUEST=GetLegendGraphic&FORMAT=image/png"
+      }
+
+      // set target blank for all links
+      if (options.description) {
+        $descriptionTemp = $("<div/>", {
+          html: options.description
+        });
+        $descriptionTemp.find('a').each(function() {
+          $(this).attr('target', '_blank');
+        });
+        self.description($descriptionTemp.html());
+      } else {
+        self.description(null);
+      }
+
+      // set overview text for Learn More option
+      if (options.overview) {
+        $overviewTemp = $("<div/>", {
+          html: options.overview
+        });
+        $overviewTemp.find('a').each(function() {
+          $(this).attr('target', '_blank');
+        });
+        self.overview = $overviewTemp.html();
+      } else if (parent && parent.overview) {
+        self.overview = parent.overview;
+      } else if (self.description()) {
+        self.overview = self.description();
+      } else if (parent && parent.description()) {
+        self.overview = parent.description();
+      } else {
+        self.overview = null;
+      }
+
+      // set data source and data notes text
+      self.data_source = options.data_source || null;
+      if (! self.data_source && parent && parent.data_source) {
+        self.data_source = parent.data_source;
+      }
+      self.data_notes = options.data_notes || null;
+      if (! self.data_notes && parent && parent.data_notes) {
+        self.data_notes = parent.data_notes;
+      }
+
+      // set download links
+      self.kml(options.kml || null);
+      self.data_download(options.data_download || null);
+      self.learn_more = options.learn_more || null;
+      self.metadata(options.metadata || null);
+      self.source(options.source || null);
+      self.tiles = options.tiles || null;
+
+      if (self.type === 'checkbox') {
+        self.isCheckBoxLayer(true);
+      }
+
+      self.has_sublayers = options.has_sublayers || false;
+      self.subLayers = [];
+      if (options.subLayers) {
+        for (var i = 0; i < options.subLayers.length; i++) {
+          var new_sublayer = app.viewModel.getOrCreateLayer(options.subLayers[i], self, 'return', null)
+          self.subLayers.push(new_sublayer);
+        }
+      }
+
+      // save a ref to the parent, if it exists
+      if (parent) {
         self.parent = parent;
         self.fullName = self.parent.name + " (" + self.name + ")";
         if ( ! self.legendTitle ) {
-            self.legendTitle = self.parent.legendTitle;
+          self.legendTitle = self.parent.legendTitle;
         }
         if ( ! self.legendSubTitle ) {
-            self.legendSubTitle = self.parent.legendSubTitle;
+          self.legendSubTitle = self.parent.legendSubTitle;
         }
-    } else {
+      } else {
         self.fullName = self.name;
+      }
+
+      // opacity
+      self.opacity.subscribe(function(newOpacity) {
+        // RDH 20191105 - this came in as a string - ol6 chokes on string passed to layer.setOpacity
+        newOpacity = parseFloat(newOpacity);
+        if (self.hasOwnProperty('layer')) {
+          if (self.layer.CLASS_NAME && self.layer.CLASS_NAME === "OpenLayers.Layer.Vector") {
+            self.layer.styleMap.styles['default'].defaultStyle.strokeOpacity = newOpacity;
+            self.layer.styleMap.styles['default'].defaultStyle.graphicOpacity = newOpacity;
+            //fill is currently turned off for many of the vector layers
+            //the following should not override the zeroed out fill opacity
+            //however we do still need to account for shipping lanes (in which styling is handled via lookup)
+            if (self.fillOpacity > 0) {
+              var newFillOpacity = self.fillOpacity - (self.defaultOpacity - newOpacity);
+              self.layer.styleMap.styles['default'].defaultStyle.fillOpacity = newFillOpacity;
+            }
+            self.layer.redraw();
+          } else {
+            self.layer.setOpacity(newOpacity);
+          }
+        }
+        if (self.hasOwnProperty('activeMultilayer')) {
+          if (self.activeMultilayer) {
+            self.activeMultilayer.opacity(newOpacity);
+          }
+        }
+      });
+
+    }
+
+    self.setOptions(options, parent);
+
+
+
+    getArcGISJSONLegend = function(self, protocol) {
+      if (self.url.indexOf('?') < 0) {
+        var url = self.url.replace('/export', '/legend/?f=pjson');
+      } else {
+        var url = self.url.split('?').join('&').replace('/export', '/legend/?f=pjson');
+      }
+      if (protocol == "https:") {
+        url = url.replace('http:', 'https:');
+      }
+      $.ajax({
+          dataType: "json",
+          url: url,
+          type: 'GET',
+          success: function(data) {
+              if (data['layers']) {
+                  $.each(data['layers'], function(i, layerobj) {
+                      if (parseInt(layerobj['layerId'], 10) === parseInt(self.arcgislayers, 10)) {
+                          self.legend = {'elements': []};
+                          $.each(layerobj['legend'], function(j, legendobj) {
+                              var swatchURL = self.url.replace('/export', '/'+self.arcgislayers+'/images/'+legendobj['url']),
+                                  label = legendobj['label'];
+                              if (j < 1 && label === "") {
+                                  label = layerobj['layerName'];
+                              }
+                              self.legend['elements'].push({'swatch': swatchURL, 'label': label});
+                              //console.log(self.legend);
+                          });
+                      }
+                  });
+                  //reset visibility (to reset activeLegendLayers)
+                  var visible = self.visible();
+                  self.visible(false);
+                  self.visible(visible);
+              } else {
+                  //debugger;
+              }
+          }
+      });
+    }
+
+    getArcGISJSONDescription = function(self, protocol) {
+      var url = self.url.replace('/export', '/'+self.arcgislayers) + '?f=pjson';
+      if (protocol == "https:") {
+        url = url.replace('http:', 'https:');
+      }
+      $.ajax({
+          dataType: "jsonp",
+          url: url,
+          type: 'GET',
+          success: function(data) {
+            if (data['description']) {
+              if (!self.overview) {
+                self.overview = data['description'];
+              }
+              // RDH 09-06-2018
+              // I added the below code, but cannot find any proof that the Mid-A team
+              // WANTS auto-pulling of description if not provided explicitly.
+              // This logic would also have to be applied to the data-catalog as well.
+              // if (!self.description()) {
+              //   self.description(data['description']);
+              // }
+            }
+          }
+      });
     }
 
 
@@ -286,12 +375,19 @@ function layerModel(options, parent) {
         return visibleSubLayers;
     };
 
-    self.deactivateLayer = function() {
+    self.deactivateLayer = function(is_companion) {
         var layer = this;
 
-        //de-activate companion layer should happen prior to base
-        if (layer.hasCompanion) {
+        layer.loadStatus(false);
+        if (layer.hasOwnProperty('parent') && layer.parent) {
+          layer.parent.loadStatus(false);
+        }
+
+        if (typeof is_companion == 'undefined' || is_companion == false) {
+          //de-activate companion layer should happen prior to base
+          if (layer.hasCompanion) {
             self.deactivateCompanion();
+          }
         }
         //deactivate layer
         self.deactivateBaseLayer();
@@ -312,6 +408,10 @@ function layerModel(options, parent) {
         //de-activate arcIdentifyControl (if applicable)
         if (layer.arcIdentifyControl) {
             layer.arcIdentifyControl.deactivate();
+        }
+
+        if (layer.is_multilayer_parent() && layer.dimensions.length > 0){
+          self.deactivateMultiLayers();
         }
 
         layer.layer = null;
@@ -343,8 +443,10 @@ function layerModel(options, parent) {
         var layer = this;
         //NEED TO CHECK FOR PARENT LAYER HERE TOO...?
         //the following removes this layers utfgrid from the utfcontrol and prevents continued utf attribution on this layer
-        app.map.UTFControl.layers.splice($.inArray(layer.utfgrid, app.map.UTFControl.layers), 1);
-        app.map.removeLayer(layer.utfgrid);
+        if (app.wrapper.controls.hasOwnProperty('UTFControl')){
+          app.wrapper.controls.UTFControl.layers.splice($.inArray(layer.utfgrid, app.wrapper.controls.UTFControl.layers), 1);
+          app.map.removeLayer(layer.utfgrid);
+        }
     };
 
     // called from deactivateLayer
@@ -389,6 +491,46 @@ function layerModel(options, parent) {
         layer.visibleSublayer(false);
     };
 
+    self.deactivateMultiLayers = function() {
+      var layer = this;
+      var multilayers = self.getMultilayerIds(layer.associated_multilayers, []);
+      for (var i = 0; i < multilayers.length; i++) {
+        mlayer = app.viewModel.getLayerById(multilayers[i]);
+        if (mlayer) {
+          mlayer.deactivateLayer();
+        }
+      }
+    }
+
+    self.reorderMultilayers = function() {
+
+      // thanks JSPerf via digiguru @ https://stackoverflow.com/a/7180095/706797
+      Array.prototype.move = function(from, to) {
+          this.splice(to, 0, this.splice(from, 1)[0]);
+      };
+
+      // Get list of active layers minus 'multilayers'
+      var visibleLayers = [];
+      for (var i=0; i < app.viewModel.activeLayers().length; i++) {
+        layer = app.viewModel.activeLayers()[i];
+        if (!layer.is_multilayer()) {
+          visibleLayers.push(layer);
+        }
+      }
+      // Get index of self in this list
+      var toIndex = visibleLayers.indexOf(self);
+      var fromIndex = app.viewModel.activeLayers().indexOf(self);
+      // For self and then each multilayer, move to that index.
+      app.viewModel.activeLayers().move(fromIndex, toIndex);
+
+      var multilayers = self.getMultilayerIds(layer.associated_multilayers, []);
+      for (var i=0; i<multilayers.length; i++) {
+        var multilayer = multilayers[i];
+        fromIndex = app.viewModel.activeLayers().indexOf(multilayer);
+        app.viewModel.activeLayers().move(fromIndex, toIndex);
+      }
+    }
+
     //deactivate all layers within a queryable mdat directory
     self.deactivateMDATDirectory = function() {
         var layerDir = this,
@@ -418,12 +560,18 @@ function layerModel(options, parent) {
                 ly.deactivateBaseLayer();
             })
         } else {
-            var activeCompanionLayer = $.grep(app.viewModel.activeLayers(), function(c) {
-                return (c.companionLayers && c.companionLayers.length > 0)
+            var activeCompanionLayers = $.grep(app.viewModel.activeLayers(), function(c) {
+                if (c.companionLayers) {
+                  relatedCompanionLayers = $.grep(c.companionLayers, function(parentLayer) {
+                    return parentLayer.id == layer.id;
+                  })
+                  return (relatedCompanionLayers.length) > 0;
+                }
+                return false
             });
 
             //is the companion layer still active?
-            if (activeCompanionLayer.length == 0) {
+            if (activeCompanionLayers.length == 0) {
                 layer.deactivateBaseLayer();
                 return false;
 
@@ -432,23 +580,42 @@ function layerModel(options, parent) {
                 var companionArray = [];
                 //find layers that have companions
                 $.each(app.viewModel.activeLayers(), function(i,lyr) {
-                    if (lyr.hasCompanion) {
+                    // do not include current layer
+                    if (lyr.hasCompanion && lyr != layer) {
                         //ignore queryable MDATs
                         if (mdatDir && mdatDir.searchQueryable) {
                             companionArray;
                         } else {
-                            companionArray.push(lyr)
+                            companionArray.push(lyr.id)
                         }
                     }
                 });
-                var companionLayer = $.grep(companionArray, function(l) {
-                    return l.companion.id == layer.companion.id
-                });
 
-                if (companionLayer.length > 0) {
-                    $.each(layer.companion, function(i, ly) {
-                        ly.deactivateBaseLayer();
-                    })
+                //Get IDs of all active layers that aren't the current layer
+                var activeLayers = app.viewModel.activeLayers();
+                var activeLayerIds = [];
+                for (var i = 0; i < activeLayers.length; i++) {
+                  if (activeLayers[i] != layer) {
+                    activeLayerIds.push(activeLayers[i]);
+                  }
+                }
+                // for each companion layer to this current layer
+                for (var i = 0; i < activeCompanionLayers.length; i++){
+                  var companionLayer = activeCompanionLayers[i];
+                  // if only 1 parent layer, then it's this layer
+                  if (companionLayer.companionLayers.length == 1) {
+                    companionLayer.deactivateLayer(true);
+                  } else {
+                    var companionLayerActivelyShared = false;
+                    for (var j = 0; j < companionLayer.companionLayers.length; j++) {
+                      if (activeLayerIds.indexOf(companionLayer.companionLayers[j].id) >= 0){
+                        companionLayerActivelyShared = true;
+                      }
+                    }
+                    if (!companionLayerActivelyShared) {
+                      companionLayer.deactivateLayer(true);
+                    }
+                  }
                 }
             // if no other layer is active - it's the companion layer, so let's remove it
             } else if (app.viewModel.activeLayers().length == 1) {
@@ -463,50 +630,91 @@ function layerModel(options, parent) {
         ga('send', 'event', 'Layers Activated', action);
     };
 
-    self.activateLayer = function() {
+    self.activateLayer = function(is_companion) {
         var layer = this;
 
-        if (!layer.active() && layer.type !== 'placeholder' && !layer.isDisabled()) {
-
-            self.activateBaseLayer();
-
-            // save reference in parent layer
-            if (layer.parent) {
-                self.activateParentLayer();
-            }
-
-            //add utfgrid if applicable
-            if (layer.utfgrid) {
-                self.activateUtfGridLayer();
-            }
-
-            //activate arcIdentifyControl (if applicable)
-            if (layer.arcIdentifyControl) {
-                layer.arcIdentifyControl.activate();
-            }
-
-            //activate marine life layers
-            if (layer.isMDAT) {
-                self.parentMDATDirectory.visible(true);
-            }
-
-            if (layer.isVTR) {
-                self.visible(true);
-            }
-
-            //activate companion layers
-            if (layer.hasCompanion) {
-                if (layer.parentMDATDirectory) {
-                    if (!layer.parentMDATDirectory.searchQueryable) {
-                        self.activateCompanionLayer()
-                    }
-                } else {
-                    self.activateCompanionLayer();
-                }
-            }
-
-            self.trackLayer(layer.name);
+        if (app.wrapper.events.hasOwnProperty('addLayerLoadStart')) {
+          layer.loadStatus("loading");
         }
+
+        if (layer instanceof layerModel) {
+          if (layer.fullyLoaded || layer.isMDAT || layer.isVTR) {
+
+            if (!layer.hasOwnProperty('url') || !layer.url || layer.url.length < 1 || layer.hasOwnProperty('type') && layer.type == 'placeholder') {
+              layer.loadStatus(false);
+            }
+
+            // if legend is not provided, try using legend from web services
+            if ( !self.legend && self.url && (self.arcgislayers !== -1) ) {
+              try {
+                getArcGISJSONLegend(self, window.location.protocol);
+              } catch (err) {
+                if (window.location.protocol == "http:") {
+                  console.log(err);
+                } else {
+                  getArcGISJSONLegend(self, "http:");
+                }
+              }
+
+            }
+
+            if (!layer.active() && layer.type !== 'placeholder' && !layer.isDisabled()) {
+
+              self.activateBaseLayer();
+
+              // save reference in parent layer
+              if (layer.parent) {
+                self.activateParentLayer();
+              }
+
+              //add utfgrid if applicable
+              if (layer.utfgrid) {
+                self.activateUtfGridLayer();
+              }
+
+              //activate arcIdentifyControl (if applicable)
+              if (layer.arcIdentifyControl) {
+                layer.arcIdentifyControl.activate();
+              }
+
+              //activate marine life layers
+              if (layer.isMDAT) {
+                self.parentMDATDirectory.visible(true);
+              }
+
+              if (layer.isVTR) {
+                self.visible(true);
+              }
+
+              if (typeof is_companion == "undefined" || is_companion == false || is_companion != "nocompanion") {
+                //activate companion layers
+                if (layer.hasCompanion) {
+                  if (layer.parentMDATDirectory) {
+                    if (!layer.parentMDATDirectory.searchQueryable) {
+                      self.activateCompanionLayer()
+                    }
+                  } else {
+                    self.activateCompanionLayer();
+                  }
+                }
+              }
+
+              //activate multilayer groups
+              if (layer.is_multilayer_parent() && layer.dimensions.length > 0){
+                self.activateMultiLayers();
+                self.buildMultilayerValueLookup();
+              }
+
+              self.trackLayer(layer.name);
+            }
+          } else {
+            layer.getFullLayerRecord('activateLayer', is_companion);
+            layer.visible(true);
+          }
+        } else {
+          app.viewModel.getOrCreateLayer(layer, null, 'activateLayer', is_companion);
+        }
+
     };
 
     // called from activateLayer
@@ -515,7 +723,7 @@ function layerModel(options, parent) {
 
         app.addLayerToMap(layer);
 
-        //now that we now longer use the selectfeature control we can simply do the following
+        //now that we no longer use the selectfeature control we can simply do the following
         //if (app.map.getLayersByName('Canyon Labels').length > 0) {
         if (app.viewModel.activeLayers().length > 0 && app.viewModel.activeLayers()[0].name === 'Canyon Labels') {
             app.viewModel.activeLayers.splice(1, 0, layer);
@@ -546,7 +754,14 @@ function layerModel(options, parent) {
     self.activateUtfGridLayer = function() {
         var layer = this;
 
-        app.map.UTFControl.layers.unshift(layer.utfgrid);
+        if (!app.wrapper.controls.hasOwnProperty('UTFControl')) {
+          app.wrapper.controls.addUTFControl();
+        }
+        if (app.wrapper.controls.hasOwnProperty('activateUTFGridLayer')) {
+          app.wrapper.controls.activateUTFGridLayer(layer.utfgrid);
+        } else {
+          console.log('no function defined to activateUTFGrid layer for ' + app.map_tech);
+        }
     };
 
     // bound to click handler for layer visibility switching in Active panel
@@ -558,6 +773,23 @@ function layerModel(options, parent) {
         } else { //make visible
             self.setVisible(layer);
         }
+
+        if (layer.is_multilayer_parent() && layer.dimensions.length > 0){
+          var multilayers = self.getMultilayerIds(layer.associated_multilayers, []);
+          for (var i = 0; i < multilayers.length; i++) {
+            var mlayer = app.viewModel.getLayerById(multilayers[i]);
+            if (mlayer) {
+              if (layer.visible()) {
+                mlayer.setVisible(mlayer);
+              } else {
+                mlayer.setInvisible(mlayer);
+              }
+            }
+          }
+        }
+
+        app.updateUrl();
+
     };
 
     self.setVisible = function() {
@@ -570,8 +802,8 @@ function layerModel(options, parent) {
         app.setLayerVisibility(layer, true);
 
         //add utfgrid if applicable
-        if (layer.utfgrid && app.map.UTFControl.layers.indexOf(layer.utfgrid) === -1) {
-            app.map.UTFControl.layers.splice($.inArray(this, app.viewModel.activeLayers()), 0, layer.utfgrid);
+        if (layer.utfgrid && app.wrapper.controls.hasOwnProperty('UTFControl') && app.wrapper.controls.UTFControl.layers.indexOf(layer.utfgrid) === -1) {
+            app.wrapper.controls.UTFControl.layers.splice($.inArray(this, app.viewModel.activeLayers()), 0, layer.utfgrid);
         }
     };
 
@@ -599,9 +831,9 @@ function layerModel(options, parent) {
         }
 
         //remove related utfgrid layer
-        if (layer.utfgrid) {
+        if (layer.utfgrid && app.wrapper.controls.hasOwnProperty('UTFControl')) {
             //the following removes this layers utfgrid from the utfcontrol and prevents continued utf attribution on this layer
-            app.map.UTFControl.layers.splice($.inArray(this.utfgrid, app.map.UTFControl.layers), 1);
+            app.wrapper.controls.UTFControl.layers.splice($.inArray(this.utfgrid, app.wrapper.controls.UTFControl.layers), 1);
         }
     };
 
@@ -622,15 +854,225 @@ function layerModel(options, parent) {
                         return k.id == layer.id
                     })
                     if (companionLayer.length > 0) {
-                        l.activateLayer();
+                        l.activateLayer(true); // prevent companion infinite loop
                         layer.companion.push(l);
                     }
                 }
             });
         }
+        if (layer.hasCompanion && (!layer.hasOwnProperty('companion') || layer.companion.length < 1)) {
+          layer.companion = [];
+          for (var i = 0; i < layer.companionLayers.length; i++) {
+            var companion_description = layer.companionLayers[i];
+            var companion_layer = app.viewModel.getOrCreateLayer(companion_description, null, "return", null);
+            layer.companion.push(companion_layer);
+            if (!companion_layer.active()) {
+              app.viewModel.getOrCreateLayer(companion_description, null, "activateLayer", null);
+            }
+          }
+        }
     }
 
+    self.getMultilayerIds = function(object, id_list) {
+      var keys = Object.keys(object);
+      for (var i = 0; i < keys.length; i++){
+        key = keys[i];
+        value = object[key];
+        if (typeof(value) == "number") {
+          id_list.push(value);
+        } else if (typeof(value) == "object") {
+          id_list.concat(self.getMultilayerIds(value, id_list));
+        }
+      }
+      return id_list;
+    };
+
+    self.activateMultiLayers = function() {
+        var layer = this;
+
+        layer.multilayers = self.getMultilayerIds(layer.associated_multilayers, []);
+        app.viewModel.trackMultilayerLoad(layer, true, null);
+
+        for (var i = 0; i < layer.multilayers.length; i++) {
+          var mlayer = app.viewModel.getLayerById(layer.multilayers[i]);
+          if (!mlayer) {
+            mlayer = app.viewModel.getOrCreateLayer({id: layer.multilayers[i]}, layer, 'return', null);
+          }
+          if (mlayer) {
+            mlayer.is_multilayer(true);
+            if (mlayer.fullyLoaded){
+              mlayer.activateLayer();
+              mlayer.opacity(0);
+            } else {
+              mlayer.getFullLayerRecord('multilayer', layer);
+            }
+          }
+        }
+    };
+
+    self.multilayerSliderChange = function(event, ui) {
+      // If this isn't the first creation
+      if (Object.keys(self.multilayerValueLookup).length == self.dimensions.length) {
+        var sliderValues = [];
+        for (var i = 0; i < self.dimensions.length; i++) {
+          var dimension = self.dimensions[i].label;
+          try {
+            var sliderIndex = $('#' + self.id + '_' + dimension + '_multilayerslider').slider('value');
+            self.multilayerSliderState[i] = sliderIndex;
+            sliderValues.push(self.multilayerValueLookup[dimension][sliderIndex].value.toString());
+          } catch(err) {
+            if (self.multilayerSliderState.length > i) {
+              sliderValues.push(self.multilayerValueLookup[dimension][self.multilayerSliderState[i]].value.toString());
+            } else {
+              sliderValues.push(self.multilayerValueLookup[dimension][0].value.toString());
+            }
+          }
+        }
+        self.toggleMultilayer(sliderValues);
+      }
+    };
+
+    self.multilayerAnimateToggle = function(checkbox, slider) {
+      var intr = setInterval(function() {
+        if (!checkbox.checked) {
+          clearInterval(intr);
+          return;
+        } else {
+          try {
+            var max = slider.slider('option', 'max');
+            var value = slider.slider('value');
+            var step = slider.slider('option', 'step');
+            var min = slider.slider('option', 'min');
+            if (value < max && (value + step) <= max ) {
+              slider.slider('value', value + step);
+            } else {
+              slider.slider('value', min);
+            }
+          } catch(err) {
+            return;
+          }
+        }
+      }, 1000);
+    };
+
+    self.buildMultilayerValueLookup = function() {
+      for (var i = 0; i < self.dimensions.length; i++) {
+        dimension = self.dimensions[i];
+        self.multilayerValueLookup[dimension.label] = dimension.nodes;
+        if (self.multilayerSliderState.length > 0) {
+          self.addSlider(dimension, self.multilayerSliderState[i]);
+        } else {
+          self.addSlider(dimension, 0);
+        }
+      }
+    };
+
+    self.drawSlider = function() {
+      //
+      // Add labels to slider whose values
+      // are specified by min, max and whose
+      // step is set to 1
+      //
+
+      // Get the options for this slider
+      var opt = {
+        min: 0,
+        max: self.multilayerValueLookup[dimension.label].length-1,
+        step: 1,
+        range: 'min'
+      }
+
+      // Get the number of possible values
+      var vals = opt.max - opt.min;
+
+      // clean out old labels before adding new
+      $( "#" + self.id + "_" + dimension.label + "_multilayerslider" ).children('label').remove()
+      // Space out values
+      for (var i = 0; i <= vals; i++) {
+
+        var el = $('<label>'+self.multilayerValueLookup[dimension.label][i].label+'</label>');
+        if (vals != 0) {
+          var label_width = 100/vals;
+          var label_left = label_width*i-(label_width/2);
+          el.css('width', label_width + '%');
+          el.css('left', label_left + '%');
+        }
+
+        $( "#" + self.id + "_" + dimension.label + "_multilayerslider" ).append(el);
+
+      }
+    };
+
+    self.addSlider = function(dimension, value) {
+      $( "#" + self.id + "_" + dimension.label + "_multilayerslider" ).slider({
+        create: self.multilayerSliderChange,
+        change: self.multilayerSliderChange,
+        value: value,
+        min: 0,
+        max: self.multilayerValueLookup[dimension.label].length-1,
+        step: 1
+      })
+      .each(
+        function() {
+          self.drawSlider();
+        }
+      );
+
+      if (dimension.animated) {
+        if (!$._data( $( "#" + self.id + "_animate_multilayerslider" ).get(0), 'events')) {
+          $( "#" + self.id + "_animate_multilayerslider" ).change(function(evt) {
+            var slider = $( "#" + self.id + "_" + dimension.label + "_multilayerslider" );
+            self.multilayerAnimateToggle(this, slider);
+          });
+        }
+      }
+    };
+
+    self.toggleMultilayer = function(values) {
+      // IE Object.assign fix via Andres Ilich: https://stackoverflow.com/a/39021339
+      if (typeof Object.assign != 'function') {
+        Object.assign = function(target) {
+          'use strict';
+          if (target == null) {
+            throw new TypeError('Cannot convert undefined or null to object');
+          }
+
+          target = Object(target);
+          for (var index = 1; index < arguments.length; index++) {
+            var source = arguments[index];
+            if (source != null) {
+              for (var key in source) {
+                if (Object.prototype.hasOwnProperty.call(source, key)) {
+                  target[key] = source[key];
+                }
+              }
+            }
+          }
+          return target;
+        };
+      }
+      multilayerObject = Object.assign({},self.associated_multilayers);
+      //One value for each dimension: use this to ID the layer ID for the given dimensions
+      for (var i = 0; i < values.length; i++) {
+        multilayerObject = multilayerObject[values[i]];
+      }
+      newMultiLayer = app.viewModel.getLayerById(multilayerObject);
+      if (newMultiLayer) {
+        if (self.activeMultilayer) {
+          self.activeMultilayer.is_visible_multilayer(false);
+          self.activeMultilayer.opacity(0);
+        }
+        self.activeMultilayer = newMultiLayer;
+        self.activeMultilayer.opacity(self.opacity());
+        self.activeMultilayer.is_visible_multilayer(true);
+      }
+    };
+
     self.ajaxMDAT = function(self, event) {
+      if (!self.fullyLoaded) {
+        self.getFullLayerRecord('ajaxMDAT', event);
+      } else {
+
         if (self.showSublayers() === true) {
             self.showSublayers(false);
             return false;
@@ -670,6 +1112,7 @@ function layerModel(options, parent) {
                 $mdatSpinner.hide();
                 $parentDirs.show();
                 self.toggleActive();
+                app.viewModel.activeLayer(layer);
                 if (layer.showSublayers()) {
                     $layerText.val('');
                     //focus() instantiates typeahead search in models.js
@@ -677,12 +1120,18 @@ function layerModel(options, parent) {
                 }
             })
         }
+      }
     }
 
     // array of VTR/CAS date ranges
     self.dateRanges = ko.observableArray();
 
     self.ajaxVTR = function(self, event) {
+
+      if (!self.fullyLoaded) {
+        self.getFullLayerRecord('ajaxVTR', event);
+      } else {
+
         if (self.showSublayers() === true) {
             self.showSublayers(false);
             return false;
@@ -726,6 +1175,7 @@ function layerModel(options, parent) {
                 $parentDirs.show();
             })
         }
+      }
     }
 
     // array of VTR/CAS ports
@@ -785,35 +1235,80 @@ function layerModel(options, parent) {
         return newPath
     }
 
+    self.performAction = function(callbackType, evt) {
+      var layer = this;
+      if (callbackType == 'toggleDescription') {
+        layer.toggleDescription(layer);
+      } else if (callbackType == 'toggleActive') {
+        layer.finishToggleActive(layer, evt);
+      } else if (callbackType == 'ajaxVTR') {
+        layer.ajaxVTR(layer, evt);
+      } else if (callbackType == 'ajaxMDAT') {
+        layer.ajaxMDAT(layer, evt);
+      } else if (callbackType == 'activateLayer') {
+        layer.activateLayer();
+      } else if (callbackType == 'updateHashStateLayers') {
+        if (layer.fullyLoaded){
+          app.updateHashStateLayers(layer.id, layer, null)
+        } else {
+          layer.getFullLayerRecord(callbackType, evt);
+        }
+      } else if (callbackType == 'addLayerToMap') {
+        app.addLayerToMap(layer);
+      } else if (callbackType == 'multilayer') {
+        layer.activateLayer();
+        layer.opacity(0);
+        app.viewModel.trackMultilayerLoad(evt, false, layer.id.toString());
+      } else if (callbackType == 'layerSearch') {
+        app.viewModel.layerSearch();
+      }
+    }
+
+    self.getFullLayerRecord = function(callbackType, evt) {
+      var layer = this;
+      if (layer.isMDAT || layer.isVTR) {
+        layer.fullyLoaded = true;
+        layer.performAction(callbackType, evt);
+      } else {
+
+        $.ajax({
+          url: '/data_manager/get_layer_details/' + layer.id,
+          success: function(data) {
+            if (data.hasOwnProperty('name')) {
+              layer.name = data.name;
+              app.viewModel.layerIndex[layer.id.toString()] = layer;
+            }
+            var parent = null;
+            if (data.parent){
+              parent = app.viewModel.getOrCreateLayer(data.parent, null, 'return', null);
+            }
+            // don't override good data with defaults (info from hash such as opacity and visible):
+            if (layer.hasOwnProperty('opacity') && layer.opacity()) {
+              data.opacity = layer.opacity();
+            }
+
+            layer.setOptions(data, parent);
+            layer.fullyLoaded = true;
+            app.viewModel.layerIndex[layer.id.toString()] = layer;
+            layer.performAction(callbackType, evt);
+
+            if (!data.hasOwnProperty('url') || !data.url || !data.url.length > 0 || data.hasOwnProperty('type') && data.type == 'placeholder') {
+              layer.loadStatus(false);
+            }
+
+          },
+          error: function(data) {
+            console.log('Failed to pull full layer record for ' + layer.name);
+          }
+
+        });
+      }
+
+    };
+
     // bound to click handler for layer switching
     self.toggleActive = function(self, event) {
-        var activeLayer = app.viewModel.activeLayer();
-        var activeParentLayer = app.viewModel.activeParentLayer();
         var layer = this;
-
-        //are the active and current layers the same
-        if (layer !== activeLayer && typeof activeLayer !== 'undefined') {
-            // are these CAS/VTR layers?
-            if (activeLayer.dateRangeDirectory && typeof activeLayer.parentDirectory == 'Function') {
-                activeLayer.parentDirectory.showSublayers(false);
-            }
-            //is sublayer already active
-            else if (activeLayer && typeof activeLayer.showSublayers == 'Function' ) {
-                if (activeLayer && activeLayer.showSublayers()) {
-                    //if radio sublayer
-                    if (!activeLayer.isCheckBoxLayer()) {
-                        activeLayer.showSublayers(false);
-                    }
-                }
-            //check if a parent layer is active
-            //checkbox sublayer has been clicked prior to opening another sublayer
-            } else if (activeParentLayer && layer.parent !== activeParentLayer) {
-                app.viewModel.activeParentLayer().showSublayers(false);
-            }
-        }
-
-        // save a ref to the active layer for editing,etc
-        app.viewModel.activeLayer(layer);
 
         //handle possible dropdown/sublayer behavior
         if (layer.subLayers.length) {
@@ -833,31 +1328,79 @@ function layerModel(options, parent) {
             return;
         }
 
-        // start saving restore state again and remove restore state message from map view
-        app.saveStateMode = true;
-        app.viewModel.error(null);
-        //app.viewModel.unloadedDesigns = [];
-
         if (layer.active()) { // if layer is active
             layer.deactivateLayer();
         } else { // otherwise layer is not currently active
             layer.activateLayer();
         }
 
-        //check if mdat/marine-life-library still has activeLayers
-        if (layer.isMDAT) {
-            var parentDirArray = [];
-
-            if (app.viewModel.activeLayers().length > 0) {
-               parentDirArray = $.grep(app.viewModel.activeLayers(), function(lyr) {
-                   return layer.parentMDATDirectory === lyr.parentMDATDirectory;
-               });
-            }
-
-            if (parentDirArray.length == 0) {
-                layer.parentMDATDirectory.visible(false);
-            }
+        if (!layer.fullyLoaded) {
+          layer.getFullLayerRecord('toggleActive', event);
+        } else {
+          self.finishToggleActive(self, event);
         }
+
+        // save a ref to the active layer for editing,etc
+        app.viewModel.activeLayer(layer);
+
+        // start saving restore state again and remove restore state message from map view
+        app.saveStateMode = true;
+        app.viewModel.error(null);
+
+    };
+
+    self.finishToggleActive = function(self, event) {
+      var activeLayer = app.viewModel.activeLayer();
+      var activeParentLayer = app.viewModel.activeParentLayer();
+      var layer = this;
+
+      layer.is_multilayer(false);
+
+      //are the active and current layers the same
+      if (layer !== activeLayer && typeof activeLayer !== 'undefined') {
+          // are these CAS/VTR layers?
+          if (activeLayer.dateRangeDirectory && typeof activeLayer.parentDirectory == 'Function') {
+              activeLayer.parentDirectory.showSublayers(false);
+          }
+          //is sublayer already active
+          else if (activeLayer && typeof activeLayer.showSublayers == 'Function' ) {
+              if (activeLayer && activeLayer.showSublayers()) {
+                  //if radio sublayer
+                  if (!activeLayer.isCheckBoxLayer()) {
+                      activeLayer.showSublayers(false);
+                  }
+              }
+          //check if a parent layer is active
+          //checkbox sublayer has been clicked prior to opening another sublayer
+          } else if (activeParentLayer && layer.parent !== activeParentLayer) {
+              app.viewModel.activeParentLayer().showSublayers(false);
+          }
+      }
+
+      // save a ref to the active layer for editing,etc
+      app.viewModel.activeLayer(layer);
+
+      // start saving restore state again and remove restore state message from map view
+      app.saveStateMode = true;
+      app.viewModel.error(null);
+      //app.viewModel.unloadedDesigns = [];
+
+
+
+      //check if mdat/marine-life-library still has activeLayers
+      if (layer.isMDAT) {
+          var parentDirArray = [];
+
+          if (app.viewModel.activeLayers().length > 0) {
+             parentDirArray = $.grep(app.viewModel.activeLayers(), function(lyr) {
+                 return layer.parentMDATDirectory === lyr.parentMDATDirectory;
+             });
+          }
+
+          if (parentDirArray.length == 0) {
+              layer.parentMDATDirectory.visible(false);
+          }
+      }
     };
 
     self.raiseLayer = function(layer, event) {
@@ -920,13 +1463,37 @@ function layerModel(options, parent) {
             $(layerID).css('display', 'block');
         }
     };
+    self.toggleFeatureAttribution = function(target_id) {
+        var layerID = '#' + app.viewModel.convertToSlug(target_id.id);
+        if ( $(layerID).is(':visible') ) {
+            $(layerID).css('display', 'none');
+        } else {
+            $(layerID).css('display', 'block');
+        }
+    };
 
     // display descriptive text below the map
     self.toggleDescription = function(layer) {
-        if ( ! layer.infoActive() ) {
-            self.showDescription(layer);
+        if (!layer.fullyLoaded) {
+          layer.getFullLayerRecord('toggleDescription', null);
         } else {
+          // if no description is provided, try using the web services description
+          if ( self.type == "ArcRest" && (!self.overview || !self.description()) && self.url && (self.arcgislayers !== -1) ) {
+            try {
+              getArcGISJSONDescription(self, window.location.protocol);
+            } catch (err) {
+              if (window.location.protocol == "http:") {
+                console.log(err);
+              } else {
+                getArcGISJSONDescription(self, "http:");
+              }
+            }
+          }
+          if ( ! layer.infoActive() ) {
+            self.showDescription(layer);
+          } else {
             self.hideDescription(layer);
+          }
         }
     };
 
@@ -941,13 +1508,13 @@ function layerModel(options, parent) {
     self.showTooltip = function(layer, event) {
         var layerActual;
         $('#layer-popover').hide();
-        if (layer.activeSublayer() && layer.activeSublayer().description) {
+        if (layer.activeSublayer() && layer.activeSublayer().description()) {
             layerActual = layer.activeSublayer();
         } else {
             layerActual = layer;
         }
-        if (layerActual.description) {
-            app.viewModel.layerToolTipText(layerActual.description);
+        if (layerActual.description()) {
+            app.viewModel.layerToolTipText(layerActual.description());
             $('#layer-popover').show().position({
                 "my": "right middle",
                 "at": "left middle",
@@ -962,6 +1529,11 @@ function layerModel(options, parent) {
         layer.showSublayers(false);
     };
 
+    self.showSlider = function(layer, e) {
+      $('#activeTab').trigger('click');
+      $('#myTab li[data-tab="active"]').trigger('click');
+    };
+
     return self;
 } // end layerModel
 
@@ -969,8 +1541,6 @@ function themeModel(options) {
     var self = this;
     self.name = options.display_name;
     self.id = options.id;
-    self.description = options.description;
-    self.learn_link = options.learn_link;
     self.is_visible = options.is_visible;
     self.slug_name = options.name;
 
@@ -984,20 +1554,44 @@ function themeModel(options) {
       }
     };
 
+    //Get Theme's layers if not done yet
+    self.getLayers = function() {
+      var theme = this;
+      $.ajax({
+        url: '/data_manager/get_layers_for_theme/' + theme.id,
+        success: function(data) {
+          layer_objects = [];
+          for (var i = 0; i < data.layers.length; i++) {
+            new_layer = app.viewModel.getOrCreateLayer(data.layers[i], null, 'return', null);
+            new_layer.themes.push(theme);
+            layer_objects.push(new_layer)
+          }
+          theme.layers(layer_objects);
+        },
+        error: function(data) {
+          console.log('error getting layers for Theme "' + theme.name + '".');
+        }
+      })
+    }
+
     //add to open themes
     self.setOpenTheme = function() {
         var theme = this;
 
-        // ensure data tab is activated
-        $('#dataTab').tab('show');
-
         if (self.isOpenTheme(theme)) {
-            //app.viewModel.activeTheme(null);
-            app.viewModel.openThemes.remove(theme);
+          app.viewModel.openThemes.remove(theme);
         } else {
-            app.viewModel.openThemes.push(theme);
-            self.trackTheme(theme.name);
+          app.viewModel.openThemes.push(theme);
+          self.trackTheme(theme.name);
         }
+
+        // ensure data tab is activated
+          //RDH 2019-10-11: Why?
+        // $('#dataTab').tab('show');
+        if (theme.layers().length == 1 && theme.layers()[0].id == null || theme.layers().length == 0) {
+          theme.getLayers();
+        }
+
     };
 
     //is in openThemes
@@ -1014,7 +1608,6 @@ function themeModel(options) {
         var theme = this;
         app.viewModel.activeTheme(theme);
         app.viewModel.activeThemeName(self.name);
-        app.viewModel.themeText(theme.description);
     };
 
     // is active theme
@@ -1074,8 +1667,11 @@ function mapLinksModel() {
     };
 
     self.getURL = function() {
-        //return window.location.href;
-        return 'https://portal.midatlanticocean.org' + app.viewModel.currentURL();
+        if (window.location.hostname == "localhost") {
+          return window.location.protocol + '//portal.midatlanticocean.org' + app.viewModel.currentURL();
+        } else {
+          return window.location.origin + app.viewModel.currentURL();
+        }
     };
 
     self.shrinkURL = ko.observable();
@@ -1097,7 +1693,7 @@ function mapLinksModel() {
             long_url = self.getURL();
 
         $.getJSON(
-            "http://api.bitly.com/v3/shorten?callback=?",
+            "https://api-ssl.bitly.com/v3/shorten?callback=?",
             {
                 "format": "json",
                 "apiKey": bitly_api_key,
@@ -1135,7 +1731,7 @@ function mapLinksModel() {
         var embedURL = urlOrigin + '/embed/map/' + urlHash;
         //console.log(embedURL);
         return '<iframe width="600" height="450" frameborder="0" scrolling="no" marginheight="0" marginwidth="0"' +
-                                     'src="' + embedURL + '">' + '</iframe>' + '<br />';
+                                     'src="' + embedURL + '">' + '</iframe>';
         //$('#iframe-html')[0].value = '<iframe width="600" height="450" frameborder="0" scrolling="no" marginheight="0" marginwidth="0"' +
         //                             'src="' + embedURL + '">' + '</iframe>' + '<br />';
     };
@@ -1169,8 +1765,6 @@ function ExportGeometry() {
     this.dialog = $('#export-geometry');
 }
 ExportGeometry.prototype.showDialog = function(object) {
-    console.log("Object =", object);
-
     // The dialog borrows "sharingLayer" to display the object
     app.viewModel.scenarios.sharingLayer(object);
     this.dialog.modal('show');
@@ -1191,10 +1785,18 @@ function viewModel() {
     // list of active layermodels
     self.activeLayers = ko.observableArray();
 
+    self.visibleLegendLayers = ko.computed(function() {
+      return $.map(self.activeLayers(), function(layer) {
+          if (layer.visible()) {
+              return layer;
+          }
+      });
+    });
+
     // list of visible layermodels in same order as activeLayers
     self.visibleLayers = ko.computed(function() {
         return $.map(self.activeLayers(), function(layer) {
-            if (layer.visible()) {
+            if (layer.visible() && (!layer.hasOwnProperty('is_multilayer') || !layer.is_multilayer())) {
                 return layer;
             }
         });
@@ -1202,6 +1804,17 @@ function viewModel() {
 
     self.visibleLayers.subscribe( function() {
         self.updateAttributeLayers();
+    });
+
+    // Legends relied on 'visibleLayers' to determine what to show.
+    // Multilayers are left out of 'visibleLayers' so that they don't appear
+    // in the Active tab, but we DO want them in the Legend tab (if showing).
+    self.visibleLegendLayers = ko.computed(function() {
+      return $.map(self.activeLayers(), function(layer) {
+          if (layer.visible()) {
+              return layer;
+          }
+      });
     });
 
     self.attributeLayers = ko.observable();
@@ -1300,29 +1913,38 @@ function viewModel() {
     self.layerIndex = {};
     self.layerSearchIndex = {};
 
-    self.bookmarks = new bookmarksModel();
-    self.isBookmarksOpen = ko.observable(false);
-    self.bookmarkEmail = ko.observable();
-    self.toggleBookmarksOpen = function(force) {
+    try {
+      self.bookmarks = new bookmarksModel();
+      self.isBookmarksOpen = ko.observable(false);
+      self.bookmarkEmail = ko.observable();
+      self.toggleBookmarksOpen = function(force) {
         $('#designsTab').tab('show');
 
         if (force == 'open') {
-            self.isBookmarksOpen(true);
+          self.isBookmarksOpen(true);
         }
         else if (force == 'close') {
-            self.isBookmarksOpen(false);
+          self.isBookmarksOpen(false);
         }
         else {
-            self.isBookmarksOpen(!self.isBookmarksOpen());
+          self.isBookmarksOpen(!self.isBookmarksOpen());
         }
 
         if (self.isBookmarksOpen()) {
-            app.viewModel.bookmarks.getBookmarks();
+          app.viewModel.bookmarks.getBookmarks();
         }
+      }
+    } catch(err) {
+      console.log(err);
     }
 
-    self.scenarios = new scenariosModel();
-    self.scenarios.reports = new reportsModel();
+    try {
+      self.scenarios = new scenariosModel();
+      self.scenarios.reports = new reportsModel();
+    } catch(err) {
+      console.log(err);
+    }
+
 
     self.mapLinks = new mapLinksModel();
 
@@ -1373,20 +1995,26 @@ function viewModel() {
 
     self.closeAttribution = function() {
         self.aggregatedAttributes(false);
-        app.markers.clearMarkers();
+        if (app.wrapper.map.hasOwnProperty('clearMarkers')){
+          app.wrapper.map.clearMarkers();
+        }
     };
 
-    self.updateMarker = function(lonlat) {
+    self.updateMarker = function(lonlat_orig) {
         //at some point this function is being called without an appropriate lonlat object...
-        if (lonlat.lon && lonlat.lat) {
-            app.markers.clearMarkers();
-            app.marker = new OpenLayers.Marker(lonlat, app.markers.icon);
-            app.marker.map = app.map;
-            //app.marker.display(true);
-            if (app.marker && !$.isEmptyObject(self.aggregatedAttributes()) && self.featureAttribution()) {
-                app.markers.addMarker(app.marker);
-                app.map.setLayerIndex(app.markers, 99);
-            }
+        if (lonlat_orig.hasOwnProperty('lon') && lonlat_orig.hasOwnProperty('lat')) {
+          var lonlat = lonlat_orig;
+        } else if (lonlat_orig.hasOwnProperty('length') && lonlat_orig.length == 2) {
+          var lonlat = {
+            lon: lonlat_orig[0],
+            lat: lonlat_orig[1]
+          }
+        }
+        if (lonlat && lonlat.hasOwnProperty('lon') && lonlat.hasOwnProperty('lat')) {
+            app.wrapper.map.clearMarkers();
+            app.wrapper.map.addMarker(lonlat.lon, lonlat.lat);
+        } else {
+          app.wrapper.map.clearMarkers();
         }
     };
 
@@ -1446,20 +2074,17 @@ function viewModel() {
 
     //show/hide the list of basemaps
     self.showBasemaps = function(self, event) {
-        var $layerSwitcher = $('#' + app.map.layerswitcher_id),
-            $button = $('#basemaps'); //$(event.target).closest('.btn');
-        if ($layerSwitcher.is(":visible")) {
-            $layerSwitcher.hide();
-        } else {
-            $layerSwitcher.show();
-        }
+      app.wrapper.map.showBasemaps(self, event);
     };
+
     self.showMAFMCBasemaps = function(self) {
-        var $layerSwitcher = $('#' + app.map.layerswitcher_id);
-        $layerSwitcher.css({ "bottom": "42px", "right": "12px", "width": "138px" });
-        setTimeout( function() {
-            $layerSwitcher.slideDown(150);
-        }, 250);
+      var $layerSwitcher = $('#' + app.map.layerswitcher_id);
+      // var $layerSwitcher = $('#SimpleLayerSwitcher');
+
+      $layerSwitcher.css({ "bottom": "42px", "right": "12px", "width": "138px" });
+      setTimeout( function() {
+          $layerSwitcher.slideDown(150);
+      }, 250);
     };
 
     // zoom with box
@@ -1501,8 +2126,8 @@ function viewModel() {
     self.showLegend = ko.observable(false);
 
     self.activeLegendLayers = ko.computed(function() {
-        var layers = $.map(self.visibleLayers(), function(layer) {
-            if (layer.legend || layer.legendTitle) {
+        var layers = $.map(self.visibleLegendLayers(), function(layer) {
+            if ((layer.legend || layer.legendTitle) && (!layer.is_multilayer() || layer.is_visible_multilayer()) && layer.show_legend) {
                 return layer;
             }
         });
@@ -1553,7 +2178,7 @@ function viewModel() {
     // determine whether app is offering legends
     self.hasActiveLegends = ko.computed(function() {
         var hasLegends = false;
-        $.each(self.visibleLayers(), function(index, layer) {
+        $.each(self.visibleLegendLayers(), function(index, layer) {
             if (layer.legend || layer.legendTitle) {
                 hasLegends = true;
             }
@@ -1635,6 +2260,7 @@ function viewModel() {
     self.showBookmarks = function(self, event) {
         self.bookmarks.duplicateBookmark(false);
         self.bookmarks.newBookmarkName(null);
+        self.bookmarks.newBookmarkDescription(null);
         self.addBookmarksDialogVisible(true);
         // scenario forms will hide anything with the "step" class, so show
         // it explicitly here.
@@ -1646,7 +2272,8 @@ function viewModel() {
 
     /** Create a new bookmark from the bookmark form */
     self.addBookmark = function(form) {
-        var name = $(form).find('input').val();
+        var name = $(form).find('#new_bookmark_name').val();
+        var description = $(form).find('#new_bookmark_description').val();
         if (name.length == 0) {
             return false;
         }
@@ -1661,18 +2288,113 @@ function viewModel() {
             return false;
         }
 
-        self.bookmarks.addBookmark(name);
+        self.bookmarks.addBookmark(name, description);
         self.hideBookmarks();
         self.bookmarks.newBookmarkName(null);
+        self.bookmarks.newBookmarkDescription(null);
     }
 
     self.showMapLinks = function() {
+        app.updateUrl();
         self.mapLinks.shrinkURL(true);
         $('#short-url').text = self.mapLinks.getURL();
         self.mapLinks.setIFrameHTML();
         $('#map-links-modal').modal()
-
     };
+
+    self.toggleLinearMeasurement = function() {
+      if ($('#linear-measurement i').hasClass('fa-ruler-vertical')) {
+        self.startLinearMeasurement();
+      } else {
+        self.clearLinearMeasurement();
+      }
+    }
+
+    self.handleLinearMeasurements = function(event) {
+        var geometry = event.geometry;
+        var units = event.units;
+        var order = event.order;
+        var measure = event.measure;
+        var element = document.getElementById('measurement-output');
+        var out = "";
+        if (measure < 19) {
+          var to_fixed_digits = 2;
+        } else if (measure > 187 ) {
+          var to_fixed_digits = 0;
+        } else {
+          var to_fixed_digits = 1;
+        }
+        if(order == 1) {
+            out += "measure: " + measure.toFixed(to_fixed_digits) + " " + units;
+            if (units == "km") {
+              out += "; " + (measure/1.609344).toFixed(to_fixed_digits) + " mi" + "; " + (measure/1.852).toFixed(to_fixed_digits) + " N mi";
+            } else if (units == "m") {
+              out += "; " + (measure/1609.344).toFixed(3) + " mi" + "; " + (measure/1852).toFixed(3) + " N mi";
+            }
+        } else {
+            out += "measure: " + measure.toFixed(to_fixed_digits) + " " + units + "<sup>2</" + "sup>";
+        }
+        element.innerHTML = out;
+    }
+
+    self.createLinearControl = function() {
+      // yanked from http://dev.openlayers.org/examples/measure.html
+      var sketchSymbolizers = {
+          "Line": {
+              strokeWidth: 3,
+              strokeOpacity: 1,
+              strokeDashstyle: "solid"
+          }
+      };
+      var style = new OpenLayers.Style();
+      style.addRules([
+          new OpenLayers.Rule({symbolizer: sketchSymbolizers})
+      ]);
+      var styleMap = new OpenLayers.StyleMap({"default": style});
+
+      var renderer = OpenLayers.Util.getParameters(window.location.href).renderer;
+      renderer = (renderer) ? [renderer] : OpenLayers.Layer.Vector.prototype.renderers;
+
+      app.map.linearMeasurementControl = new OpenLayers.Control.Measure(
+          OpenLayers.Handler.Path, {
+              persist: true,
+              handlerOptions: {
+                  layerOptions: {
+                      renderers: renderer,
+                      styleMap: styleMap
+                  }
+              }
+          }
+      );
+
+      app.map.linearMeasurementControl.events.on({
+        'measure': self.handleLinearMeasurements,
+        'measurepartial': self.handleLinearMeasurements
+      });
+      app.map.linearMeasurementControl.geodesic = true;
+      app.map.linearMeasurementControl.setImmediate(true);
+      app.map.addControl(app.map.linearMeasurementControl);
+
+    }
+
+    self.startLinearMeasurement = function() {
+      if (!app.map.linearMeasurementControl) {
+        self.createLinearControl();
+      }
+      // Activate drawing (linestring)
+      app.map.linearMeasurementControl.activate();
+      $('#measurement-display').show();
+      // change $('#linear-measurement-button') to work as cancel/clear
+      $('#linear-measurement i').removeClass('fa-ruler-vertical');
+      $('#linear-measurement i').addClass('fa-times');
+    }
+
+    self.clearLinearMeasurement = function() {
+      $('#measurement-display').hide();
+      app.map.linearMeasurementControl.deactivate();
+      $('#linear-measurement i').removeClass('fa-times');
+      $('#linear-measurement i').addClass('fa-ruler-vertical');
+    }
 
     /* marine-life-library, not databased MDAT layers */
     self.activateMDATLayer = function(layer) {
@@ -1694,7 +2416,7 @@ function viewModel() {
             arcgis_layers: layer.id
         };
 
-        var mdatLayer = new layerModel(mdatObj),
+        var mdatLayer = app.viewModel.getOrCreateLayer(mdatObj, null, 'return', null),
             avianAbundance = '/MDAT/Avian_Abundance',
             avianOccurrence = '/MDAT/Avian_Occurrence';
 
@@ -1756,8 +2478,7 @@ function viewModel() {
             arcgis_layers: layer.id
         };
 
-        var vtrLayer = new layerModel(vtrObj);
-        vtrLayer.activateLayer();
+        var vtrLayer = app.viewModel.getOrCreateLayer(vtrObj, null, 'activateLayer', null);
 
     };
 
@@ -1782,8 +2503,7 @@ function viewModel() {
                 }
             })
             //add options to layer
-            var wmsLayer = new layerModel(lyrObj);
-            wmsLayer.activateLayer();
+            var wmsLayer = app.viewModel.getOrCreateLayer(lyrObj, null, 'activateLayer', null);
         });
         $('#map-wms-modal').modal('hide');
     };
@@ -1836,8 +2556,21 @@ function viewModel() {
         self.showPointerInfo(!self.showPointerInfo());
     };
 
+    self.getThemeById = function(id) {
+      var themes = self.themes();
+      for (var i = 0; i < themes.length; i++) {
+        if (themes[i].id == id) {
+          return themes[i];
+        }
+      }
+      return null;
+    }
+
     // get layer by id
     self.getLayerById = function(id) {
+        if (app.viewModel.layerIndex[id] instanceof layerModel) {
+          return app.viewModel.layerIndex[id];
+        }
         for (var x=0; x<self.themes().length; x++) {
             var layer_list = $.grep(self.themes()[x].layers(), function(layer) {
                 return layer.id === id;
@@ -1865,6 +2598,39 @@ function viewModel() {
         }
         return false;
     };
+
+
+    /**
+      * @function getOrCreateLayer - if a layerModel object with the given id exists, return it.
+      *    if not, create it.
+      * @param {object} layer_obj - an object describing the layer with at least 'id' field
+      * @param {object} parent - the layer's parent object (used if creating new layerModel object)
+      * @param {string} action - the name of the action to be taken if the layer needs to be loaded first
+      * @param {event} event - an optional event that triggered this request to be passed on when loading the layer
+      */
+    self.getOrCreateLayer = function(layer_obj, parent, action, event) {
+      var layer = self.getLayerById(layer_obj.id);
+      if (!layer) {
+        if (!layer_obj.hasOwnProperty('name')) {
+          layer_obj.name = 'Loading...';
+        }
+        var layer = new layerModel(layer_obj, parent);
+        if (layer.id) {
+          // dynamic layers do not come with IDs
+          app.viewModel.layerIndex[layer.id.toString()] = layer;
+        }
+      } else if (layer.name.toLowerCase() == "loading..." && layer_obj.hasOwnProperty('name')) {
+        layer.name = layer_obj.name;
+      }
+      if (action == 'return'){
+        return layer;
+      } else if (layer.fullyLoaded || layer.isMDAT || layer.isVTR ) {
+        layer.performAction(action, event);
+      } else {
+        layer.getFullLayerRecord(action, event);
+      }
+      return null;
+    }
 
     self.getLayerBySlug = function(slug) {
         for (var x=0; x<self.themes().length; x++) {
@@ -1897,15 +2663,60 @@ function viewModel() {
     self.layerSearch = function() {
         var found = self.layerSearchIndex[self.searchTerm()];
         if (!found) {
-            console.log("Did not find search term", self.searchTerm())
+            console.log("Did not find search term", self.searchTerm());
             return false;
         }
-        //self.activeTheme(theme);
-        if (self.openThemes.indexOf(found.theme) === -1) {
-            self.openThemes.push(found.theme);
+        if (!(found.layer instanceof layerModel)) {
+          if (typeof found.layer == "string") {
+            found.layer = parseInt(found.layer);
+          }
+          if (Number.isInteger(found.layer)) {
+            if (app.viewModel.layerIndex[found.layer.toString()] instanceof layerModel) {
+              found.layer = app.viewModel.layerIndex[found.layer.toString()];
+            } else {
+              app.viewModel.getOrCreateLayer({id: found.layer}, null, 'layerSearch', null);
+              return false;
+            }
+          } else if (found.layer.hasOwnProperty('id') || Object.keys(found.layer).indexOf('id') >= 0) {
+            app.viewModel.getOrCreateLayer({id: found.layer.id}, null, 'layerSearch', null);
+            return false;
+          } else {
+            console.log("Did not find search term", self.searchTerm());
+            return false;
+          }
         }
-        found.layer.activateLayer();
-        self.searchTerm($('.typeahead .active').text());
+        if (!found.layer.fullyLoaded) {
+          found.layer.getFullLayerRecord('layerSearch', null);
+          return false;
+        }
+        //self.activeTheme(theme);
+        if (!(found.theme instanceof themeModel)) {
+          if (Number.isInteger(found.theme)) {
+            found.theme = app.viewModel.getThemeById(found.theme);
+          } else if (found.theme.hasOwnProperty('id')) {
+            found.theme = app.viewModel.getThemeById(found.theme.id);
+          } else {
+            console.log("Did not find theme for layer indicated.");
+            return false;
+          }
+        }
+        if (self.openThemes.indexOf(found.theme) === -1) {
+          // self.openThemes.push(found.theme);
+
+          found.theme.setOpenTheme();
+          window.setTimeout(function() {
+            $('#activeTab').tab('show');
+          }, 400);
+        }
+        if (found.layer instanceof layerModel) {
+          found.layer.activateLayer();
+        } else {
+          var layer_obj = {id:found.layer, name:"Loading..."};
+          var parent = null;
+          var action = null;
+          app.viewModel.getOrCreateLayer(layer_obj, parent, 'activateLayer', action);
+        }
+        self.searchTerm($('#data-search-input').text());
     };
     self.keySearch = function(_, event) {
         // Capture user input before it gets wiped
@@ -1916,7 +2727,7 @@ function viewModel() {
             self.layerSearch();
         }
         $('ul.typeahead').on('click', 'li', function () {
-            self.searchTerm($('.typeahead .active').text());
+            self.searchTerm($(this).text());
             self.layerSearch();
             //search($(this).text());
         });
@@ -1933,6 +2744,25 @@ function viewModel() {
         var index = 300;
         app.state.activeLayers = [];
 
+        // Pull multilayer children ids out of parent.associated_multilayers
+        var getMultilayerChildren = function(object, child_ids) {
+          var keys = Object.keys(object);
+          for (var x=0; x < keys.length; x++) {
+            var key = keys[x];
+            if (typeof object[key] == "object") {
+              var new_ids = getMultilayerChildren(object[key],[]);
+              child_ids = child_ids.concat(new_ids);
+            } else {
+              //assuming typeof is number
+              child_ids.push(object[key]);
+            }
+          }
+          return child_ids;
+        }
+
+        var multilayer_children = {};
+        var multilayer_parents = {};
+
         //self.showLegend(false);
         $.each(self.activeLayers(), function(i, layer) {
             // set the zindex on the openlayers layer
@@ -1940,16 +2770,52 @@ function viewModel() {
             // are above those that are at the end
             // also save the layer state
             app.setLayerZIndex(layer, index);
+
+            if (layer.hasOwnProperty('is_multilayer') && layer.is_multilayer()) {
+              multilayer_children[layer.id.toString()] = layer;
+            }
+
+            // multilayer sliders need to be redrawn after dragging to reorder
+            if (layer.is_multilayer_parent()) {
+              multilayer_parents[index.toString()] = layer;
+            }
             index--;
         });
+        for (var i = 0; i < Object.keys(multilayer_parents).length; i++) {
+          var index_str = Object.keys(multilayer_parents)[i];
+          var parent = multilayer_parents[index_str];
+          var index = parseInt(index_str);
+          var children_ids = getMultilayerChildren(parent.associated_multilayers, []);
+          for (var j = 0; j < children_ids.length; j++) {
+            var child_id = children_ids[j].toString();
+            if (multilayer_children.hasOwnProperty(child_id)) {
+              var child = multilayer_children[child_id];
+              app.setLayerZIndex(child, index);
+            }
+          }
+        }
 
-        // re-ordering map layers by z value
-        app.map.layers.sort(function(a, b) {
-            return a.getZIndex() - b.getZIndex();
-        });
+        if (app.wrapper.map.hasOwnProperty('sortLayers')) {
+          app.wrapper.map.sortLayers();
+        }
 
         // update the url hash
         app.updateUrl();
+
+        $.each(self.activeLayers(), function(i, layer) {
+          if (layer.is_multilayer_parent()) {
+            if ($('#'+ layer.id + '_' + layer.dimensions[0].label + '_multilayerslider').length == 0 || $('#'+ layer.id + '_' + layer.dimensions[0].label + '_multilayerslider').html() == "") {
+              try {
+                setTimeout(function() {
+                  layer.buildMultilayerValueLookup();
+                }, 30)
+              }
+              catch (err) {
+                console.log('pass: ' + layer );
+              }
+            }
+          }
+        });
 
     });
 
@@ -2176,300 +3042,6 @@ function viewModel() {
             .replace(/ +/g,'-');
     };
 
-    self.getWindPlanningAreaAttributes = function (data) {
-        attrs = [];
-        if ('INFO' in data) {
-            var state = data.INFO,
-                first = state.indexOf("Call"),
-                second = state.indexOf("WEA"),
-                third = state.indexOf("RFI");
-            /*if (first !== -1) {
-                state = state.slice(0, first);
-            } else if (second !== -1) {
-                state = state.slice(0, second);
-            } else if (third !== -1) {
-                state = state.slice(0, third);
-            }*/
-            attrs.push({'display': '', 'data': state});
-        }
-        return attrs;
-    };
-
-    self.getSeaTurtleAttributes = function (data) {
-        attrs = [];
-        if ('ST_LK_NUM' in data && data['ST_LK_NUM']) {
-            //attrs.push({'display': 'Sightings', 'data': data['ST_LK_NUM']});
-            if (data['ST_LK_NUM'] === 99) {
-                attrs.push({'display': 'Insufficient Data available for this area', 'data': ''});
-            } else {
-                attrs.push({'display': 'Above Average Sightings for the following species:', 'data': ''});
-            }
-        } else {
-            attrs.push({'display': 'Sightings were in the normal range for all species', 'data': ''});
-        }
-
-        if ('ST_LK_NUM' in data && data['ST_LK_NUM'] ) {
-            var season, species, sighting;
-            if ('GREEN_LK' in data && data['GREEN_LK']) {
-                season = data['GREEN_LK'];
-                species = 'Green Sea Turtle';
-                sighting = species + ' (' + season + ') ';
-                attrs.push({'display': '', 'data': sighting});
-            }
-            if ('LEATH_LK' in data && data['LEATH_LK']) {
-                season = data['LEATH_LK'];
-                species = 'Leatherback Sea Turtle';
-                sighting = species + ' (' + season + ') ';
-                attrs.push({'display': '', 'data': sighting});
-            }
-            if ('LOGG_LK' in data && data['LOGG_LK']) {
-                season = data['LOGG_LK'];
-                species = 'Loggerhead Sea Turtle';
-                sighting = species + ' (' + season + ') ';
-                attrs.push({'display': '', 'data': sighting});
-            }
-        }
-        return attrs;
-    };
-
-    var getEFHData = function(keys) {
-        var output = [];
-        if (keys.indexOf('X') !== -1) {
-            output.push('Life stage data not developed');
-        } else {
-            if (keys.indexOf('E') !== -1) {
-                output.push('Eggs');
-            }
-            if (keys.indexOf('L') !== -1) {
-                output.push('Larvae');
-            }
-            if (keys.indexOf('J') !== -1) {
-                output.push('Juveniles');
-            }
-            if (keys.indexOf('A') !== -1) {
-                output.push('Adults');
-            }
-        }
-        return output.join(', ');
-    };
-
-    self.getEFHAttributes = function (data) {
-        attrs = [];
-
-        if ('American_P' in data && data['American_P']) {
-            output = getEFHData(data['American_P']);
-            attrs.push({'display': 'American Plaice', 'data': output});
-        }
-        if ('Atlantic_C' in data && data['Atlantic_C']) {
-            output = getEFHData(data['Atlantic_C']);
-            attrs.push({'display': 'Atlantic Cod', 'data': output});
-        }
-        if ('Atlantic_1' in data && data['Atlantic_1']) {
-            output = getEFHData(data['Atlantic_1']);
-            attrs.push({'display': 'Atlantic Halibut', 'data': output});
-        }
-        if ('Atlantic_H' in data && data['Atlantic_H']) {
-            output = getEFHData(data['Atlantic_H']);
-            attrs.push({'display': 'Atlantic Herring', 'data': output});
-        }
-        if ('Atlantic_S' in data && data['Atlantic_S']) {
-            output = getEFHData(data['Atlantic_S']);
-            attrs.push({'display': 'Atlantic Sea Scallop', 'data': output});
-        }
-        if ('Atlantic_W' in data && data['Atlantic_W']) {
-            output = getEFHData(data['Atlantic_W']);
-            attrs.push({'display': 'Atlantic Wolffish', 'data': output});
-        }
-        if ('Barndoor_S' in data && data['Barndoor_S']) {
-            output = getEFHData(data['Barndoor_S']);
-            attrs.push({'display': 'Barndoor Skate', 'data': output});
-        }
-        if ('Black_Sea_' in data && data['Black_Sea_']) {
-            output = getEFHData(data['Black_Sea_']);
-            attrs.push({'display': 'Black Sea Bass', 'data': output});
-        }
-        if ('Bluefish' in data && data['Bluefish']) {
-            output = getEFHData(data['Bluefish']);
-            attrs.push({'display': 'Bluefish', 'data': output});
-        }
-        if ('Butterfish' in data && data['Butterfish']) {
-            output = getEFHData(data['Butterfish']);
-            attrs.push({'display': 'Butterfish', 'data': output});
-        }
-        if ('Clearnose_' in data && data['Clearnose_']) {
-            output = getEFHData(data['Clearnose_']);
-            attrs.push({'display': 'Clearnose Skate', 'data': output});
-        }
-        if ('Haddock' in data && data['Haddock']) {
-            output = getEFHData(data['Haddock']);
-            attrs.push({'display': 'Haddock', 'data': output});
-        }
-        if ('Little_Ska' in data && data['Little_Ska']) {
-            output = getEFHData(data['Little_Ska']);
-            attrs.push({'display': 'Little Skate', 'data': output});
-        }
-        if ('Longfin_In' in data && data['Longfin_In']) {
-            output = getEFHData(data['Longfin_In']);
-            attrs.push({'display': 'Longfin Inshore Squid', 'data': output});
-        }
-        if ('Mackerel' in data && data['Mackerel']) {
-            output = getEFHData(data['Mackerel']);
-            attrs.push({'display': 'Mackerel', 'data': output});
-        }
-        if ('Monkfish' in data && data['Monkfish']) {
-            output = getEFHData(data['Monkfish']);
-            attrs.push({'display': 'Monkfish', 'data': output});
-        }
-        if ('Northern_S' in data && data['Northern_S']) {
-            output = getEFHData(data['Northern_S']);
-            attrs.push({'display': 'Northern Shortfin Squid', 'data': output});
-        }
-        if ('Ocean_Pout' in data && data['Ocean_Pout']) {
-            output = getEFHData(data['Ocean_Pout']);
-            attrs.push({'display': 'Ocean Pout', 'data': output});
-        }
-        if ('Offshore_H' in data && data['Offshore_H']) {
-            output = getEFHData(data['Offshore_H']);
-            attrs.push({'display': 'Offshore Hake', 'data': output});
-        }
-        if ('Pollock' in data && data['Pollock']) {
-            output = getEFHData(data['Pollock']);
-            attrs.push({'display': 'Pollock', 'data': output});
-        }
-        if ('Quahog' in data && data['Quahog']) {
-            output = getEFHData(data['Quahog']);
-            attrs.push({'display': 'Quahog', 'data': output});
-        }
-        if ('Red_Crab' in data && data['Red_Crab']) {
-            output = getEFHData(data['Red_Crab']);
-            attrs.push({'display': 'Red Crab', 'data': output});
-        }
-        if ('Red_Hake' in data && data['Red_Hake']) {
-            output = getEFHData(data['Red_Hake']);
-            attrs.push({'display': 'Red Hake', 'data': output});
-        }
-        if ('Redfish' in data && data['Redfish']) {
-            output = getEFHData(data['Redfish']);
-            attrs.push({'display': 'Redfish', 'data': output});
-        }
-        if ('Rosette_Sk' in data && data['Rosette_Sk']) {
-            output = getEFHData(data['Rosette_Sk']);
-            attrs.push({'display': 'Rosette Skate', 'data': output});
-        }
-        if ('Scup' in data && data['Scup']) {
-            output = getEFHData(data['Scup']);
-            attrs.push({'display': 'Scup', 'data': output});
-        }
-        if ('Silver_Hak' in data && data['Silver_Hak']) {
-            output = getEFHData(data['Silver_Hak']);
-            attrs.push({'display': 'Silver Hake', 'data': output});
-        }
-        if ('Smooth_Ska' in data && data['Smooth_Ska']) {
-            output = getEFHData(data['Smooth_Ska']);
-            attrs.push({'display': 'Smooth Skate', 'data': output});
-        }
-        if ('Spiny_Dogf' in data && data['Spiny_Dogf']) {
-            output = getEFHData(data['Spiny_Dogf']);
-            attrs.push({'display': 'Spiny Dogfish', 'data': output});
-        }
-        if ('Summer_Flo' in data && data['Summer_Flo']) {
-            output = getEFHData(data['Summer_Flo']);
-            attrs.push({'display': 'Summer Flounder', 'data': output});
-        }
-        if ('Surfclam' in data && data['Surfclam']) {
-            output = getEFHData(data['Surfclam']);
-            attrs.push({'display': 'Surfclam', 'data': output});
-        }
-        if ('Thorny_Ska' in data && data['Thorny_Ska']) {
-            output = getEFHData(data['Thorny_Ska']);
-            attrs.push({'display': 'Thorny Skate', 'data': output});
-        }
-        if ('Tilefish' in data && data['Tilefish']) {
-            output = getEFHData(data['Tilefish']);
-            attrs.push({'display': 'Tilefish', 'data': output});
-        }
-        if ('Witch_Flou' in data && data['Witch_Flou']) {
-            output = getEFHData(data['Witch_Flou']);
-            attrs.push({'display': 'Witch Flounder', 'data': output});
-        }
-        if ('White_Hake' in data && data['White_Hake']) {
-            output = getEFHData(data['White_Hake']);
-            attrs.push({'display': 'White Hake', 'data': output});
-        }
-        if ('Windowpane' in data && data['Windowpane']) {
-            output = getEFHData(data['Windowpane']);
-            attrs.push({'display': 'Windowpane', 'data': output});
-        }
-        if ('Winter_Flo' in data && data['Winter_Flo']) {
-            output = getEFHData(data['Winter_Flo']);
-            attrs.push({'display': 'Winter Flounder', 'data': output});
-        }
-        if ('Winter_Ska' in data && data['Winter_Ska']) {
-            output = getEFHData(data['Winter_Ska']);
-            attrs.push({'display': 'Winter Skate', 'data': output});
-        }
-        if ('Yellowtail' in data && data['Yellowtail']) {
-            output = getEFHData(data['Yellowtail']);
-            attrs.push({'display': 'Yellowtail', 'data': output});
-        }
-        if ('Species_Co' in data && data['Species_Co']) {
-            attrs.unshift({'display': '', 'data': data['Species_Co'] + ' Overlapping Essential Fish Habitats'});
-        }
-        return attrs;
-    };
-
-    self.getToothedMammalAttributes = function (data) {
-        attrs = [];
-        if ('TOO_LK_NUM' in data && data['TOO_LK_NUM']) {
-            if (data['TOO_LK_NUM'] === 99) {
-                attrs.push({'display': 'Insufficient Data available for this area', 'data': ''});
-            } else {
-                attrs.push({'display': 'Above Average Sightings for the following species:', 'data': ''});
-            }
-        } else {
-            attrs.push({'display': 'Sightings were in the normal range for all species', 'data': ''});
-        }
-        if ('TOO_LK_NUM' in data && data['TOO_LK_NUM'] ) {
-            var season, species, sighting;
-            if ('SPERM_LK' in data && data['SPERM_LK']) {
-                season = data['SPERM_LK'];
-                species = 'Sperm Whale';
-                sighting = species + ' (' + season + ') ';
-                attrs.push({'display': '', 'data': sighting});
-            }
-            if ('BND_LK' in data && data['BND_LK']) {
-                season = data['BND_LK'];
-                species = 'Bottlenose Dolphin';
-                sighting = species + ' (' + season + ') ';
-                attrs.push({'display': '', 'data': sighting});
-            }
-            if ('STRIP_LK' in data && data['STRIP_LK']) {
-                season = data['STRIP_LK'];
-                species = 'Striped Dolphin';
-                sighting = species + ' (' + season + ') ';
-                attrs.push({'display': '', 'data': sighting});
-            }
-        }
-        return attrs;
-    };
-
-    self.getWindSpeedAttributes = function (data) {
-        attrs = [];
-        if ('SPEED_90' in data) {
-            var min_speed = (parseFloat(data['SPEED_90'])-0.125).toPrecision(3),
-                max_speed = (parseFloat(data['SPEED_90'])+0.125).toPrecision(3);
-            attrs.push({'display': 'Estimated Avg Wind Speed', 'data': min_speed + ' to ' + max_speed + ' m/s'});
-        }
-        return attrs;
-    };
-
-    self.adjustPartyCharterAttributes = function (attrs) {
-        for (var x=0; x<attrs.length; x=x+1) {
-            attrs[x].display = 'Total Trips (2000-2009)';
-        }
-        return attrs;
-    };
-
     self.isSelectedLeaseBlock = function(name) {
         if (name === "OCS Lease Blocks") {
             return true;
@@ -2488,357 +3060,6 @@ function viewModel() {
         return false;
     };
 
-
-    self.getChannelAttributes = function (data) {
-        attrs = [];
-        if ('location' in data) {
-            attrs.push({'display': '', 'data': data['location']});
-        }
-        if ('minimumDep' in data) {
-            var meters = data['minimumDep'],
-                feet =  new Number(meters * 3.28084).toPrecision(2);
-            attrs.push({'display': 'Minimum Depth', 'data': feet + ' feet'}); // + meters + ' meters)'});
-        }
-        return attrs;
-    };
-
-    self.getPortOwnershipAttributes = function (data) {
-        attrs = [];
-        if ('Ownership' in data) {
-            attrs.push({'display': '', 'data': data['Ownership']});
-        }
-        return attrs;
-    };
-
-    self.getPortCommodityAttributes = function (data) {
-        attrs = [];
-        if ('Commodity_' in data) {
-            var commodity = 'Unknown';
-            switch (data['Commodity_']) {
-                case 0:
-                    commodity = 'Not applicable';
-                    break;
-                case 10:
-                    commodity = 'Coal';
-                    break;
-                case 20:
-                    commodity = 'Petroleum & petroleum products';
-                    break;
-                case 30:
-                    commodity = 'Chemicals & related products';
-                    break;
-                case 40:
-                    commodity = 'Crude materials, inedible, except fuels';
-                    break;
-                case 50:
-                    commodity = 'Primary manufactured goods';
-                    break;
-                case 60:
-                    commodity = 'Food & farm products';
-                    break;
-                case 70:
-                    commodity = 'All manufactured equipment and machinery';
-                    break;
-                case 80:
-                    commodity = 'Waste material; garbage, landfill, sewage sludge & waste water';
-                    break;
-                case 91:
-                    commodity = 'Multi-commodities';
-                    break;
-                case 99:
-                    commodity = 'Unknown';
-                    break;
-            }
-            attrs.push({'display': '', 'data': commodity});
-        }
-        return attrs;
-    };
-
-    self.getOCSAttributes = function (data) {
-        attrs = [];
-        if ('BLOCK_LAB' in data) {
-            attrs.push({'display': 'OCS Block Number', 'data': data['BLOCK_LAB']});
-        } else if ('PROT_NUMB' in data) {
-            var blockLab = data['PROT_NUMB'].substring(data['PROT_NUMB'].indexOf('_')+1);
-            attrs.push({'display': 'OCS Block Number', 'data': blockLab});
-        }
-        if ('PROT_NUMBE' in data) {
-            attrs.push({'display': 'Protraction Number', 'data': data['PROT_NUMBE']});
-        }else if ('PROT_NUMB' in data) {
-            var protNumbe = data['PROT_NUMB'].substring(0,data['PROT_NUMB'].indexOf('_'));
-            attrs.push({'display': 'Protraction Number', 'data': protNumbe});
-        }
-        if ('PROT_NUMB' in data) {
-            if (self.scenarios &&
-                self.scenarios.selectionFormModel &&
-                self.scenarios.selectionFormModel.IE &&
-                self.scenarios.selectionFormModel.selectingLeaseBlocks()) {
-                var blockID = data['PROT_NUMB'],
-                    index = self.scenarios.selectionFormModel.selectedLeaseBlocks.indexOf(blockID);
-                if ( index === -1) {
-                    //add that lease block to the list of selected leaseblocks
-                    self.scenarios.selectionFormModel.selectedLeaseBlocks.push(blockID);
-                } else {
-                    //remove that lease block from the list of selected leaseblocks
-                    self.scenarios.selectionFormModel.selectedLeaseBlocks.splice(index, 1);
-                }
-            }
-        }
-
-        //Wind Speed
-        if ('WINDREV_MI' in data && 'WINDREV_MA' in data) {
-            if ( data['WINDREV_MI'] ) {
-                var min_speed = data['WINDREV_MI'].toFixed(3),
-                    max_speed = data['WINDREV_MA'].toFixed(3),
-                    min_range = (parseFloat(min_speed)-.125).toPrecision(3),
-                    max_range = (parseFloat(max_speed)+.125).toPrecision(3);
-                /*if ( min_speed === max_speed ) {
-                    attrs.push({'display': 'Estimated Avg Wind Speed (m/s)', 'data': speed});
-                } else {
-                    var speed = (min_speed-.125) + ' to ' + (max_speed+.125);
-                    attrs.push({'display': 'Estimated Avg Wind Speed (m/s)', 'data': speed});
-                }*/
-                attrs.push({'display': 'Estimated Avg Wind Speed', 'data': min_range + ' to ' + max_range + ' m/s'});
-            } else {
-                attrs.push({'display': 'Estimated Avg Wind Speed', 'data': 'Unknown'});
-            }
-        }
-
-        //Distance to Coastal Substation
-        if ('SUBSTAMIN' in data && 'SUBSTMAX' in data) {
-            if (data['SUBSTAMIN'] !== 0 && data['SUBSTMAX'] !== 0) {
-                attrs.push({'display': 'Distance to Coastal Substation', 'data': data['SUBSTAMIN'].toFixed(0) + ' to ' + data['SUBSTMAX'].toFixed(0) + ' miles'});
-            } else {
-                attrs.push({'display': 'Distance to Coastal Substation Unknown', 'data': null});
-            }
-        }
-
-        //Distance to AWC Hubs
-        if ('AWCMI_MIN' in data && 'AWCMI_MAX' in data) {
-            attrs.push({'display': 'Distance to Proposed AWC Hub', 'data': data['AWCMI_MIN'].toFixed(0) + ' to ' + data['AWCMI_MAX'].toFixed(0) + ' miles'});
-        }
-
-        //Wind Planning Areas
-        if ('WEA2' in data && data['WEA2'] !== 0) {
-            var weaName = data['WEA2_NAME'],
-                stateName = weaName.substring(0, weaName.indexOf(' '));
-            if (stateName === 'New') {
-                stateName = 'New Jersey';
-            } else if (stateName === 'Rhode') {
-                stateName = 'Rhode Island / Massachusetts';
-            }
-            //if ( data['WEA2_NAME'].replace(/\s+/g, '') !== "" ) {
-            //TAKING THIS OUT TEMPORARILY UNTIL WE HAVE UPDATED THE DATA SUMMARY FOR WPAS AND LEASE AREAS
-            //attrs.push({'display': 'Within the ' + stateName + ' WPA', 'data': null});
-            //}
-        }
-
-        //Distance to Shipping Lanes
-        if ('TRAFFCMIN' in data && 'TRAFFCMAX' in data) {
-            attrs.push({'display': 'Distance to Ship Routing Measures', 'data': data['TRAFFCMIN'].toFixed(0) + ' to ' + data['TRAFFCMAX'].toFixed(0) + ' miles'});
-        }
-
-        //Distance to Shore
-        if ('MI_MIN' in data && 'MI_MAX' in data) {
-            attrs.push({'display': 'Distance to Shore', 'data': data['MI_MIN'].toFixed(0) + ' to ' + data['MI_MAX'].toFixed(0) + ' miles'});
-        }
-
-        //Depth Range
-        if ('DEPTHM_MIN' in data && 'DEPTHM_MAX' in data) {
-            if ( data['DEPTHM_MIN'] ) {
-                //convert depth values to positive feet values (from negative meter values)
-                var max_depth = (-data['DEPTHM_MAX']).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ","),
-                    min_depth = (-data['DEPTHM_MIN']).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-                attrs.push({'display': 'Depth Range', 'data': max_depth + ' to ' + min_depth + ' meters'});
-            } else {
-                attrs.push({'display': 'Depth Range', 'data': 'Unknown'});
-            }
-        }
-
-        //Seabed Form
-        if ('PCT_TOTAL' in data) {
-            if (data['PCT_TOTAL'] < 99.9) {
-                attrs.push({'display': 'Seabed Form', 'data': 'Unknown'});
-            } else {
-                attrs.push({'display': 'Seabed Form', 'data': ''});
-                if ('PCTDEPRESS' in data && Math.round(data['PCTDEPRESS']) > 0) {
-                    attrs.push({'tab': true, 'display': 'Depression (' + Math.round(data['PCTDEPRESS']) + '%)', 'data': ''});
-                }
-                if ('PCTHIGHFLA' in data && Math.round(data['PCTHIGHFLA']) > 0) {
-                    attrs.push({'tab': true, 'display': 'High Flat (' + Math.round(data['PCTHIGHFLA']) + '%)', 'data': ''});
-                }
-                if ('PCTHIGHSLO' in data && Math.round(data['PCTHIGHSLO']) > 0) {
-                    attrs.push({'tab': true, 'display': 'High Slope (' + Math.round(data['PCTHIGHSLO']) + '%)', 'data': ''});
-                }
-                if ('PCTLOWSLOP' in data && Math.round(data['PCTLOWSLOP']) > 0) {
-                    attrs.push({'tab': true, 'display': 'Low Slope (' + Math.round(data['PCTLOWSLOP']) + '%)', 'data': ''});
-                }
-                if ('PCTMIDFLAT' in data && Math.round(data['PCTMIDFLAT']) > 0) {
-                    attrs.push({'tab': true, 'display': 'Mid Flat (' + Math.round(data['PCTMIDFLAT']) + '%)', 'data': ''});
-                }
-                if ('PCTSIDESLO' in data && Math.round(data['PCTSIDESLO']) > 0) {
-                    attrs.push({'tab': true, 'display': 'Side Slope (' + Math.round(data['PCTSIDESLO']) + '%)', 'data': ''});
-                }
-                if ('PCTSTEEP' in data && Math.round(data['PCTSTEEP']) > 0) {
-                    attrs.push({'tab': true, 'display': 'Steep (' + Math.round(data['PCTSTEEP']) + '%)', 'data': ''});
-                }
-            }
-        }
-
-        //Coral Count
-        var coralCount = 0,
-            laceCount = 0,
-            blackCount = 0,
-            softCount = 0,
-            gorgoCount = 0,
-            hardCount = 0;
-        if ('FREQ_LACE' in data) {
-            laceCount = data['FREQ_LACE'];
-            coralCount += laceCount;
-        }
-        if ('FREQ_BLACK' in data) {
-            blackCount = data['FREQ_BLACK'];
-            coralCount += blackCount;
-        }
-        if ('FREQ_SOFT' in data) {
-            softCount = data['FREQ_SOFT'];
-            coralCount += softCount;
-        }
-        if ('FREQ_GORGO' in data) {
-            gorgoCount = data['FREQ_GORGO'];
-            coralCount += gorgoCount;
-        }
-        if ('FREQ_HARD' in data) {
-            hardCount = data['FREQ_HARD'];
-            coralCount += hardCount;
-        }
-        if (coralCount > 0) {
-            attrs.push({'display': 'Identified Corals', 'data': coralCount});
-            if (laceCount > 0) {
-                attrs.push({'tab': true, 'display': 'Lace Corals (' + laceCount + ')', 'data': ''});
-            }
-            if (blackCount > 0) {
-                attrs.push({'tab': true, 'display': 'Black/Thorny Corals (' + blackCount + ')', 'data': ''});
-            }
-            if (softCount > 0) {
-                attrs.push({'tab': true, 'display': 'Soft Corals (' + softCount + ')', 'data': ''});
-            }
-            if (gorgoCount > 0) {
-                attrs.push({'tab': true, 'display': 'Gorgonian Corals (' + gorgoCount + ')', 'data': ''});
-            }
-            if (hardCount > 0) {
-                attrs.push({'tab': true, 'display': 'Hard Corals (' + hardCount + ')', 'data': ''});
-            }
-        }
-        if ('FREQ_PENS' in data && data['FREQ_PENS'] > 0) {
-            var seaPenCount = data['FREQ_PENS'];
-            attrs.push({'display': 'Sea Pens Identified', 'data': seaPenCount});
-        }
-
-        //Shipwrecks
-        if ('BOEMSHPDEN' in data) {
-            attrs.push({'display': 'Number of Shipwrecks', 'data': data['BOEMSHPDEN']});
-        }
-
-        //Distance to Discharge Point Locations
-        if ('DISCHMEAN' in data) {
-            attrs.push({'display': 'Avg Distance to Offshore Discharge', 'data': data['DISCHMEAN'].toFixed(1) + ' miles'});
-        }
-        if ('DFLOWMEAN' in data) {
-            attrs.push({'display': 'Avg Distance to Flow-Only Offshore Discharge', 'data': data['DFLOWMEAN'].toFixed(1) + ' miles'});
-        }
-
-        //Dredge Disposal Locations
-        if ('DREDGE_LOC' in data) {
-            if (data['DREDGE_LOC'] > 0) {
-                attrs.push({'display': 'Contains a Dredge Disposal Location', 'data': ''});
-            } else {
-                attrs.push({'display': 'Does not contain a Dredge Disposal Location', 'data': ''});
-            }
-        }
-
-        //Unexploded Ordinances
-        if ('UXO' in data) {
-            if (data['UXO'] === 0) {
-                attrs.push({'display': 'No known Unexploded Ordnances', 'data': ''});
-            } else {
-                attrs.push({'display': 'Known to contain Unexploded Ordnance(s)', 'data': ''});
-            }
-        }
-
-        //Traffic Density (High/Moderate/Low)
-        if ('PCTALL_LO' in data && data['PCTALL_LO'] !== 999) {
-            attrs.push({'display': 'Ship Traffic Density (All Vessels)', 'data': ''});
-            if (data['PCTALL_LO'] > 0) {
-                attrs.push({'tab': true, 'display': 'Low Traffic', 'data': data['PCTALL_LO'] + '%'});
-            }
-            if (data['PCTALL_ME'] > 0) {
-                attrs.push({'tab': true, 'display': 'Moderate Traffic', 'data': data['PCTALL_ME'] + '%'});
-            }
-            if (data['PCTALL_HI'] > 0) {
-                attrs.push({'tab': true, 'display': 'High Traffic', 'data': data['PCTALL_HI'] + '%'});
-            }
-        }
-        if ('PCTCAR_LO' in data && data['PCTCAR_LO'] !== 999) {
-            attrs.push({'display': 'Ship Traffic Density (Cargo Vessels)', 'data': ''});
-            if (data['PCTCAR_LO'] > 0) {
-                attrs.push({'tab': true, 'display': 'Low Traffic', 'data': data['PCTCAR_LO'] + '%'});
-            }
-            if (data['PCTCAR_ME'] > 0) {
-                attrs.push({'tab': true, 'display': 'Moderate Traffic', 'data': data['PCTCAR_ME'] + '%'});
-            }
-            if (data['PCTCAR_HI'] > 0) {
-                attrs.push({'tab': true, 'display': 'High Traffic', 'data': data['PCTCAR_HI'] + '%'});
-            }
-        }
-        if ('PCTPAS_LO' in data && data['PCTPAS_LO'] !== 999) {
-            attrs.push({'display': 'Ship Traffic Density (Passenger Vessels)', 'data': ''});
-            if (data['PCTPAS_LO'] > 0) {
-                attrs.push({'tab': true, 'display': 'Low Traffic', 'data': data['PCTPAS_LO'] + '%'});
-            }
-            if (data['PCTPAS_ME'] > 0) {
-                attrs.push({'tab': true, 'display': 'Moderate Traffic', 'data': data['PCTPAS_ME'] + '%'});
-            }
-            if (data['PCTPAS_HI'] > 0) {
-                attrs.push({'tab': true, 'display': 'High Traffic', 'data': data['PCTPAS_HI'] + '%'});
-            }
-        }
-        if ('PCTTAN_LO' in data && data['PCTTAN_LO'] !== 999) {
-            attrs.push({'display': 'Ship Traffic Density (Tanker Vessels)', 'data': ''});
-            if (data['PCTTAN_LO'] > 0) {
-                attrs.push({'tab': true, 'display': 'Low Traffic', 'data': data['PCTTAN_LO'] + '%'});
-            }
-            if (data['PCTTAN_ME'] > 0) {
-                attrs.push({'tab': true, 'display': 'Moderate Traffic', 'data': data['PCTTAN_ME'] + '%'});
-            }
-            if (data['PCTTAN_HI'] > 0) {
-                attrs.push({'tab': true, 'display': 'High Traffic', 'data': data['PCTTAN_HI'] + '%'});
-            }
-        }
-        if ('PCTTUG_LO' in data && data['PCTTUG_LO'] !== 999) {
-            attrs.push({'display': 'Ship Traffic Density (Tug/Tow Vessels)', 'data': ''});
-            if (data['PCTTUG_LO'] > 0) {
-                attrs.push({'tab': true, 'display': 'Low Traffic', 'data': data['PCTTUG_LO'] + '%'});
-            }
-            if (data['PCTTUG_ME'] > 0) {
-                attrs.push({'tab': true, 'display': 'Moderate Traffic', 'data': data['PCTTUG_ME'] + '%'});
-            }
-            if (data['PCTTUG_HI'] > 0) {
-                attrs.push({'tab': true, 'display': 'High Traffic', 'data': data['PCTTUG_HI'] + '%'});
-            }
-        }
-        // if ('AIS7_MEAN' in data) {
-        //     if ( data['AIS7_MEAN'] < 1 ) {
-        //         var rank = 'Low';
-        //     } else {
-        //         var rank = 'High';
-        //     }
-        //     attrs.push({'display': 'Commercial Ship Traffic Density', 'data': rank });
-        // }
-
-        return attrs;
-    };
-
     self.adjustAidsToNavigationAttributes = function (attrObj) {
         aidType = _.find(attrObj, function(obj) { return obj["display"] === 'Aid Type'; });
         if ( aidType["data"] === "PA" ) {
@@ -2849,6 +3070,53 @@ function viewModel() {
             aidType["data"] = "FD (Undocumented)";
         }
     }
+
+    self.checkShowSliderButtons = function() {
+      return $('#myTab li[data-tab="data"]').hasClass('active');
+    };
+
+    self.showSliderButtons = ko.observable($.deparam(window.location.hash.slice(1)).tab == "data");
+
+
+    /**
+      * @function trackMultilayerLoad - keep track of the status of loading multilayer layers (sliders) via ajax
+      * @param {string} parentLayer - the multilayer parent layerModel instance
+      * @param {boolean} init - whether you're starting a fresh load of multilayers, or are just updating the status
+      * @param {string} updateId - the ID (string) of the layer that has just finished loading (optional)
+      */
+    self.trackMultilayerLoad = function(parentLayer, init, updateId) {
+      if (!self.hasOwnProperty('multilayerLoadStatus')) {
+        self.multilayerLoadStatus = {};
+      }
+      if (!parentLayer.hasOwnProperty('multilayers')) {
+        parentLayer.multilayers = self.getMultilayerIds(parentLayer.associated_multilayers, []);
+      }
+      var parentLayerId = parentLayer.id.toString();
+      var idList = parentLayer.multilayers;
+      if (init || Object.keys(self.multilayerLoadStatus).indexOf(parentLayerId) < 0) {
+        var statusObject = {};
+        for (var i = 0; i < idList.length; i++) {
+          statusObject[idList[i].toString()] = {
+            loaded: false
+          }
+        }
+        self.multilayerLoadStatus[parentLayerId] = statusObject;
+      } else {
+        var all_loaded = true;
+        self.multilayerLoadStatus[parentLayerId][updateId].loaded = true;
+        var statusObject = self.multilayerLoadStatus[parentLayerId];
+        for (var i = 0; i < idList.length; i++) {
+          if (statusObject[idList[i].toString()].loaded == false) {
+            var all_loaded = false;
+            break;
+          }
+        }
+        if (all_loaded) {
+          parentLayer.buildMultilayerValueLookup();
+        }
+      }
+    }
+
 
     return self;
 } //end viewModel

@@ -1,0 +1,33 @@
+#aggregated-attribute-overlay {
+  z-index: 1020 !important;
+}
+
+.feature-attributes {
+  margin: 10px;
+  margin-left: 10px !important;
+  border: 1px solid #e7e7e8;
+  border-radius: 5px;
+  padding-top: 0 !important;
+  margin-top: 5px;
+}
+
+.feature-attributes-title {
+  width: 100%;
+}
+
+.attribute-text {
+  font-weight: normal;
+  overflow-wrap: break-word;
+}
+
+body.template-visualize #aggregated-attribute-content .accordion-inner {
+  margin-left: 15px !important;
+}
+
+.attr_report_img {
+  width: 100%;
+}
+
+.attr_report_img html {
+  overflow-x: hidden;
+}

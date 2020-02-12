@@ -1,0 +1,10 @@
+#map-wrapper:before {
+  content: 'DRAFT';
+  left: 30%;
+  top: 15%;
+  z-index: 999;
+  position: absolute;
+  font-size: 20em;
+  color: rgba(150,150,150,0.5);
+  pointer-events: none;
+}

@@ -4,39 +4,70 @@ app.saveStateMode = true;
 
 // save the state of app
 app.getState = function () {
+  if (app.wrapper.map.hasOwnProperty('getCenter')) {
+    var center = app.wrapper.map.getCenter();
+  } else {
+    // OL2 cruft
     var center = app.map.getCenter().transform(
-            new OpenLayers.Projection("EPSG:900913"), new OpenLayers.Projection("EPSG:4326")),
-                layers = $.map(app.viewModel.activeLayers(), function(layer) {
-                    //return {id: layer.id, opacity: layer.opacity(), isVisible: layer.visible()};
-                    return [ layer.id, layer.opacity(), layer.visible() ];
-                });
-    return {
-        x: center.lon.toFixed(2),
-        y: center.lat.toFixed(2),
-        z: app.map.getZoom(),
-        logo: app.viewModel.showLogo(),
-        controls: app.viewModel.showZoomControls(),
-        dls: layers.reverse(),
-        basemap: app.map.baseLayer.name,
-        themes: {ids: app.viewModel.getOpenThemeIDs()},
-        tab: $('#myTab').find('li.active').data('tab'),
-        legends: app.viewModel.showLegend() ? 'true': 'false',
-        layers: app.viewModel.showLayers() ? 'true': 'false'
-        //and active tab
-    };
+      new OpenLayers.Projection("EPSG:900913"),
+      new OpenLayers.Projection("EPSG:4326")
+    );
+  }
+  if (app.wrapper.map.hasOwnProperty('getZoom')) {
+    var zoom = app.wrapper.map.getZoom();
+  } else {
+    // OL2 cruft
+    var zoom = app.map.getZoom();
+  }
+  var layers = $.map(app.viewModel.activeLayers(), function(layer) {
+    //return {id: layer.id, opacity: layer.opacity(), isVisible: layer.visible()};
+    if (!layer.hasOwnProperty('is_multilayer') || !layer.is_multilayer()){
+      return [ layer.id, layer.opacity(), layer.visible() ];
+    } else {
+      return null;
+    }
+  });
+
+  if (app.wrapper.map.hasOwnProperty('getBasemap')) {
+    var basemap = app.wrapper.map.getBasemap().name;
+  } else {
+    var basemap = 'ocean';
+  }
+
+  return {
+    x: center.lon.toFixed(2),
+    y: center.lat.toFixed(2),
+    z: zoom,
+    logo: app.viewModel.showLogo(),
+    controls: app.viewModel.showZoomControls(),
+    dls: layers.reverse(),
+    basemap: basemap,
+    themes: {ids: app.viewModel.getOpenThemeIDs()},
+    tab: $('#myTab').find('li.active').data('tab'),
+    legends: app.viewModel.showLegend() ? 'true': 'false',
+    layers: app.viewModel.showLayers() ? 'true': 'false'
+    //and active tab
+  };
 };
 
 $(document).on('map-ready', function () {
     if ($('#disclaimer-modal').length > 0){
-      $('#disclaimer-modal').modal('show');
+      try {
+        $('#disclaimer-modal').modal('show');
+        app.state = app.getState();
+      } catch (e) {
+        setTimeout(function(){
+          $('#disclaimer-modal').modal('show');
+          app.state = app.getState();
+        }, 1000)
+      }
     }
-    app.state = app.getState();
 });
 
 app.layersAreLoaded = false;
 app.establishLayerLoadState = function () {
     var loadTimer, status;
-    if (app.map.layers.length === 0) {
+    if (app.wrapper.map.getLayers().length === 0) {
         app.layersAreLoaded = true;
     } else {
         loadTimer = setInterval(function () {
@@ -55,6 +86,58 @@ app.establishLayerLoadState = function () {
     }
 
 };
+
+/**
+  * function app.activateHashStateLayers
+  *   Loops through list of layers to activate on load (from state) and activates
+  *   them in order, stopping if the next one isn't loaded yet. Since this gets
+  *   called every time a layer is loaded from the state, and keeps going until
+  *   if either finds a missing layer or the end, it should load the layers in order
+  *   regardless of what order they come back from the AJAX calls.
+  */
+app.activateHashStateLayers = function() {
+  for (var i = 0; i < app.hashStateLayers.length; i++) {
+    var layerStatus = app.hashStateLayers[i].status
+    if (layerStatus instanceof layerModel) {
+      if (app.viewModel.activeLayers().indexOf(layerStatus) < 0) {
+        layerStatus.activateLayer("nocompanion");
+        if (app.hashStateLayers[i].visible == "false" || app.hashStateLayers[i].visible == false) {
+          if (layerStatus.visible()){
+            layerStatus.toggleVisible();
+          }
+        }
+      }
+    } else {
+      break;
+    }
+  }
+}
+
+app.updateHashStateLayers = function(id, status, visible) {
+  if (!app.hasOwnProperty('hashStateLayers')) {
+    app.hashStateLayers = [];
+  }
+
+  var match_found = false;
+  for (var i = 0; i < app.hashStateLayers.length; i++) {
+    if (app.hashStateLayers[i].id == id) {
+      app.hashStateLayers[i].status = status;
+      match_found = true;
+      break;
+    }
+  }
+  if (!match_found){
+    app.hashStateLayers.push({
+      id: id,
+      status: status,
+      visible: visible
+    });
+  }
+
+  app.activateHashStateLayers();
+
+}
+
 // load compressed state (the url was getting too long so we're compressing it
 app.loadCompressedState = function(state) {
     // turn off active laters
@@ -68,6 +151,7 @@ app.loadCompressedState = function(state) {
     // turn on the layers that should be active
     if (state.dls) {
         var unloadedDesigns = [];
+
         for (x=0; x < state.dls.length; x=x+3) {
             var id = state.dls[x+2],
                 opacity = state.dls[x+1],
@@ -83,12 +167,24 @@ app.loadCompressedState = function(state) {
                     }
                 }
             } else {
-                unloadedDesigns.push({id: id, opacity: opacity, isVisible: isVisible});
+                if (!isNaN(id)){
+                  var layer_obj = {'name': 'loading...', 'id': id, 'opacity': parseFloat(opacity), 'isVisible': isVisible};
+                  app.updateHashStateLayers(id, null, isVisible);
+                  app.viewModel.getOrCreateLayer(layer_obj, null, 'updateHashStateLayers', null);
+                } else {
+                  unloadedDesigns.push({id: id, opacity: opacity, isVisible: isVisible});
+                }
             }
        }
        if ( unloadedDesigns.length ) {
             app.viewModel.unloadedDesigns = unloadedDesigns;
-            $('#designsTab').tab('show'); //to activate the loading of designs
+            try {
+              $('#designsTab').tab('show'); //to activate the loading of designs
+            } catch(err) {
+              setTimeout(function(){
+                $('#designsTab').tab('show');
+              }, 700)
+            }
        }
     }
 
@@ -108,18 +204,7 @@ app.loadCompressedState = function(state) {
     }
 
     if (state.basemap) {
-        if (state.basemap.toLowerCase() === 'tilestream') {
-            tilestream = new OpenLayers.Layer.OSM("TileStream", "http://tilestream.apps.ecotrust.org/v2/magrish/${z}/${x}/${y}.png", {
-                sphericalMercator: true,
-                isBaseLayer: true,
-                numZoomLevels: 8,
-                attribution: ''
-            });
-            app.map.addLayers([tilestream]);
-            app.map.setBaseLayer(tilestream);
-        } else {
-            app.map.setBaseLayer(app.map.getLayersByName(state.basemap)[0]);
-        }
+        app.setBasemap(app.wrapper.map.getLayersByName(state.basemap)[0]);
     }
 
     app.establishLayerLoadState();
@@ -156,6 +241,8 @@ app.loadCompressedState = function(state) {
         setTimeout( function() { $('#activeTab').tab('show'); }, 200 );
     } else if (state.tab && state.tab === "designs") {
         setTimeout( function() { $('#designsTab').tab('show'); }, 200 );
+    } else if (state.tab && state.tab === "legend") {
+        setTimeout( function() { $('#legendTab').tab('show'); }, 200 );
     } else {
         setTimeout( function() { $('#dataTab').tab('show'); }, 200 );
     }
@@ -178,25 +265,12 @@ app.loadCompressedState = function(state) {
         app.viewModel.mapTitle(state.title);
     }
 
-    // Google.v3 uses EPSG:900913 as projection, so we have to
-    // transform our coordinates
     app.setMapPosition(state.x, state.y, state.z);
-    //app.map.setCenter(
-    //    new OpenLayers.LonLat(state.x, state.y).transform(
-    //        new OpenLayers.Projection("EPSG:4326"), new OpenLayers.Projection("EPSG:900913") ), state.z);
-
-    // is url is indicating a login request then show the login modal
-    // /visualize/#login=true
-//    if (!app.is_authenticated && state.login) { // not sure
-//        $('#sign-in-modal').modal('show');
-//    }
-
 };
 
 app.setMapPosition = function(x, y, z) {
-    app.map.setCenter(
-        new OpenLayers.LonLat(x, y).transform(
-            new OpenLayers.Projection("EPSG:4326"), new OpenLayers.Projection("EPSG:900913") ), z);
+    app.wrapper.map.setCenter(x, y);
+    app.wrapper.map.setZoom(z);
 };
 
 // hide buttons and other features for printing
@@ -277,17 +351,29 @@ app.loadState = function(state) {
     }
 
     if (state.basemap) {
-        app.map.setBaseLayer(app.map.getLayersByName(state.basemap.name)[0]);
+        app.wrapper.map.setBasemap(app.wrapper.map.getLayersByName(state.basemap.name)[0]);
     }
     // now that we have our layers
     // to allow for establishing the layer load state
     app.establishLayerLoadState();
 
     if (state.activeTab && state.activeTab.tab === 'active') {
-        $('#activeTab').tab('show');
+        try {
+          $('#activeTab').tab('show');
+        } catch (e) {
+          setTimeout(function(){
+            $('#activeTab').tab('show');
+          }, 7000)
+        }
     } else {
         if (state.activeTab || state.openThemes) {
-            $('#dataTab').tab('show');
+            try {
+              $('#dataTab').tab('show');
+            } catch (e) {
+              setTimeout(function(){
+                $('#dataTab').tab('show');
+              }, 7000)
+            }
             if (state.openThemes) {
                 $.each(app.viewModel.themes(), function (i, theme) {
                     if ( $.inArray(theme.id, state.openThemes.ids) !== -1 || $.inArray(theme.id.toString(), state.openThemes.ids) !== -1 ) {
@@ -318,12 +404,8 @@ app.loadState = function(state) {
         app.viewModel.mapTitle(state.title);
     }
 
-
-    // Google.v3 uses EPSG:900913 as projection, so we have to
-    // transform our coordinates
     if (state.location) {
-        app.map.setCenter(new OpenLayers.LonLat(state.location.x, state.location.y).transform(
-        new OpenLayers.Projection("EPSG:4326"), new OpenLayers.Projection("EPSG:900913")), state.location.zoom);
+        app.setMapPosition(state.location.x, state.location.y, state.location.zoom);
     }
 };
 
@@ -340,6 +422,14 @@ app.updateUrl = function () {
     // save the restore state
     if (app.saveStateMode) {
         app.restoreState = state;
+    }
+    var ua = window.navigator.userAgent;
+    if (ua.indexOf("MSIE ") > -1 || ua.indexOf("Edge") > -1 || ua.indexOf("Trident") > -1) {
+      while ($.param(state).length > 2047) {
+        state.dls.pop();
+        state.dls.pop();
+        state.dls.pop();
+      }
     }
     window.location.hash = $.param(state);
     app.viewModel.currentURL(window.location.pathname + window.location.hash);

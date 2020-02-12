@@ -1,17 +1,25 @@
 <table class="layer-row">
     <tr>
         <td class="layer-info-icon">
-        <!-- ko ifnot: hasOwnProperty('isMDAT') && isMDAT -->
+        <!-- ko ifnot: $data.hasOwnProperty('isMDAT') && $data.isMDAT -->
             <a class="btn btn-info-sign" data-bind="click: toggleDescription, css: { 'active': infoActive()}" data-toggle="tooltip" data-placement="right" data-title="More Info">
                 <i class="fa fa-info-circle"></i>
             </a>
         <!-- /ko -->
-        <!-- ko if: hasOwnProperty('isMDAT') && isMDAT && parentMDATDirectory -->
+        <!-- ko if: $data.hasOwnProperty('isMDAT') && $data.isMDAT && $data.parentMDATDirectory -->
             <a class="btn btn-info-sign" data-bind="attr: {'data-title': parentMDATDirectory.name }" data-toggle="tooltip" data-placement="right">
                 <i class="fa fa-info-circle"></i>
             </a>
         <!-- /ko -->
         </td>
+
+        <td class="slider-button" data-bind="visible: (active() && app.viewModel.showSliderButtons() && $data.hasOwnProperty('is_multilayer_parent') && $data.is_multilayer_parent())">
+          <a class="btn btn-primary btn-planner btn-slider" data-bind="click: showSlider" data-toggle="tooltip" data-placement="right" data-title="Toggle slider in Active tab">
+            View Slider&nbsp;
+            <i class="fa fa-play" aria-hidden="true"></i>
+          </a>
+        </td>
+
         <td class="layer-name">
             <a class="btn btn-layer" data-bind='click: {% block "nameAction" %}toggleActive{% endblock %}'>
               <table>
@@ -19,16 +27,18 @@
                   <td class="text">
                     {% block "text-pre" %}
                     {% endblock %}
-                  <!-- ko if: hasOwnProperty('subLayers') && subLayers.length > 0 -->
-                    <i class="fa deep-blue" data-bind="css: { 'fa-caret-down': showSublayers() , 'fa-caret-right': !showSublayers()  }"></i>
-                  <!-- /ko -->
-                  <!-- ko if: hasOwnProperty('dateRangeDirectory') && dateRangeDirectory != null -->
-                    <span class="deep-blue" data-bind="text: dateRangeDirectory.name"></span>
-                  <!-- /ko -->
-                  <span class="deep-blue uppercase" data-bind="text: name"></span>
+                    <!-- ko if: hasOwnProperty('subLayers') && subLayers.length > 0 -->
+                      <i class="fa deep-blue" data-bind="css: { 'fa-caret-down': showSublayers() , 'fa-caret-right': !showSublayers()  }"></i>
+                    <!-- /ko -->
+                    <!-- ko if: hasOwnProperty('dateRangeDirectory') && dateRangeDirectory != null -->
+                      <span class="deep-blue" data-bind="text: dateRangeDirectory.name"></span>
+                    <!-- /ko -->
+                    <span class="deep-blue uppercase" data-bind="text: name"></span>
                   </td>
                   <td class="add-on">
-                    <i class="fa fa-check-circle"  data-bind="css: { 'fa-check-circle': active() && visible(), 'fa-circle-o': !(active() && visible()) }"></i>
+                    <i class="fa fa-check-circle"  data-bind="visible: !$data.loadStatus(), css: { 'fa-check-circle': active() && visible(), 'fa': active() && visible(), 'fa-circle': !(active() && visible()), 'far': !(active() && visible()) }"></i>
+                    <i class="fas fa-spinner fa-spin"  data-bind="visible: $data.loadStatus()=='loading'"></i>
+                    <i style="color:red" title="error loading layer" class="fas fa-times-circle"  data-bind="visible: $data.loadStatus()=='error'"></i>
                   </td>
                 </tr>
               </table>
@@ -38,12 +48,12 @@
         {% endblock %}
     </tr>
 </table>
-<!-- ko ifnot: hasOwnProperty('isMDAT') && isMDAT -->
+<!-- ko ifnot: $data.hasOwnProperty('isMDAT') && $data.isMDAT -->
 <div class="layer-info" data-bind="visible: infoActive()">
     <div class="link-bar" data-bind="if: $data.hasOwnProperty('kml') || $data.hasOwnProperty('data_download') || $data.hasOwnProperty('metadata') || $data.hasOwnProperty('source')">
         <span data-toggle="tooltip" data-placement="bottom" data-container="body" title="Download for Google Maps">
             <!-- ko if: $data.hasOwnProperty("kml") -->
-            <a class="btn btn-mini" data-bind="css: { disabled: ! kml }, attr: { href: kml }" target="_blank">
+            <a class="btn btn-mini" data-bind="css: { disabled: ! kml() }, attr: { href: kml() }" target="_blank">
                 kml <i class="fa fa-arrow-down" ></i>
             </a>
             <!-- /ko -->
@@ -55,7 +65,7 @@
         </span>
         <span data-toggle="tooltip" data-placement="bottom" data-container="body" data-title="Download ESRI Formatted Dataset">
             <!-- ko if: $data.hasOwnProperty("data_download") -->
-            <a class="btn btn-mini" data-bind="css: { disabled: ! data_download }, attr: { href: data_download }" target="_blank">
+            <a class="btn btn-mini" data-bind="css: { disabled: ! data_download() }, attr: { href: data_download() }" target="_blank">
                 data <i class="fa fa-arrow-down" ></i>
             </a>
             <!-- /ko -->
@@ -67,7 +77,7 @@
         </span>
         <span data-toggle="tooltip" data-placement="bottom" data-container="body" data-title="View Metadata">
             <!-- ko if: $data.hasOwnProperty("metadata") -->
-            <a class="btn btn-mini" data-bind="css: { disabled: ! metadata }, attr: { href: metadata }" target="_blank">
+            <a class="btn btn-mini" data-bind="css: { disabled: ! metadata() }, attr: { href: metadata() }" target="_blank">
                 metadata <i class="fa fa-external-link-square" ></i>
             </a>
             <!-- /ko -->
@@ -79,7 +89,7 @@
         </span>
         <span data-toggle="tooltip" data-placement="bottom" data-container="body" data-title="Link to Dataset Source Provider">
             <!-- ko if: $data.hasOwnProperty("source") -->
-            <a class="btn btn-mini" data-bind="css: { disabled: ! source }, attr: { href: source }" target="_blank">
+            <a class="btn btn-mini" data-bind="css: { disabled: ! source() }, attr: { href: source() }" target="_blank">
                 source <i class="fa fa-external-link-square"></i>
             </a>
             <!-- /ko -->
@@ -92,7 +102,7 @@
     </div>
     <div class="layer-text">
         <span data-bind="truncatedText: description, maxTextLength: 200"></span>
-        <!-- ko if: $data.data_url -->
+        <!-- ko if: $data.hasOwnProperty('data_url') && $data.data_url -->
         <a data-bind="attr: {href: $data.data_url}" target="_blank">read more</a>.
         <!-- /ko -->
     </div>
@@ -100,4 +110,28 @@
 <!-- /ko -->
 
 {% block "after" %}
+<!-- ko if: $data.hasOwnProperty('is_multilayer_parent') && $data.is_multilayer_parent() -->
+<div data-bind="foreach: dimensions; visible: $data.is_multilayer_parent()">
+  <table class="slider-table" data-bind="visible: nodes.length>1">
+    <tr class="slider-row">
+      <!-- ko if: $data.animated -->
+        <td class="animated-slider-cell">
+          <div class="slider multilayerslider" data-bind="attr: {id: $parent.id + '_' + label + '_multilayerslider'}"></div>
+        </td>
+        <td class='animation-check-container'>
+          <input type="checkbox" data-bind="attr: {id: $parent.id + '_animate_multilayerslider'}" class="animate-checkmark" name="animate" value="animate">
+          <label data-bind="attr: {for: $parent.id + '_animate_multilayerslider'}">
+            <i class="fa fa-play" aria-hidden="true"></i>
+          </label>
+        </td>
+      <!-- /ko -->
+      <!-- ko ifnot: $data.animated -->
+        <td class="slider-cell">
+          <div class="slider multilayerslider" data-bind="attr: {id: $parent.id + '_' + label + '_multilayerslider'}"></div>
+        </td>
+      <!-- /ko -->
+    </tr>
+  </table>
+</div>
+<!-- /ko -->
 {% endblock %}

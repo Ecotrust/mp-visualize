@@ -2,8 +2,11 @@
 function bookmarkModel(options) {
     var self = this;
 
+    scenarioModel.apply(this, arguments);
+
     self.uid = options.uid;
     self.name = options.name;
+    self.description = options.description;
     self.state = options.state || null;
 
     self.shared = ko.observable();
@@ -95,6 +98,9 @@ function bookmarksModel(options) {
 
     // name of newly created bookmark
     self.newBookmarkName = ko.observable();
+
+    // description of newly created bookmark
+    self.newBookmarkDescription = ko.observable();
 
     // check for duplicate naming
     self.duplicateBookmark = ko.observable(false);
@@ -242,9 +248,11 @@ function bookmarksModel(options) {
     };
 
     // handle the bookmark submit
-    self.addBookmark = function(name) {
+    self.addBookmark = function(name, description) {
         $.jsonrpc('add_bookmark',
-                  [name,
+                  [
+                   name,
+                   description,
                    window.location.hash.slice(1)], // TODO: self.get_location()
                   {complete: self.getBookmarks});
     }
@@ -293,6 +301,7 @@ function bookmarksModel(options) {
                     var bookmark = new bookmarkModel( {
                         state: $.deparam(bookmarks[i].hash),
                         name: bookmarks[i].name,
+                        description: bookmarks[i].description,
                         uid: bookmarks[i].uid,
                         shared: bookmarks[i].shared,
                         sharedByUser: bookmarks[i].shared_by_user,
