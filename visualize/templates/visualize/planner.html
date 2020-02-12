@@ -32,7 +32,7 @@
           <link href="{% static 'visualize/css/' %}{{ MAP_LIBRARY }}.css" rel="stylesheet">
         {% endif %}
 
-{% endblock%}
+{% endblock %}
 
 {% block body_class %}template-visualize{% endblock %}
 
@@ -391,24 +391,24 @@
             </div>
             <span class="timestamp" data-bind="visible: mapTitle"><span data-bind="text: new Date().toString('M/d/yyyy HH:mm')"></span></span>
         {% block primary_content_end %}
-        </div>
+          </div>
 
-        <!-- transparency tool -->
-        <div style="display:none" id="opacity-popover" class="popover fade bottom in">
-            <div class="arrow">
-            </div>
-            <div class="popover-inner">
-                <div class="popover-content" data-bind="if: selectedLayer">
-                    <div class="slider" data-bind="jqSlider: selectedLayer().opacity, jqOptions: { min: 0, max: 1, step: .01, range: 'min' }"></div>
-                </div>
-            </div>
-        </div>
+          <!-- transparency tool -->
+          <div style="display:none" id="opacity-popover" class="popover fade bottom in">
+              <div class="arrow">
+              </div>
+              <div class="popover-inner">
+                  <div class="popover-content" data-bind="if: selectedLayer">
+                      <div class="slider" data-bind="jqSlider: selectedLayer().opacity, jqOptions: { min: 0, max: 1, step: .01, range: 'min' }"></div>
+                  </div>
+              </div>
+          </div>
 
-        {% include "visualize/bookmarks.html" %}
-        {% endblock %}
+          {% include "visualize/bookmarks.html" %}
+        {% endblock primary_content_end %}
 
     </div>
-{% endblock %}
+{% endblock outer_content %}
 
 
 {% block extra_js %}
@@ -541,9 +541,8 @@
         <script src="{% static 'js/app.js' %}"></script>
         <script src="{% static 'js/events.js' %}"></script>
       {% endif %}
-    {% endblock %}
+    {% endblock ADDITIONAL_APP_JAVASCRIPT %}
 
         <!--<script src="{% static 'js/html2canvas.js' %}"></script>-->
         <!--<script src="{% static 'js/html2canvas.svg.js' %}"></script>-->
-    {% endblock %}
-{% endblock %}
+{% endblock extra_js %}
