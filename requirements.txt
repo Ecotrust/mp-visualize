@@ -1,4 +1,4 @@
--e /usr/local/apps/marineplanner-core/apps/madrona-features
+#-e /usr/local/apps/marineplanner-core/apps/madrona-features
 rpc4django
 django-tinymce
 django-compressor
