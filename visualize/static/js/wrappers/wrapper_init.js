@@ -123,7 +123,7 @@ app.wrapper = {
       'name': 'nautical',
       'altName': 'nautical',
       'verboseName': 'Nautical Charts',
-      'url': 'https://gis.charttools.noaa.gov/arcgis/rest/services/MarineChart_Services/NOAACharts/MapServer/tile/{z}/{y}/{x}.png',
+      'url': 'https://gis.charttools.noaa.gov/arcgis/rest/services/MarineChart_Services/NOAACharts/MapServer/tile/{z}/{y}/{x}',
       'attribution': 'NOAA',
       'minZoom': null,
       'maxZoom': null,
