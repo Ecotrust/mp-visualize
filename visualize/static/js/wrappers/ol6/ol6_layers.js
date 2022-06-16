@@ -1,3 +1,18 @@
+let loadFunctionLookup = {
+  'drop_z_by_2': function(imageTile, src) {
+    let splitter = 'MapServer/tile/';
+    let parts = src.split(splitter);
+    let xyz = parts[1].split('/')
+    xyz[0] = xyz[0]-2;
+    parts[1] = xyz.join('/');
+    let new_src = parts.join(splitter);
+    imageTile.getImage().src = new_src;
+  },
+  'default': function(imageTile, src) {
+    imageTile.getImage().src = src;
+  },
+};
+
 for (var i = 0; i < app.wrapper.baseLayers.length; i++) {
   var baseLayer = app.wrapper.baseLayers[i];
   if (baseLayer.technology == 'OSM') {
@@ -10,10 +25,19 @@ for (var i = 0; i < app.wrapper.baseLayers.length; i++) {
     })
   } else {
     // assume 'XYZ' by default
-    var source = new ol.source.XYZ({
-      attributions: baseLayer.attribution,
-      url: baseLayer.url
-    });
+    if (baseLayer.loadFunction != null) {
+      var source = new ol.source.XYZ({
+        attributions: baseLayer.attribution,
+        url: baseLayer.url,
+        tileLoadFunction: loadFunctionLookup[baseLayer.loadFunction]
+      });
+    } else {
+      var source = new ol.source.XYZ({
+        attributions: baseLayer.attribution,
+        url: baseLayer.url
+      });
+    }
+    
   }
   app.wrapper.layers[baseLayer.name] = new ol.layer.Tile({
     source: source,

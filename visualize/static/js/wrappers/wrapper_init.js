@@ -19,7 +19,8 @@ app.wrapper = {
       'bounds': [],
       'projection': '',
       'technology': 'XYZ',
-      'textColor': 'black'
+      'textColor': 'black',
+      'loadFunction': null,
     },
     {
       'name': "gray",
@@ -32,7 +33,8 @@ app.wrapper = {
       'bounds': [],
       'projection': '',
       'technology': 'XYZ',
-      'textColor': 'black'
+      'textColor': 'black',
+      'loadFunction': null,
     },
     {
       'name': 'osm',
@@ -44,7 +46,8 @@ app.wrapper = {
       'maxZoom': null,
       'bounds': [],
       'technology': 'OSM',
-      'textColor': 'black'
+      'textColor': 'black',
+      'loadFunction': null,
     },
     {
       'name': 'streets',
@@ -56,7 +59,8 @@ app.wrapper = {
       'maxZoom': 19,
       'bounds': [],
       'technology': 'XYZ',
-      'textColor': 'black'
+      'textColor': 'black',
+      'loadFunction': null,
     },
     {
       'name': 'topo',
@@ -70,7 +74,8 @@ app.wrapper = {
       'maxZoom': 19,
       'bounds': [],
       'technology': 'XYZ',
-      'textColor': 'black'
+      'textColor': 'black',
+      'loadFunction': null,
     },
     {
       'name': 'satellite',
@@ -82,7 +87,8 @@ app.wrapper = {
       'maxZoom': 19,
       'bounds': [],
       'technology': 'XYZ',
-      'textColor': 'white'
+      'textColor': 'white',
+      'loadFunction': null,
     },
     // Disappearance of this service was detected the week of March 25th, 2022. It was replaced with tileservice.charts.noaa.gov below.
     // {
@@ -99,18 +105,33 @@ app.wrapper = {
     //   'params': {'layers': null },
     //   'textColor': 'black'
     // },
+    // {
+    //   'name': 'nautical',
+    //   'altName': 'nautical',
+    //   'verboseName': 'Nautical Charts',
+    //   'url': 'https://tileservice.charts.noaa.gov/tiles/50000_1/{z}/{x}/{y}.png',
+    //   'attribution': 'NOAA',
+    //   'minZoom': null,
+    //   'maxZoom': null,
+    //   'bounds': [],
+    //   'projection': '',
+    //   'technology': 'XYZ',
+    //   'textColor': 'black',
+    //   'loadFunction': null,
+    // },
     {
       'name': 'nautical',
       'altName': 'nautical',
       'verboseName': 'Nautical Charts',
-      'url': 'https://tileservice.charts.noaa.gov/tiles/50000_1/{z}/{x}/{y}.png',
+      'url': 'https://gis.charttools.noaa.gov/arcgis/rest/services/MarineChart_Services/NOAACharts/MapServer/tile/{z}/{y}/{x}.png',
       'attribution': 'NOAA',
       'minZoom': null,
       'maxZoom': null,
       'bounds': [],
       'projection': '',
       'technology': 'XYZ',
-      'textColor': 'black'
+      'textColor': 'black',
+      'loadFunction': 'drop_z_by_2',
     },
     
   ]
