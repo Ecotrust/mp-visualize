@@ -33,15 +33,19 @@ app.state = {
 // property to store the state of the map for restoring
 app.restoreState = {};
 
-ko.applyBindings(app.viewModel);
-
 // RDH: WAY more verbose than we need, but if more styles need 'initial' styles or settings to hold while we wait for
 // KOBindings to apply preferred styles, this seems to be an elegant place for them.
 let postKOBindingCleanup = function() {
   $('#user-content-notice').css('visibility','unset');
 }
 
-postKOBindingCleanup();
+// RDH 2022-10-20: Async Issue -- sometimes only part of one theme would load, then upon hitting a call to 'app.map.zoom()' the function
+//  could not be found and numerous bindings would fail. Delaying applying bindings by a second seems to resolve the issue. Attempts at
+//  shorter timeouts (~800ms) didn't consistently fix the issue.
+window.setTimeout(function() {
+  ko.applyBindings(app.viewModel);
+  postKOBindingCleanup();
+}, 1000)
 
 // app.viewModel.loadLayersFromServer().done(function() {
 app.viewModel.initLeftNav().done(function() {
