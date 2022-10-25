@@ -1,3 +1,54 @@
+<!-- PRINT MODAL -->
+<div id="print-modal" class="modal fade" role="dialog" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h3>Print</h3>
+            </div>
+            <div class="modal-body">
+                <form class="form">
+                    <label for="format">Page size </label>
+                    <select id="format">
+                        <option value="a0">A0 (slow)</option>
+                        <option value="a1">A1</option>
+                        <option value="a2">A2</option>
+                        <option value="a3">A3</option>
+                        <option value="a4">A4</option>
+                        <option value="a5">A5</option>
+                        <option value="letter" selected>US Letter</option>
+                        <option value="legal">US Legal</option>
+                    </select>
+                    <br /><br />
+                    <label for="resolution">Resolution </label>
+                    <select id="resolution">
+                        {% comment %} <option value="72">72 dpi (fast)</option> {% endcomment %}
+                        <option value="150" selected>150 dpi</option>
+                        <option value="200">200 dpi</option>
+                        <option value="300">300 dpi (slow)</option>
+                    </select>
+                    {% comment %} <label for="scale">Scale </label>
+                    <select id="scale">
+                        <option value="500">1:500000</option>
+                        <option value="250" selected>1:250000</option>
+                        <option value="100">1:100000</option>
+                        <option value="50">1:50000</option>
+                        <option value="25">1:25000</option>
+                        <option value="10">1:10000</option>
+                    </select> {% endcomment %}
+                </form>
+                <br />
+                <button class="btn btn-primary" id="export-pdf">Print</button>
+            </div>
+                        
+            <div class="modal-footer">
+                <button href="#" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
 <!-- Export dialog -->
 <div id="export-geometry" class="modal fade" data-bind="with: app.viewModel.scenarios.sharingLayer">
     <div class="modal-dialog">

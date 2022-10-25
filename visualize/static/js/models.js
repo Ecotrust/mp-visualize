@@ -497,6 +497,7 @@ function layerModel(options, parent) {
           dataType: "jsonp",
           url: url,
           type: 'GET',
+          crossDomain: true,
           success: function(data) {
             if (data['description']) {
               if (!self.overview) {
@@ -531,6 +532,7 @@ function layerModel(options, parent) {
       $.ajax({
         dataType: "jsonp",
         url: request_url,
+        crossDomain: true,
         'success': function(response){
           interpretArcGISFeatureServerLegend(self, response);
         }
@@ -1375,6 +1377,7 @@ function layerModel(options, parent) {
             var deferred = $.ajax({
                 type: 'GET',
                 dataType: 'jsonp',
+                crossDomain: true,
                 url: layer.mdat_param
             });
 
@@ -1434,6 +1437,7 @@ function layerModel(options, parent) {
             var deferred = $.ajax({
                 type: 'GET',
                 dataType: 'jsonp',
+                crossDomain: true,
                 url: layer.gearURL
             });
 
@@ -1482,6 +1486,7 @@ function layerModel(options, parent) {
             var deferred = $.ajax({
                 type: 'GET',
                 dataType: 'jsonp',
+                crossDomain: true,
                 url: layer.portsPath
             });
 
@@ -1555,6 +1560,7 @@ function layerModel(options, parent) {
 
         $.ajax({
           url: '/data_manager/get_layer_details/' + layer.id,
+          crossDomain: true,
           success: function(data) {
             if (data.hasOwnProperty('name')) {
               layer.name = data.name;
@@ -1853,6 +1859,7 @@ function themeModel(options) {
       var theme = this;
       $.ajax({
         url: '/data_manager/get_layers_for_theme/' + theme.id,
+        crossDomain: true,
         success: function(data) {
           layer_objects = [];
           for (var i = 0; i < data.layers.length; i++) {

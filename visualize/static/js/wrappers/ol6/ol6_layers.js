@@ -16,25 +16,31 @@ let loadFunctionLookup = {
 for (var i = 0; i < app.wrapper.baseLayers.length; i++) {
   var baseLayer = app.wrapper.baseLayers[i];
   if (baseLayer.technology == 'OSM') {
-    var source = new ol.source.OSM();
+    var source = new ol.source.OSM({
+      crossOrigin: 'anonymous'
+    });
   } else if (baseLayer.technology == 'ArcGIS') {
     var source = new ol.source.TileArcGISRest({
       url: baseLayer.url,
       projection: baseLayer.projection,
       params: baseLayer.params,
+      crossOrigin: 'anonymous'
     })
   } else {
     // assume 'XYZ' by default
+
     if (baseLayer.loadFunction != null) {
       var source = new ol.source.XYZ({
         attributions: baseLayer.attribution,
         url: baseLayer.url,
-        tileLoadFunction: loadFunctionLookup[baseLayer.loadFunction]
+        tileLoadFunction: loadFunctionLookup[baseLayer.loadFunction],
+        crossOrigin: 'anonymous'
       });
     } else {
       var source = new ol.source.XYZ({
         attributions: baseLayer.attribution,
-        url: baseLayer.url
+        url: baseLayer.url,
+        crossOrigin: 'anonymous'
       });
     }
     
@@ -68,7 +74,8 @@ app.wrapper.map.defaultBaseLayer = new ol.layer.Tile({
               'rest/services/World_Topo_Map/MapServer">ArcGIS</a>',
     url: 'https://server.arcgisonline.com/ArcGIS/rest/services/' +
               'World_Topo_Map/MapServer/tile/{z}/{y}/{x}',
-    maxZoom: 19
+    maxZoom: 19,
+    crossOrigin: 'anonymous'
   }),
   useInterimTilesOnError: false,
   zIndex: 0

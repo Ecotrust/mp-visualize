@@ -349,16 +349,18 @@
 
                                                       <div data-bind="foreach: activeLegendLayers">
                                                       <!--<div data-bind="foreach: { data: activeLegendLayers, afterRender: updateScrollBars }">-->
-                                                          <div style="padding-bottom: 18px;" data-bind="css: {zoomInvisible: !isVisibleAtZoom()}">
+
+                                                          <div  class="printable"style="padding-bottom: 18px;" data-bind="css: {zoomInvisible: !isVisibleAtZoom()}">
                                                               <!-- ko if: isUserGenerated -->
                                                                 <span class="pagination-centered legend-title"><b><u>{{ USER_GEN_PREFIX }}</u></b></span>
                                                               <!-- /ko -->
+
                                                               <span class="pagination-centered legend-title" data-bind="html: legendTitle ? legendTitle : name"></span>
 
                                                               <!-- ko ifnot: isVisibleAtZoom -->
                                                                 <span class="invisible-status">
                                                                     <i title="Out of zoom range." class="fa fa-eye-slash"></i>
-                                                                    <span class="zoom-range-message">Out of Range</span>
+                                                                    <span class="zoom-range-message">Out of Scale</span>
                                                                 </span>
                                                               <!-- /ko -->
 
@@ -531,6 +533,7 @@
       {% endif %}
     {% endblock %}
 
-    <!--<script src="{% static 'js/html2canvas.js' %}"></script>-->
+    <script src="{% static 'js/lib/html2canvas.min.js' %}"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <!--<script src="{% static 'js/html2canvas.svg.js' %}"></script>-->
 {% endblock %}

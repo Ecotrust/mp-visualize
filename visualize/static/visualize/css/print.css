@@ -1,33 +1,45 @@
 @page {
-	margin: 0.25in;
+	/* margin: 0; */
 	orientation: landscape;
 }
 
 @media print {
 	body.template-visualize #map-wrapper {
-    height: 100%;
-    width: 100%;
-  }
+		/* height: 100%; */
+		/* width: 100%; */
+	}
+
+	body {
+		/* height: 8.25in !important; */
+    	/* width: 11in !important; */
+	}
+
+	body canvas {
+		/* position: fixed; */
+		/* top: 0; */
+		/* left: 0; */
+		/* z-index: 9999; */
+	}
 }
 
 @media print and (orientation: landscape) {
 	body.template-visualize #map-wrapper {
-    height: 8.25in !important;
-    width: 11in !important;
-  }
+    	/* height: 8.25in !important; */
+    	/* width: 11in !important; */
+  	}
 }
 
 @media print and (orientation: portrait) {
 	body.template-visualize #map-wrapper {
-    height: 11in !important;
-    width: 8.5in !important;
-  }
+    	/* height: 11in !important; */
+    	/* width: 8.5in !important; */
+  	}
 }
 
 @media print {
 
 	body {
-	  -webkit-print-color-adjust: exact !important;
+	  /* -webkit-print-color-adjust: exact !important; */
 	}
 
 	/**
@@ -97,9 +109,9 @@
 	}
 
 	body.template-visualize .tab-content #legend {
-		display: block;
+		/* display: block;
 		overflow: visible;
-		visibility: visible;
+		visibility: visible; */
 	}
 
 	#myTab h4 {
@@ -108,11 +120,11 @@
 
 	/* overwrite bootstrap print */
 	img {
-		max-width: none !important;
+		/* max-width: none !important; */
 	}
 
   .olTileImage {
-    max-width: none !important;
+    /* max-width: none !important; */
   }
 
 	#map .olControlAttribution {
@@ -186,7 +198,6 @@
 /* More OL6 (LandScape overrides) */
 @media print and (orientation: landscape) {
 	.ol-attribution ul {
-
-		margin-bottom: 40px !important;
+		/* margin-bottom: 40px !important; */
   }
 }
