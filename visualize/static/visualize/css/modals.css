@@ -7,10 +7,6 @@ body.template-visualize .btn-link.modal-help-toggle {
   color: #00a564;
 }
 
-#map-wms-modal .remove-wms {
-  display: unset;
-}
-
 .close-arcRest-modal {
   float: left;
 }
@@ -37,9 +33,6 @@ body.template-visualize .btn-link.modal-help-toggle {
   max-height: calc(100vh - 60px); /* 30px margin */
 }
 
-#map-wms-modal #arcRestFormBody.modal-body{
-  max-height: calc(100vh - 201px);
-}
 .modal-body {
   overflow: auto;
   max-height: calc(100vh - 250px);

@@ -230,7 +230,7 @@ function layerModel(options, parent) {
         self.legend = self.url + 'SERVICE=WMS&VERSION=' +
         self.wms_version + '&layer=' +
         self.wms_slug +
-        "&REQUEST=GetLegendGraphic&FORMAT=image/png"
+        "&REQUEST=GetLegendGraphic&FORMAT=image/png&SLD_VERSION=1.1.0"
       }
 
       // set target blank for all links
@@ -2876,39 +2876,6 @@ function viewModel() {
 
         var vtrLayer = app.viewModel.getOrCreateLayer(vtrObj, null, 'activateLayer', null);
 
-    };
-
-    /* session based WMS layers */
-    self.submitWMSSession = function() {
-        $('.wmsForm').each(function (index, value) {
-            //store object options
-            var lyrObj = new Object();
-            lyrObj.type = 'ArcRest';
-            lyrObj.wmsSession = true;
-            var id_exists = true;
-            for(var i=0; id_exists == true && i < 1000; i++) {
-              lyrObj.id = 'user_layer_' + i;
-              if (Object.keys(app.viewModel.layerIndex).indexOf(lyrObj.id) < 0) {
-                id_exists = false;
-              }
-            }
-
-            $(this).find(':input').each(function() {
-                var inputField = ($(this).attr("name"));
-                var value = $(this).val();
-
-                if (inputField === 'name') {
-                    lyrObj.name = value;
-                } else if (inputField === 'url') {
-                    lyrObj.url = value;
-                } else if (inputField === 'layerId' && value.length > 0) {
-                    lyrObj.arcgis_layers = value;
-                }
-            })
-            //add options to layer
-            var wmsLayer = app.viewModel.getOrCreateLayer(lyrObj, null, 'activateLayer', null);
-        });
-        $('#map-wms-modal').modal('hide');
     };
 
     self.selectedLayer = ko.observable();

@@ -1137,24 +1137,6 @@ td ul.dropdown-menu {
   }
 }
 
-#map-wms-modal {
-    .modal-body {
-        max-height: 450px;
-        overflow: auto;
-
-        .wmsForm:not(:first-child) {
-            .form-group:first-child { padding-top: 20px; }
-        }
-    }
-
-    .remove-wms { display: none; }
-    .clone-wms-form,
-    .remove-wms-form {
-        cursor: pointer;
-    }
-}
-
-
 @import "visualize/designs.scss";
 
 @import "visualize/bookmark-modal.scss";
