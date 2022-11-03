@@ -22,6 +22,13 @@ function userLayerModel(options) {
         self.arcgis_layers = 0;
     }
 
+    self.wms_slug = options.wms_slug || null;
+    self.wms_srs = options.wms_srs || null;
+    self.wms_params = options.wms_params || null;
+    self.wms_version = options.wms_version || null;
+    self.wms_format = options.wms_format || null;
+    self.wms_styles = options.wms_styles || null;
+
     self.shared = ko.observable();
     self.sharedByName = options.sharedByName || null;
     self.sharedByUser = options.sharedByUser;
@@ -188,6 +195,13 @@ function userLayersModel(options) {
         lyrObj.name = userLayer.name;
         lyrObj.url = userLayer.url;
         lyrObj.arcgis_layers = userLayer.arcgis_layers;
+
+        lyrObj.wms_slug = userLayer.wms_slug;
+        lyrObj.wms_srs = userLayer.wms_srs;
+        lyrObj.wms_params = userLayer.wms_params;
+        lyrObj.wms_version = userLayer.wms_version;
+        lyrObj.wms_format = userLayer.wms_format;
+        lyrObj.wms_styles = userLayer.wms_styles;
   
         lyrObj.type = userLayer.layer_type;
         lyrObj.wmsSession = true;
@@ -273,14 +287,20 @@ function userLayersModel(options) {
                   {complete: self.getUserLayers});
     };
 
-    self.addUserLayer = function(name, description, layer_type, url, arcgis_layers) {
+    self.addUserLayer = function(name, description, layer_type, url, arcgis_layers, wms_slug, wms_srs, wms_params, wms_version, wms_format, wms_styles) {
         $.jsonrpc('add_user_layer', 
             [
                 name,
                 description,
                 layer_type,
                 url,
-                arcgis_layers
+                arcgis_layers,
+                wms_slug,
+                wms_srs,
+                wms_params,
+                wms_version,
+                wms_format,
+                wms_styles,
             ],
             {complete: self.getUserLayers}
         );
@@ -316,7 +336,13 @@ function userLayersModel(options) {
                     'layer_type': existingUserLayers[i].layer_type,
                     'url': existingUserLayers[i].url,
                     'arcgis_layers': existingUserLayers[i].arcgis_layers,
-                    'sharing_groups': existingUserLayers[i].sharingGroups
+                    'sharing_groups': existingUserLayers[i].sharingGroups,
+                    'wms_slug': existingUserLayers[i].wms_slug,
+                    'wms_srs': existingUserLayers[i].wms_srs,
+                    'wms_params': existingUserLayers[i].wms_params,
+                    'wms_version': existingUserLayers[i].wms_version,
+                    'wms_format': existingUserLayers[i].wms_format,
+                    'wms_styles': existingUserLayers[i].wms_styles,
                 });
             }
         }
@@ -340,7 +366,13 @@ function userLayersModel(options) {
                         sharedByName: user_layers[i].shared_by_name,
                         sharingGroups: user_layers[i].sharing_groups,
                         sharedToGroups: user_layers[i].shared_to_groups,
-                        ownedByUser: user_layers[i].owned_by_user
+                        ownedByUser: user_layers[i].owned_by_user,
+                        wms_slug: user_layers[i].wms_slug,
+                        wms_srs: user_layers[i].wms_srs,
+                        wms_params: user_layers[i].wms_params,
+                        wms_version: user_layers[i].wms_version,
+                        wms_format: user_layers[i].wms_format,
+                        wms_styles: user_layers[i].wms_styles,
                     });
                     self.userLayersList.push(user_layer);
                 }

@@ -6,3 +6,8 @@ div.info-links {
 div.info-links a.btn {
     padding-left: 6px;
 }
+
+/* User-Layer Import */
+.step1-param select {
+    max-width: 90%;
+}

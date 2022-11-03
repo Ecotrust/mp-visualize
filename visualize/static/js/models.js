@@ -224,6 +224,9 @@ function layerModel(options, parent) {
 
       //legends for actual WMS LAYERS
       if (!self.legend && self.url && self.type=='WMS' && self.wms_slug && self.wms_version) {
+        if (self.url.indexOf('?') < 0) {
+          self.url = self.url + '?';
+        }
         self.legend = self.url + 'SERVICE=WMS&VERSION=' +
         self.wms_version + '&layer=' +
         self.wms_slug +
@@ -2688,8 +2691,14 @@ function viewModel() {
         var layer_type = $(form).find('#new_user_layer_type').val();
         var url = $(form).find('#new_user_layer_url').val();
         var arcgis_layers = $(form).find('#new_user_layer_arcgis_layers').val();
+        var wms_slug = $(form).find('#new_user_layer_wms_slug').val();
+        var wms_srs = $(form).find('#new_user_layer_wms_srs').val();
+        var wms_params = $(form).find('#new_user_layer_wms_params').val();
+        var wms_version = $(form).find('#new_user_layer_wms_version').val();
+        var wms_format = $(form).find('#new_user_layer_wms_format').val();
+        var wms_styles = $(form).find('#new_user_layer_wms_styles').val();
 
-        self.userLayers.addUserLayer(name, description, url, layer_type, arcgis_layers);
+        self.userLayers.addUserLayer(name, description, url, layer_type, arcgis_layers, wms_slug, wms_srs, wms_params, wms_version, wms_format, wms_styles);
         self.hideUserLayersForm();
         self.userLayers.newUserLayerName(null);
         self.userLayers.newUserLayerDescription(null);

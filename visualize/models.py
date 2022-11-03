@@ -94,9 +94,15 @@ class Content(models.Model):
 class UserLayer(Feature):
     name = models.CharField(max_length=255)
     layer_type = models.CharField(max_length=50, choices=settings.LAYER_TYPE_CHOICES, help_text='use placeholder to temporarily remove layer from TOC')
-    url = models.TextField(blank=True, null=True)
-    arcgis_layers = models.CharField(max_length=255, blank=True, null=True, help_text='comma separated list of arcgis layer IDs')
-    description = models.TextField(blank=True, null=True)
+    url = models.TextField(blank=True, null=True, default=None)
+    arcgis_layers = models.CharField(max_length=255, blank=True, null=True, default=None, help_text='comma separated list of arcgis layer IDs')
+    wms_slug = models.CharField(max_length=255, blank=True, null=True, default=None, help_text='WMS Layer name')
+    wms_srs = models.CharField(max_length=50, blank=True, null=True, default=None, help_text="CRS used for WMS requests ('EPSG:4326')")
+    wms_params = models.TextField(blank=True, null=True, default=None, help_text="Extra WMS parameters ('&VERSION=1.1.0...')")
+    wms_version = models.CharField(max_length=10, blank=True, null=True, default=None, help_text='WMS Versioning - usually either 1.1.1 or 1.3.0')
+    wms_format = models.CharField(max_length=100, blank=True, null=True, default=None, help_text='most common: image/png. Only image types supported.', verbose_name='WMS Format')
+    wms_styles = models.CharField(max_length=255, blank=True, null=True, default=None, help_text='pre-determined styles, if exist', verbose_name='WMS Styles')
+    description = models.TextField(blank=True, null=True, default=None)
 
     class Options:
         verbose_name = 'User-Imported Layer'

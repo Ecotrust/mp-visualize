@@ -9,13 +9,6 @@
             function validate(step) {
                 return_value = true;
                 if (step == 1) {
-                    // if ( app.viewModel.scenarios.drawingFormModel.isDrawing()) {
-                    //     $('#double-click-instructions').effect("highlight", {}, 1000);
-                    //     return_value = false;
-                    // } else if ( ! app.viewModel.scenarios.drawingFormModel.hasShape() ) {
-                    //     $('#click-to-begin-drawing').effect("highlight", {}, 1000);
-                    //     return_value = false;
-                    // }
                 } else if (step == max_step) {
 
                 }
@@ -26,8 +19,6 @@
                 if (step == 1 && action == 'next') {
                     if (validate(step)) {
                         step += 1;
-                        // app.viewModel.userLayers.userLayerFormModel.completeEdit();
-                        // $('#id_geometry_orig')[0].value = 'SRID=3857;' + app.getLayerFeatureAsWKT(app.map.drawingLayer, 0);
                     }
                 } else if (step > 1 && action == 'prev') {
                     step -= 1;
@@ -58,7 +49,6 @@
                     "radio",
                     "checkbox",
                     "placeholder",
-                    "WMS",  // Too hard for now...
                 ];
                 for (var i = 0; i < hidden_options.length; i++) {
                     $('option[value="' + hidden_options[i] + '"]').css({'display':'none',});
@@ -66,6 +56,140 @@
                 $('#id_layer_type').change();
 
             }
+
+            function createSelect(name, selected_val, allowed_values, allow_empty, parse_options) {
+                var id = "id_" + name;
+                var field = $('<select id="' + id + '" type="text" name="' + name + '" />');
+
+                var options = [];
+                if (allow_empty) {
+                    field.append($('<option value="">None</option>'));
+                }
+                if (selected_val && selected_val != '') {
+                    field.append($('<option value="' + selected_val + '">' + selected_val + '</option>'));
+                }
+                if (parse_options) {
+                    for (var key in parse_options.keys) {
+                        var key_val = parse_options['keys'][key];
+                        for (var i in parse_options['data'][key_val]) {
+                            if (Array.isArray(parse_options['data'][key_val])) {
+                                var option_value = parse_options.data[key_val][i];
+                            } else {
+                                var option_value = i;
+                            }
+                            if (option_value != selected_val) {
+                                field.append($('<option class="' + id + ' ' + id + '_' + key_val + '" value="' + option_value + '">' + option_value + '</option>'));
+                            }
+                        }
+                    }
+                } else {
+                    for (var i in allowed_values) {
+                        if (allowed_values[i] != selected_val && allowed_values[i] != '') {
+                            options.push({val: allowed_values[i], text: allowed_values[i]});
+                        }
+                    }
+                    for (var i in options) {
+                        field.append($('<option value="' + options[i].val + '">' + options[i].text + '</option>'));
+                    }
+                }
+                if (selected_val) {
+                    field.val(selected_val).change();
+                }
+
+                return field;
+            }
+
+            function importWmsOptions(event) {
+                
+                // Get wms_slug value
+                wms_slug_val = $("#id_wms_slug").val();
+                // Get wms_srs value
+                wms_srs_val = $("#id_wms_srs").val();
+
+                wms_version = $("#id_wms_version").val();
+                if (!wms_version || wms_version.length < 1) {
+                    wms_version = '1.3.0';
+                }
+
+                wms_format_val = $("#id_wms_format").val();
+                wms_styles_val = $("#id_wms_styles").val();
+
+                if (event.target.checked){
+                    //  Start spinner
+                    $('body').css("cursor", "wait");
+                    //  Get URL
+                    url = $("#id_url").val();
+                    //  AJAX GetCapabilities
+                    $.ajax({
+                        url: "/data_manager/wms_capabilities/?url=" + url,
+                        success: function(data) {
+                            //          Replace slug input with dropdown element
+                            //              Insert option for prior wms_slug value (if any, and not in options)
+                            $('#id_wms_slug').remove();
+                            var slug_field = createSelect("wms_slug", wms_slug_val, data.layers, true, false);
+                            $("#wms-layer-field div.step1-inputs div.step1-param").html(slug_field);
+                            // hide all options in drop-downs that don't relate to the selected layer
+                            slug_field.on('change', function(){
+                                $('option.id_wms_srs').hide();
+                                $('option.id_wms_srs_' + slug_field.val()).show();
+                                $('option.id_wms_styles').hide();
+                                $('option.id_wms_styles_' + slug_field.val()).show();
+                            });
+
+                            $('#id_wms_srs').remove();
+                            var srs_field = createSelect("wms_srs", wms_srs_val, [], true, {keys: data.layers, data: data.srs});
+                            $("#wms-proj-field div.step1-inputs div.step1-param").html(srs_field);
+
+                            if (data.version && data.version != '') {
+                                $("#id_wms_version").val(data.version);
+                            }
+
+                            $('#id_wms_format').remove();
+                            var format_field = createSelect("wms_format", wms_format_val, data.formats, true, false);
+                            $("#wms-format-field div.step1-inputs div.step1-param").html(format_field);
+
+                            $('#id_wms_styles').remove();
+                            var styles_field = createSelect("wms_styles", wms_styles_val, [], true, {keys: data.layers, data: data.styles});
+                            $("#wms-styles-field div.step1-inputs div.step1-param").html(styles_field);
+
+                            slug_field.change();
+
+                        },
+                        error: function(data) {
+                            var get_cap_url = url + 'SERVICE=WMS&REQUEST=GetCapabilities';
+                            window.alert('Error getting WMS capabilities: please check your URL and that you get a response at: ' + get_cap_url);
+                            $("body").css("cursor", "unset");
+                        }
+                    }).done(function() {
+                        //          Kill Spinner
+                        $("body").css("cursor", "unset");
+                    });
+
+                } else {
+                    $('#id_wms_slug').remove();
+                    var slug_field = $('<input id="id_wms_slug" type="text" name="wms_slug"/>');
+                    slug_field.val(wms_slug_val);
+                    $("#wms-layer-field div.step1-inputs div.step1-param").html(slug_field);
+
+                    $('#id_wms_srs').remove();
+                    var srs_field = $('<input id="id_wms_srs" type="text" name="wms_srs" />');
+                    srs_field.val(wms_srs_val);
+                    $("#wms-proj-field div.step1-inputs div.step1-param").html(srs_field);
+
+                    $('#id_wms_format').remove();
+                    var format_field = $('<input id="id_wms_format" type="text" name="wms_format" />');
+                    format_field.val(wms_format_val);
+                    $("#wms-format-field div.step1-inputs div.step1-param").html(format_field);
+
+                    $('#id_wms_styles').remove();
+                    var styles_field = $('<input id="id_wms_styles" type="text" name="wms_styles" />');
+                    styles_field.val(wms_styles_val);
+                    $("#wms-styles-field div.step1-inputs div.step1-param").html(styles_field);
+
+                }
+            }
+
+            $("#wms_help").click(importWmsOptions);
 
             $('#id_layer_type').change(function() {
                 var layer_type_selected = $('#id_layer_type').val();
@@ -75,6 +199,12 @@
                     $('#arcgis-layer-field').css({'display':'inherit',});
                 } else {
                     $('#arcgis-layer-field').css({'display':'none',});
+                }
+
+                if (layer_type_selected == 'WMS') {
+                    $('#wms-fields').css({'display': 'inherit',});
+                } else {
+                    $('#wms-fields').css({'display': 'none',});
                 }
             })
 
@@ -239,6 +369,83 @@
                         {{ form.arcgis_layers }}
                     </div>
                 </div>
+            </div>
+
+            <div id="wms-fields">
+
+                <div id="wms-help-field">
+                    <!-- <p class="instructions">Populate Field Options:</p> -->
+                    <div class="step1-inputs">
+                        <div class="step1-param">
+                            <label for="wms_help">
+                                Populate Field Options: 
+                                <input type="checkbox" id="wms_help" name="wms_help">
+                            </label>
+                            
+                        </div>
+                    </div>
+                </div>
+
+                <div id="wms-layer-field">
+                    <p class="instructions">Layer Name:</p>
+                    <div class="step1-inputs">
+                        <div class="step1-param">
+                            {{ form.wms_slug.errors }}
+                            {{ form.wms_slug }}
+                        </div>
+                    </div>
+                </div>
+
+                <div id="wms-proj-field">
+                    <p class="instructions">Projection/CRS:</p>
+                    <div class="step1-inputs">
+                        <div class="step1-param">
+                            {{ form.wms_srs.errors }}
+                            {{ form.wms_srs }}
+                        </div>
+                    </div>
+                </div>
+
+                <div id="wms-version-field" style="display:none">
+                    <p class="instrucions">WMS Version:</p>
+                    <div class="step1-inputs">
+                        <div class="step1-param">
+                            {{ form.wms_version.errors }}
+                            {{ form.wms_version }}
+                        </div>
+                    </div>
+                </div>
+
+                <div id="wms-format-field">
+                    <p class="instructions">WMS Format:</p>
+                    <div class="step1-inputs">
+                        <div class="step1-param">
+                            {{ form.wms_format.errors }}
+                            {{ form.wms_format }}
+                        </div>
+                    </div>
+                </div>
+
+                <div id="wms-styles-field">
+                    <p class="instructions">WMS Styles:</p>
+                    <div class="step1-inputs">
+                        <div class="step1-param">
+                            {{ form.wms_styles.errors }}
+                            {{ form.wms_styles }}
+                        </div>
+                    </div>
+                </div>
+
+                <div id="wms-extra-params-field">
+                    <p class="instructions">Extra Parameters ("&FOO=BAR..."):</p>
+                    <div class="step1-inputs">
+                        <div class="step1-param">
+                            {{ form.wms_params.errors }}
+                            {{ form.wms_params }}
+                        </div>
+                    </div>
+                </div>
+
             </div>
         </div>
 

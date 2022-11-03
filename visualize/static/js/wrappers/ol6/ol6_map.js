@@ -1119,38 +1119,15 @@ app.wrapper.map.addWMSLayerToMap = function(layer) {
   wms_url = layer.url;
   wms_proxy = false;
   layer_params = {
-    layers: layer.wms_slug,
-    transparent: "true"
+    LAYERS: layer.wms_slug,
+    TRANSPARENT: "true"
   }
   if (layer.wms_format){
     layer_params.format = layer.format;
   } else {
     layer_params.format = "image/png";
   }
-  if (layer.wms_srs){
-    // OL2 - We need to proxy to another WMS that DOES support the current projection
-    // if (layer.wms_srs != 'EPSG:3857') {
-    //   wms_proxy = true;
-    //   // var time_def_param_key = app.server_constants.time_def_param_key;
-    //   wms_url = app.server_constants.wms_proxy_url;
-    //   layer_params[app.server_constants.wms_proxy_mapfile_field] = app.server_constants.wms_proxy_mapfile
-    //   layer_params[app.server_constants.source_srs_param_key] = layer.srs;
-    //   layer_params[app.server_constants.conn_param_key] =  layer.url;
-    //   layer_params[app.server_constants.layer_name_param_key] = layer.wms_slug;
-    //   if (layer.wms_timing) {
-    //     layer_params.layers = app.server_constants.proxy_time_layer;
-    //     layer_params[app.server_constants.time_param_key] = layer.wms_timing;
-    //     if (layer.wms_time_item) {
-    //       layer_params[app.server_constants.time_item_param_key] = layer.wms_time_item;
-    //     }
-    //   } else {
-    //     layer_params.layers = app.server_constants.proxy_generic_layer;
-    //   }
-    //   layer_params[app.server_constants.format_param_key] = layer.wms_format;
-    //   layer_params[app.server_constants.version_param_key] = layer.wms_version;
-    //   layer_params[app.server_constants.style_param_key] = layer.wms_styles;
-    // }
-  }
+
   if (!wms_proxy) {
     if (layer.wms_styles){
       layer_params.styles = layer.wms_styles;
@@ -1175,11 +1152,18 @@ app.wrapper.map.addWMSLayerToMap = function(layer) {
 
   }
 
+  var layer_projection = 'ESPG:3857';
+  if (layer.wms_srs){
+    var layer_projection = layer.wms_srs;
+  }
+  layer_params.CRS = layer_projection;
+
   var wmsSource = new ol.source.TileWMS({
     url: wms_url,
     hidpi: false,
     params: layer_params,
-    crossOrigin: 'anonymous'
+    projection: layer_projection.toUpperCase(),
+    tiled: true
   });
 
   layer.layer = new ol.layer.Tile({

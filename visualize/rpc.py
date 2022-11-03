@@ -153,6 +153,12 @@ def add_user_layer(name, description, url, layer_type, arcgis_layers, **kwargs):
         'layer_type': userLayer.layer_type,
         'arcgis_layers': userLayer.arcgis_layers,
         'sharing_groups': sharing_groups,
+        'wms_slug': userLayer.wms_slug,
+        'wms_srs': userLayer.wms_srs,
+        'wms_params': userLayer.wms_params,
+        'wms_version': userLayer.wms_version,
+        'wms_format': userLayer.wms_format,
+        'wms_styles': userLayer.wms_styles,
     }]
     return content
 
@@ -198,7 +204,13 @@ def get_user_layers(**kwargs):
             'arcgis_layers': userLayer.arcgis_layers,
             'sharing_groups': all_sharing_groups,
             'shared_to_groups': sharing_groups,
-            'owned_by_user': True
+            'owned_by_user': True,
+            'wms_slug': userLayer.wms_slug,
+            'wms_srs': userLayer.wms_srs,
+            'wms_params': userLayer.wms_params,
+            'wms_version': userLayer.wms_version,
+            'wms_format': userLayer.wms_format,
+            'wms_styles': userLayer.wms_styles,
         })
 
     try:
@@ -244,7 +256,13 @@ def get_user_layers(**kwargs):
                 'sharing_groups': all_shared_groups,
                 'shared_to_groups': sharing_groups,
                 'shared_by_name': userLayer.user.get_short_name(),
-                'owned_by_user': owned_by_user
+                'owned_by_user': owned_by_user,
+                'wms_slug': userLayer.wms_slug,
+                'wms_srs': userLayer.wms_srs,
+                'wms_params': userLayer.wms_params,
+                'wms_version': userLayer.wms_version,
+                'wms_format': userLayer.wms_format,
+                'wms_styles': userLayer.wms_styles,
             })
     return content
 
@@ -264,6 +282,12 @@ def load_user_layer(user_layer_id, **kwargs):
         'layer_type': userLayer.layer_type,
         'arcgis_layers': userLayer.arcgis_layers,
         # 'sharing_groups': sharing_groups,
+        'wms_slug': userLayer.wms_slug,
+        'wms_srs': userLayer.wms_srs,
+        'wms_params': userLayer.wms_params,
+        'wms_version': userLayer.wms_version,
+        'wms_format': userLayer.wms_format,
+        'wms_styles': userLayer.wms_styles,
     }]
     return content
 
