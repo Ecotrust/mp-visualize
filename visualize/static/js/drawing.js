@@ -43,55 +43,46 @@ function drawingModel(options) {
                 if (lyr_extent && lyr_extent[0] != Infinity) {
                     app.map.zoomToExtent(lyr_extent);
                     app.map.zoomOut();
-                } else {
-                    window.setTimeout(function() {
-                        var lyr_extent = false;
+                }
+                window.setTimeout(function() {
+                    if (!lyr_extent || lyr_extent[0] == Infinity) {
                         try {
                             lyr_extent = self.drawing.layer().getDataExtent();
                         } catch (error) {
                             lyr_extent = false;
                         }
-                        if (lyr_extent && lyr_extent[0] != Infinity) {
-                            app.map.zoomToExtent(lyr_extent);
-                            app.map.zoomOut();
-                            app.map.drawingLayer = self.drawing.layer().layer;
+                    }
+                    if (lyr_extent && lyr_extent[0] != Infinity) {
+                        app.map.zoomToExtent(lyr_extent);
+                        app.map.zoomOut();
+                        app.map.drawingLayer = self.drawing.layer().layer;
 
-                            $('#drawing-form').html(data);
-                            ko.applyBindings(app.viewModel.scenarios.drawingFormModel, document.getElementById('drawing-form'));
+                        $('#drawing-form').html(data);
+                        ko.applyBindings(app.viewModel.scenarios.drawingFormModel, document.getElementById('drawing-form'));
 
-                            app.viewModel.scenarios.drawingFormModel.showEdit(true);
-                            app.viewModel.scenarios.drawingFormModel.hasShape(true);
-                        } else {
-                            window.alert("Couldn't load editing form. Try adding your shape to the map before editing");
-                        }
-                        var drawing_layer_type = self.drawing.layer().layer.getSource().getFeatures()[0].getGeometry().getGeometriesArray()[0].getType();
-                        switch(drawing_layer_type) {
-                            case 'Polygon':
-                                app.viewModel.scenarios.drawingFormModel.sketchMode('polygon');
-                                $('#edit-feature-type').html('Shape');
-                                break;
-                            case 'LineString':
-                                app.viewModel.scenarios.drawingFormModel.sketchMode('line');
-                                $('#edit-feature-type').html('Line');
-                                break;
-                            case 'Point':
-                                app.viewModel.scenarios.drawingFormModel.sketchMode('point');
-                                $('#edit-feature-type').html('Point');
-                                break;
-                            default:
-                                console.log("unknown geom type, can't activate 'Add' button.");
-                        }
-                    }, 500);
-                    return;
-                }
-
-                app.map.drawingLayer = self.drawing.layer().layer;
-
-                $('#drawing-form').html(data);
-                ko.applyBindings(app.viewModel.scenarios.drawingFormModel, document.getElementById('drawing-form'));
-
-                app.viewModel.scenarios.drawingFormModel.showEdit(true);
-                app.viewModel.scenarios.drawingFormModel.hasShape(true);
+                        app.viewModel.scenarios.drawingFormModel.showEdit(true);
+                        app.viewModel.scenarios.drawingFormModel.hasShape(true);
+                    } else {
+                        window.alert("Couldn't load editing form. Try adding your shape to the map before editing");
+                    }
+                    var drawing_layer_type = self.drawing.layer().layer.getSource().getFeatures()[0].getGeometry().getGeometriesArray()[0].getType();
+                    switch(drawing_layer_type) {
+                        case 'Polygon':
+                            app.viewModel.scenarios.drawingFormModel.sketchMode('polygon');
+                            $('#edit-feature-type').html('Shape');
+                            break;
+                        case 'LineString':
+                            app.viewModel.scenarios.drawingFormModel.sketchMode('line');
+                            $('#edit-feature-type').html('Line');
+                            break;
+                        case 'Point':
+                            app.viewModel.scenarios.drawingFormModel.sketchMode('point');
+                            $('#edit-feature-type').html('Point');
+                            break;
+                        default:
+                            console.log("unknown geom type, can't activate 'Add' button.");
+                    }
+                }, 500);
             },
             error: function (result) {
                 //debugger;
