@@ -68,12 +68,15 @@ function drawingModel(options) {
                         switch(drawing_layer_type) {
                             case 'Polygon':
                                 app.viewModel.scenarios.drawingFormModel.sketchMode('polygon');
+                                $('#edit-feature-type').html('Shape');
                                 break;
                             case 'LineString':
                                 app.viewModel.scenarios.drawingFormModel.sketchMode('line');
+                                $('#edit-feature-type').html('Line');
                                 break;
                             case 'Point':
                                 app.viewModel.scenarios.drawingFormModel.sketchMode('point');
+                                $('#edit-feature-type').html('Point');
                                 break;
                             default:
                                 console.log("unknown geom type, can't activate 'Add' button.");
