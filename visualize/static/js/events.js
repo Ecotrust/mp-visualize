@@ -92,11 +92,16 @@ if (!app.wrapper.events.hasOwnProperty('clickOnArcRESTLayerEvent')) {
             $.each(returnJSON['fields'], function(fieldNdx, field) {
               if (field.name.indexOf('OBJECTID') === -1 && field.name.indexOf('CFR_id') === -1) {
                 var data = attributeList[field.name]
+                var attribute_rules = mp_layer.attributes.find(o => o.field === field.name);
                 if (mp_layer.preserved_format_attributes.indexOf(field.name) < 0) {
                   if (field.type === 'esriFieldTypeDate') {
                     data = new Date(data).toDateString();
                   } else if (app.utils.isNumber(data)) {
-                    data = app.utils.formatNumber(data);
+                    var precision = 0;
+                    if (attribute_rules.hasOwnProperty('precision')) {
+                      precision = attribute_rules.precision;
+                    }
+                    data = app.utils.formatNumber(data, precision);
                   } else if (typeof(data) == 'string' && (data.indexOf('http') >= 0 || field.name.toLowerCase() == 'link' )) {
                     // Make link attributes live!
                     str_list = data.split('; ');

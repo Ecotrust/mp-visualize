@@ -389,17 +389,20 @@ app.init = function () {
     app.utils.isInteger = function(n) {
         return app.utils.isNumber(n) && (Math.floor(n) === n);
     }
-    app.utils.formatNumber = function(n) {
+    app.utils.formatNumber = function(n, precision) {
         var number = Number(n);
+        if (!precision) {
+          precision = 1;
+        }
         if (app.utils.isInteger(number)) {
             var preciseNumber = number.toFixed(0);
         } else {
-            var preciseNumber = number.toFixed(1);
+            var preciseNumber = number.toFixed(precision);
         }
         return app.utils.numberWithCommas(preciseNumber);
     }
-    app.utils.trim = function(str) {
-        return str.replace(/^\s+|\s+$/g,'');
+    app.utils.trim = function(str_val) {
+        return String(str_val).replace(/^\s+|\s+$/g,'');
     }
     app.utils.getObjectFromList = function(list, field, value) {
         for (var i=0; i<list.length; i+=1) {
