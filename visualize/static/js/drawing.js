@@ -64,6 +64,20 @@ function drawingModel(options) {
                         } else {
                             window.alert("Couldn't load editing form. Try adding your shape to the map before editing");
                         }
+                        var drawing_layer_type = self.drawing.layer().layer.getSource().getFeatures()[0].getGeometry().getGeometriesArray()[0].getType();
+                        switch(drawing_layer_type) {
+                            case 'Polygon':
+                                app.viewModel.scenarios.drawingFormModel.sketchMode('polygon');
+                                break;
+                            case 'LineString':
+                                app.viewModel.scenarios.drawingFormModel.sketchMode('line');
+                                break;
+                            case 'Point':
+                                app.viewModel.scenarios.drawingFormModel.sketchMode('point');
+                                break;
+                            default:
+                                console.log("unknown geom type, can't activate 'Add' button.");
+                        }
                     }, 500);
                     return;
                 }
