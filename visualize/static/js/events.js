@@ -97,8 +97,8 @@ if (!app.wrapper.events.hasOwnProperty('clickOnArcRESTLayerEvent')) {
                   if (field.type === 'esriFieldTypeDate') {
                     data = new Date(data).toDateString();
                   } else if (app.utils.isNumber(data)) {
-                    var precision = 0;
-                    if (attribute_rules.hasOwnProperty('precision')) {
+                    var precision = false;
+                    if (attribute_rules && attribute_rules.hasOwnProperty('precision')) {
                       precision = attribute_rules.precision;
                     }
                     data = app.utils.formatNumber(data, precision);
