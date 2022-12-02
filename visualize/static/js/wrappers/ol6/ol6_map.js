@@ -244,6 +244,13 @@ app.wrapper.map.setBasemap = function(layer) {
   current_basemap.setVisible(false);
   layer.setVisible(true);
 
+  if (layer == app.wrapper.layers['ocean']) {
+    app.wrapper.layers['ocean_labels'].setVisible(true);
+  } else {
+    app.wrapper.layers['ocean_labels'].setVisible(false);
+  }
+
+
   //testing
   var match_found = false;
   var name_match_found = false;
@@ -902,6 +909,12 @@ app.wrapper.map.getLayerStyle = function(feature) {
           // RDH 2022-06-16: If no stroke width, set to 0.
           var outline_width = 0;
         }  
+      }
+      // RDH 20221202: some logic must be testing against width - a 0 value is resulting in all features re-rendered after
+      //  a selected feture gets an outline. For now: use a non-zero number with an invisible outline.
+      if (outline_width == 0) {
+        outline_width = 0.01;
+        outline_color = 'rgba(0,0,0,0)';
       }
       var stroke_style = new ol.style.Stroke({
         color: outline_color,

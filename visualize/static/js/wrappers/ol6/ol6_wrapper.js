@@ -38,7 +38,8 @@ app.init_map = function(base, target, srid, center_x, center_y, zoom, maxZoom){
     ]),
     layers: [
       app.wrapper.map.defaultBaseLayer,
-      app.wrapper.map.baseLayersGroup
+      app.wrapper.map.baseLayersGroup,
+      app.wrapper.layers['ocean_labels']
     ],
     target: target,
     view: new ol.View({

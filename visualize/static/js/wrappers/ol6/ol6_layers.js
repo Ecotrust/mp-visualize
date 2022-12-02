@@ -68,6 +68,24 @@ for (var i = 0; i < keys.length; i++) {
   baseLayers.push(app.wrapper.layers[keys[i]]);
 }
 
+// ADD OCEAN LABELS LAYER
+app.wrapper.layers['ocean_labels'] = new ol.layer.VectorTile({
+  source: new ol.source.VectorTile({
+      attributions: "Sources: Esri, HERE, Garmin, FAO, NOAA, USGS, © OpenStreetMap contributors, and the GIS User Community",
+      // RDH 20221129: using the default ol.render.Feature MVT featureClass results in constant errors being thrown when
+      //  moving the mouse over the layer. Using ol.Feature does not, but the style rendering is inconsistent.
+      //  Using the default is still preferred, but it'd be nice to figure out how to stop the 't.getStyle is not a function'
+      // format: new ol.format.MVT({featureClass: ol.Feature}),
+      format: new ol.format.MVT({featureClass: ol.render.Feature}),
+      url: 'https://basemaps.arcgis.com/arcgis/rest/services/World_Basemap_v2/VectorTileServer/tile/{z}/{y}/{x}.pbf',
+      // zDirection: 0,
+  }),
+  style: oceanLabelStyleFunction,
+  declutter: true,
+  useInterimTilesOnError: false,
+});
+
+
 app.wrapper.map.defaultBaseLayer = new ol.layer.Tile({
   source: new ol.source.XYZ({
     attributions: 'Tiles © <a href="https://services.arcgisonline.com/ArcGIS/' +

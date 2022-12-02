@@ -2125,6 +2125,24 @@ function viewModel() {
         });
     });
 
+    self.clearAllLayersRUS = function() {
+      if (window.confirm("Do you wish to remove all active layers?")) {
+        self.clearAllLayers();
+      }
+    }
+
+    self.clearAllLayers = function() {
+      // Copy array by value: https://stackoverflow.com/a/7486130/706797
+      var activeLayers = app.viewModel.activeLayers().slice();
+      for (var i = activeLayers.length-1; i >= 0 ; i--) {
+        layer = activeLayers[i];
+        layer.deactivateLayer();
+        if (layer.hasOwnProperty('scenarioModel')) {
+          layer.scenarioModel.deactivateLayer(self, false);
+        }
+      }
+    }
+
     self.userContentVisible = ko.observable(false);
 
     self.updateUserContentWarning = function() {

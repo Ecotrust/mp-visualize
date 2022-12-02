@@ -49,3 +49,21 @@ td.add-on span.zoom-range-message {
   margin-bottom: -20px;
   margin-top: -5px;
 }
+
+div#active.tab-pane.active {
+  padding-bottom: 3rem;
+}
+
+div#clear-all-active {
+  height:3rem; 
+  width:420px; 
+  bottom: -1px; 
+  left: -1px; 
+  position: absolute;
+  display: grid;
+  border-top: 1px solid #AAA;
+}
+
+div#clear-all-active button {
+  border-radius: 0 0 0.5rem 0.5rem;
+}
