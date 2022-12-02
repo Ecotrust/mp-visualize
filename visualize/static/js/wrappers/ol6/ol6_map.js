@@ -835,13 +835,43 @@ app.wrapper.map.createOLStyleMap = function(layer, feature){
   return style_dict;
 }
 
+app.wrapper.map.cloneStyle = function(style) {
+  let newStyle = new ol.style.Style();
+  // newStyle.setFill(style.getFill());
+  // newStyle['fill_'] = structuredClone(style.getFill());
+  newStyle.setFill(structuredClone(style.getFill()));
+  // newStyle.setGeometry(style.getGeometry());
+  // newStyle['geometry_'] = structuredClone(style.getGeometry());
+  newStyle.setGeometry(structuredClone(style.getGeometry()));
+  // newStyle.setImage(style.getImage());
+  // newStyle['image_'] = structuredClone(style.getImage());
+  newStyle.setImage(structuredClone(style.getImage()));
+  // newStyle.setRenderer(style.getRenderer());
+  // newStyle['renderer_'] = structuredClone(style.getRenderer());
+  newStyle.setRenderer(structuredClone(style.getRenderer()));
+  // newStyle.setStroke(style.getStroke());
+  // newStyle['stroke_']= structuredClone(style.getStroke());
+  newStyle.setStroke(structuredClone(style.getStroke()));
+  // newStyle.setText(style.getText());
+  // newStyle['text_'] = structuredClone(style.getText());
+  newStyle.setText(structuredClone(style.getText()));
+  // newStyle.setZIndex(style.getZIndex());
+  // newStyle['zIndex_'] = structuredClone(style.getZIndex());
+  newStyle.setZIndex(structuredClone(style.getZIndex()));
+  // return newStyle;
+  return style;
+}
+
 app.wrapper.map.getFocusedStyle = function(feature) {
+  console.log('Get FOCUSED style');
   var selectedStyle = app.wrapper.map.getLayerStyle(feature);
   if (Array.isArray(selectedStyle)) {
-    var featureStyle = selectedStyle[0];
+    var featureStyleSource = selectedStyle[0];
   } else {
-    var featureStyle = selectedStyle;
+    var featureStyleSource = selectedStyle;
   }
+  let featureStyle = app.wrapper.map.cloneStyle(featureStyleSource);
+  // let featureStyle = featureStyleSource;
   if (featureStyle.getStroke()) {
     featureStyle.getStroke().setWidth(3);
     featureStyle.getStroke().setColor("#000000");
@@ -855,12 +885,14 @@ app.wrapper.map.getFocusedStyle = function(feature) {
 }
 
 app.wrapper.map.getSelectedStyle = function(feature) {
+  console.log('Get SELECTED style');
   var selectedStyle = app.wrapper.map.getLayerStyle(feature);
   if (Array.isArray(selectedStyle)) {
-    var featureStyle = selectedStyle[0];
+    var featureStyleSource = selectedStyle[0];
   } else {
-    var featureStyle = selectedStyle;
+    var featureStyleSource = selectedStyle;
   }
+  let featureStyle = app.wrapper.map.cloneStyle(featureStyleSource);
   if (featureStyle.getStroke()) {
     featureStyle.getStroke().setWidth(3);
     featureStyle.getStroke().setColor("#FF8800");
@@ -874,16 +906,18 @@ app.wrapper.map.getSelectedStyle = function(feature) {
 }
 
 app.wrapper.map.getLayerStyle = function(feature) {
+  console.log('get LAYER style');
   if (feature && feature.getLayer()) {
     var layer = app.viewModel.getLayerByOLId(feature.getLayer().ol_uid);
     var styles = app.wrapper.map.createOLStyleMap(layer);
     if (layer.type == 'ArcFeatureServer' && layer.hasOwnProperty('defaultStyleFunction')) {
       var styles = {};
       styles[feature.getGeometry().getType()] = layer.defaultStyleFunction(feature)[0];
+      var featureStyle = app.wrapper.map.cloneStyle(layer.defaultStyleFunction(feature)[0]);
       if (layer.hasOwnProperty('color') && layer.color){
         var fill_color = app.wrapper.map.cartoGetLayerFill(layer);
         if (layer.override_color && fill_color) {
-          styles[feature.getGeometry().getType()].setFill(fill_color);
+          featureStyle.setFill(fill_color);
         }
       }
 
@@ -891,7 +925,7 @@ app.wrapper.map.getLayerStyle = function(feature) {
         var outline_color = layer.outline_color;
       } else {
         try {
-          var outline_color = styles[feature.getGeometry().getType()]['stroke_']['color_'];
+          var outline_color = featureStyle['stroke_']['color_'];
         } catch (error) {
           // RDH 2022-06-16: If no stroke color, set to invisible.
           var outline_color = "rgba(0,0,0,0)";
@@ -904,7 +938,12 @@ app.wrapper.map.getLayerStyle = function(feature) {
         //    TODO: This is a bug that will need to be fixed to support any vector layer whose default stroke width is not 1.
         // var outline_width = styles[feature.getGeometry().getType()]['stroke_']['width_'];
         try {
-          var outline_width = styles[feature.getGeometry().getType()]['stroke_']['width_'];
+          var outline_width = featureStyle['stroke_']['width_'];
+          // if (outline_width = 0) {
+          //   outline_width = 0.01;
+          //   outline_color: 'rgba(0,0,0,0)';
+
+          // }
         } catch (error) {
           // RDH 2022-06-16: If no stroke width, set to 0.
           var outline_width = 0;
@@ -914,8 +953,10 @@ app.wrapper.map.getLayerStyle = function(feature) {
         color: outline_color,
         width: outline_width
       });
-      styles[feature.getGeometry().getType()].setStroke(stroke_style);
+      featureStyle.setStroke(stroke_style);
 
+    } else {
+      var featureStyle = styles[feature.getGeometry().getType()];
     }
     var labels = layer.label_field;
     var lookupField = layer.lookupField;
@@ -927,9 +968,10 @@ app.wrapper.map.getLayerStyle = function(feature) {
     var default_stroke_color = layer.outline_color;
 
     if (layer.color && (layer.color.toLowerCase() == "random" || layer.color.toLowerCase().indexOf("custom:") == 0 )) {
-      var featureStyle = app.wrapper.map.createOLStyleMap(layer, feature)[feature.getGeometry().getType()];
-    } else {
-      var featureStyle = styles[feature.getGeometry().getType()];
+      var featureStyleSource = app.wrapper.map.createOLStyleMap(layer, feature)[feature.getGeometry().getType()];
+      var featureStyle = app.wrapper.map.cloneStyle(featureStyleSource);
+    // } else {
+    //   var featureStyleSource = styles[feature.getGeometry().getType()];
     }
   } else {
     var styles = app.wrapper.map.createOLStyleMap(false);
@@ -940,8 +982,10 @@ app.wrapper.map.getLayerStyle = function(feature) {
     var default_width = 1;
     var default_color = "#ee9900";
     var default_stroke_color = "#ee9900";
-    var featureStyle = styles[feature.getGeometry().getType()];
+    // var featureStyleSource = styles[feature.getGeometry().getType()];
   }
+
+  // let featureStyle = app.wrapper.map.cloneStyle(featureStyleSource);
 
   var new_style = false;
   var default_fill = featureStyle.getFill();
@@ -1090,8 +1134,10 @@ app.wrapper.map.getLayerStyle = function(feature) {
     }
   } else {
     if (new_style) {
+      console.log('get [NEW] LAYER style: ' + feature.getProperties()['objectid'] + ' - ' + new_style.getStroke().getWidth());
       return new_style;
     } else {
+      console.log('get [OLD] LAYER style: ' + feature.getProperties()['objectid'] + ' - ' + featureStyle.getStroke().getWidth());
       return featureStyle;
     }
   }
@@ -1188,7 +1234,8 @@ app.wrapper.map.addVectorTileLayerToMap = function(layer) {
     var layerUrl = app.wrapper.map.formatOL5URLTemplate(layer.url);
     var styles = app.wrapper.map.createOLStyleMap(layer);
     var styleFunction = function(feature) {
-      default_style = styles[feature.getGeometry().getType()];
+      default_style_source = styles[feature.getGeometry().getType()];
+      var default_style = app.wrapper.map.cloneStyle(default_style_source);
       if (layer.color.toLowerCase() == "random" || layer.color.toLowerCase().indexOf("custom:") == 0 ) {
         var new_style = app.wrapper.map.createOLStyleMap(layer, feature)[feature.getGeometry().getType()];
         default_style = new_style;
