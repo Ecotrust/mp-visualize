@@ -75,7 +75,13 @@ const createStyleFunction = (esriLayerInfoJson) => {
   return new Promise((yes, no) => {
     let { featureStyles, labelStyles } = readEsriStyleDefinitions(esriLayerInfoJson.drawingInfo);
     for (let i = 0; i < featureStyles.length; i++) {
-      featureStyles[i].style = createFeatureStyle(featureStyles[i]);
+      // RDH 20221202: There is a bug where 
+      var newFS = featureStyles[i];
+      // if (newFS['stroke']['width'] == 0) {
+      //   newFS['stroke']['width'] = 0.01;
+      //   newFS['stroke']['color'] = 'rgba(0,0,0,0)';
+      // }
+      newFS.style = createFeatureStyle(featureStyles[i]);
     }
     for (let i = 0; i < labelStyles.length; i++) {
       labelStyles[i].maxResolution = getMapResolutionFromScale(labelStyles[i].maxScale || 1000);

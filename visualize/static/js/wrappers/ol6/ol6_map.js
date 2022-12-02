@@ -931,7 +931,7 @@ app.wrapper.map.getLayerStyle = function(feature) {
           var outline_color = "rgba(0,0,0,0)";
         }
       }
-      if (layer.override_outline_width && layer.hasOwnProperty('outline_width') && layer.outline_width) {
+      if (layer.override_outline_width && layer.hasOwnProperty('outline_width') && layer.outline_width != undefined) {
         var outline_width = layer.outline_width;
       } else {
         // RDH 2022-05-25: maintaining current width as 'default' will prevent a return to a normal width after selection.
@@ -939,15 +939,18 @@ app.wrapper.map.getLayerStyle = function(feature) {
         // var outline_width = styles[feature.getGeometry().getType()]['stroke_']['width_'];
         try {
           var outline_width = featureStyle['stroke_']['width_'];
-          // if (outline_width = 0) {
-          //   outline_width = 0.01;
-          //   outline_color: 'rgba(0,0,0,0)';
-
+          
           // }
         } catch (error) {
           // RDH 2022-06-16: If no stroke width, set to 0.
           var outline_width = 0;
         }  
+        // RDH 20221202: some logic must be testing against width - a 0 value is resulting in all features re-rendered after
+        //  a selected feture gets an outline. For now: use a non-zero number with an invisible outline.
+        if (outline_width == 0) {
+          outline_width = 0.01;
+          outline_color: 'rgba(0,0,0,0)';
+        }
       }
       var stroke_style = new ol.style.Stroke({
         color: outline_color,
