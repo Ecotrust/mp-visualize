@@ -407,7 +407,7 @@ function layerModel(options, parent) {
         url = url.replace('http'+protocol_separator, 'https'+protocol_separator);
       }
       $.ajax({
-          dataType: "json",
+          dataType: "jsonp",
           url: url,
           type: 'GET',
           crossDomain: true,
@@ -873,7 +873,23 @@ function layerModel(options, parent) {
 
     // layer tracking Google Analytics
     self.trackLayer = function(action) {
-        ga('send', 'event', 'Layers Activated', action);
+        var layer_id = self.id;
+        var layer_type = 'Portal Layer';
+        if (self.isUserGenerated()) {
+
+          if (self.isDrawingModel) {
+            layer_type = 'User Shape';
+          } 
+          if (layer_id.indexOf('visualize_userlayer_') == 0) {
+            layer_type = 'Imported Layer';
+          }
+        }
+        gtag('event', 'Layers Activated', {
+          'layer_type': layer_type,
+          'layer_name': action,
+          'layer_id': layer_id,
+          'layer_info': `${action}:${layer_id}`
+        })
     };
 
     // override_defaults set to true if layer loaded from hash/bookmark where
@@ -1854,7 +1870,10 @@ function themeModel(options) {
 
     //theme tracking Google Analytics
     self.trackTheme = function(action) {
-        ga('send', 'event', 'Themes Activated', action);
+        gtag('event', 'Themes Activated', {
+          theme_name: action,
+          theme_id: self.id
+        });
     };
 
     //Get Theme's layers if not done yet

@@ -246,6 +246,7 @@ app.init = function () {
       * - also updates related state and UI
       */
     app.setBasemap = function(layer) {
+      const prevBaseMapName = app.wrapper.map.getBasemap().name;
       if (app.wrapper.map.hasOwnProperty('setBasemap')) {
         app.wrapper.map.setBasemap(layer);
       }
@@ -260,6 +261,10 @@ app.init = function () {
             'color': layerDef.textColor
         });
       }
+      gtag('event', 'Base Map Changed', {
+        'base_map_switch': `From: ${prevBaseMapName}, To: ${layerName}`,
+        'base_map_name': layerName
+      })
     }
 
     // TODO:

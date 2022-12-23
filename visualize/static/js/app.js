@@ -281,6 +281,20 @@ $(document).ready(function () {
     setTimeout(function () {
       app.updateUrl();
     }, 100);
+    if (e.currentTarget.attributes.getNamedItem('data-tab').nodeValue) {
+      const dataTabValue = e.currentTarget.attributes.getNamedItem('data-tab').nodeValue;
+      let dataTabName = dataTabValue;
+      switch(dataTabName) {
+        case 'designs':
+          dataTabName = 'myplanner';
+          break;
+        default:
+          dataTabName = dataTabValue;
+      }
+      gtag('event', 'Nav Tab Selected', {
+        'Tab': dataTabName,
+      });
+    }
   });
 
   $('[data-toggle="tooltip"]').tooltip();
@@ -552,6 +566,12 @@ function downloadImage(data, filename = 'untitled.jpeg') {
 function printPage() {
   window.print();
 }
+
+$('.quick-button').click(function(event) {
+  gtag('event', 'Quick Button Click', {
+    'quick_button_name': this.dataset.originalTitle
+  });
+});
 
 $(document).mousedown(function (e) {
 
