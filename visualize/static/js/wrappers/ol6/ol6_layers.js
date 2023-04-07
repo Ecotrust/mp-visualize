@@ -81,6 +81,7 @@ app.wrapper.layers['ocean_labels'] = new ol.layer.VectorTile({
       // zDirection: 0,
   }),
   style: oceanLabelStyleFunction,
+  maxZoom: 13,
   declutter: true,
   useInterimTilesOnError: false,
 });

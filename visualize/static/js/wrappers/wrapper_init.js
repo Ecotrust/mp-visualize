@@ -16,7 +16,7 @@ app.wrapper = {
       'url': 'https://services.arcgisonline.com/arcgis/rest/services/Ocean/World_Ocean_Base/MapServer/tile/{z}/{y}/{x}',
       'attribution': 'Sources: Esri, GEBCO, NOAA, National Geographic, DeLorme, NAVTEQ, Geonames.org, and others',
       'minZoom': null,
-      'maxZoom': 19,
+      'maxZoom': 13,
       'bounds': [],
       'projection': '',
       'technology': 'XYZ',
