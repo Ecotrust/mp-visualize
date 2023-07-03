@@ -103,6 +103,7 @@ class UserLayer(Feature):
     wms_format = models.CharField(max_length=100, blank=True, null=True, default=None, help_text='most common: image/png. Only image types supported.', verbose_name='WMS Format')
     wms_styles = models.CharField(max_length=255, blank=True, null=True, default=None, help_text='pre-determined styles, if exist', verbose_name='WMS Styles')
     description = models.TextField(blank=True, null=True, default=None)
+    password_protected = models.BooleanField(default=False, help_text='check this if the server requires a password to show layers')
 
     class Options:
         verbose_name = 'User-Imported Layer'

@@ -27,7 +27,7 @@
         </td>
         <!-- /ko -->
 
-        <td class="layer-name" data-bind="css: {zoomInvisible: !isVisibleAtZoom()}">
+        <td class="layer-name" data-bind="css: {isInvisible: isInvisible()}">
             <a class="btn btn-layer" data-bind='click: {% block "nameAction" %}toggleActive{% endblock %}'>
               <table>
                 <tr>
@@ -52,15 +52,23 @@
                     <i class="fas fa-spinner fa-spin"  data-bind="visible: $data.loadStatus()=='loading'"></i>
                     <i style="color:red" title="error loading layer" class="fas fa-times-circle"  data-bind="visible: $data.loadStatus()=='error'"></i>
                     -->
-                    <!-- ko if: isVisibleAtZoom -->
-                     <i class="fa fa-check-circle" data-bind="visible: !loadStatus(), css: { 'fa-check-circle': active() && visible(), 'fa': active() && visible(), 'fa-circle': !(active() && visible()), 'far': !(active() && visible()) }"  data-toggle="tooltip" data-placement="left" title="" data-original-title="Toggle Visibility"></i>
-                     <i class="fas fa-spinner fa-spin"  data-bind="visible: $data.loadStatus()=='loading'"></i>
-                     <i style="color:red" title="error loading layer" class="fas fa-times-circle"  data-bind="visible: $data.loadStatus()=='error'"></i>
+                    <!-- ko if: isLocked -->
+                    <i title="layer is locked." class="fa fa-lock"></i>
+                    <span class="zoom-range-message">Password Required</span>
+                    <!-- /ko -->
+                    <!-- ko ifnot: isLocked -->
+                      <!-- ko if: isVisibleAtZoom -->
+                      <i class="fa fa-check-circle" data-bind="visible: !loadStatus(), css: { 'fa-check-circle': active() && visible(), 'fa': active() && visible(), 'fa-circle': !(active() && visible()), 'far': !(active() && visible()) }"  data-toggle="tooltip" data-placement="left" title="" data-original-title="Toggle Visibility"></i>
+                      <i class="fas fa-spinner fa-spin"  data-bind="visible: $data.loadStatus()=='loading'"></i>
+                      <i style="color:red" title="error loading layer" class="fas fa-times-circle"  data-bind="visible: $data.loadStatus()=='error'"></i>
+                      <!-- /ko -->
+                      <!-- ko ifnot: isVisibleAtZoom -->
+                      <i title="Out of zoom range." class="fa fa-eye-slash"></i>
+                      <span class="zoom-range-message">Out of Scale</span>
+                      <!-- /ko -->
+                     
                      <!-- /ko -->
-                     <!-- ko ifnot: isVisibleAtZoom -->
-                     <i title="Out of zoom range." class="fa fa-eye-slash"></i>
-                     <span class="zoom-range-message">Out of Scale</span>
-                     <!-- /ko -->
+
                   </td>
                 </tr>
               </table>

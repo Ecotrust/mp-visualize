@@ -48,6 +48,7 @@ function layerModel(options, parent) {
 
     self.minZoom = 0;
     self.maxZoom = 24;
+    self.password_protected = ko.observable(false);
 
     // if layer is loaded from hash, preserve opacity, etc...
     self.override_defaults = ko.observable(null);
@@ -71,6 +72,7 @@ function layerModel(options, parent) {
       }
       self.data_url(options.data_url || null);
       self.arcgislayers = options.arcgis_layers || 0;
+      self.password_protected(options.password_protected || false);
       self.wms_slug = options.wms_slug || null;
       self.wms_version = options.wms_version || null;
       self.wms_format = options.wms_format || null;
@@ -351,6 +353,13 @@ function layerModel(options, parent) {
       return false;
     });
 
+    self.isInvisible = ko.pureComputed(function() {
+      if (!self.isVisibleAtZoom() || self.isLocked()) {
+        return true;
+      } 
+      return false;
+    })
+
     self.isVisibleAtZoom = ko.pureComputed(function() {
       if (self.hasOwnProperty('minZoom') && self.hasOwnProperty('maxZoom')){
         if (self.minZoom || self.maxZoom) {
@@ -360,7 +369,14 @@ function layerModel(options, parent) {
         }
       }
       return true;
-    })
+    });
+
+    self.isLocked = ko.pureComputed(function() {
+      if (self.password_protected() && self.getCookie(self.id + "_token") == null){
+        return true;
+      }
+      return false;
+    });
 
 
     getArcGISJSONLegend = function(self, protocol) {
@@ -1567,6 +1583,28 @@ function layerModel(options, parent) {
       }
     }
 
+    // Copied From jac on StackOverflow: https://stackoverflow.com/a/5968306/706797
+    self.getCookie = function(name) {
+      var dc = document.cookie;
+      var prefix = name + "=";
+      var begin = dc.indexOf("; " + prefix);
+      if (begin == -1) {
+          begin = dc.indexOf(prefix);
+          if (begin != 0) return null;
+      }
+      else
+      {
+          begin += 2;
+          var end = document.cookie.indexOf(";", begin);
+          if (end == -1) {
+          end = dc.length;
+          }
+      }
+      // because unescape has been deprecated, replaced with decodeURI
+      //return unescape(dc.substring(begin + prefix.length, end));
+      return decodeURI(dc.substring(begin + prefix.length, end));
+    }
+
     self.getFullLayerRecord = function(callbackType, evt) {
       var layer = this;
       if (layer.isMDAT || layer.isVTR || layer.isDrawingModel || layer.isSelectionModel || layer.hasOwnProperty('wmsSession') && layer.wmsSession()) {
@@ -1597,6 +1635,7 @@ function layerModel(options, parent) {
             }
 
             layer.setOptions(data, parent);
+
             layer.fullyLoaded = true;
             if (app.map.hasOwnProperty('zoom')){
               app.map.zoom.valueHasMutated();

@@ -26,19 +26,19 @@ i.btn-user-gen {
   color: var(--bright_icon);
 }
 
-td.layer-name.zoomInvisible, 
-td.layer-name.zoomInvisible td.text, 
-td.layer-name.zoomInvisible td.add-on, 
-td.layer-name.zoomInvisible td.text span.deep-blue {
+td.layer-name.isInvisible, 
+td.layer-name.isInvisible td.text, 
+td.layer-name.isInvisible td.add-on, 
+td.layer-name.isInvisible td.text span.deep-blue {
   color: #888;
   background-color: #DDD;
 }
 
-td.layer-name.zoomInvisible {
+td.layer-name.isInvisible {
   padding-bottom: 10px;
 }
 
-td.layer-name.zoomInvisible td.add-on {
+td.layer-name.isInvisible td.add-on {
   text-align: right;
 }
 
