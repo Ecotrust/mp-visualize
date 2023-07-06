@@ -495,12 +495,19 @@ app.wrapper.map.formatOL5URLTemplate = function(layerUrl){
   * @param {object} layer - the mp layer definition to add to the map
   */
 app.wrapper.map.addArcRestLayerToMap = function(layer) {
+  let layer_params = {
+    layers: 'show:' + layer.arcgislayers,
+    DPI: 96,
+  }
+  if (layer.password_protected()) {
+    if (!layer.token() || layer.token() == null){
+      layer.token(app.viewModel.getCookie(layer.id + "_token"));
+    }
+    layer_params['token'] = layer.token();
+  }
   var layerSource = new ol.source.TileArcGISRest({
     attributions: '',
-    params: {
-      layers: 'show:' + layer.arcgislayers,
-      DPI: 96,
-    },
+    params: layer_params,
     projection: 'ESPG:3857',
     url: layer.url,
     hidpi: false,
@@ -509,7 +516,7 @@ app.wrapper.map.addArcRestLayerToMap = function(layer) {
     tileGrid: new ol.tilegrid.createXYZ({
       tileSize: [1024, 1024]      // RDH 20191118 - "singleTile" replacement hack.
     }),
-
+    
   })
   layer.layer = new ol.layer.Tile({
     source: layerSource,
@@ -550,6 +557,12 @@ app.wrapper.map.addArcFeatureServerLayerToMap = function(layer) {
       let query_suffix = geom_string +
         extent_string +
         envelope_string;
+      if (layer.password_protected()) {
+        if (!layer.token() || layer.token() === null){
+          layer.token(app.viewModel.getCookie(layer.id + "_token"));
+          query_suffix += '&token=' + (layer.token() || '');
+        }
+      }
       let url = layer.url + path_suffix + '?' + query_suffix;
       if (layer.proxy_url) {
         path_suffix = encodeURIComponent(path_suffix);
@@ -617,6 +630,10 @@ app.wrapper.map.addArcFeatureServerLayerToMap = function(layer) {
     request_url = request_url + '?f=json';
   } else {
     request_url = request_url + '&f=json';
+  }
+
+  if (layer.password_protected()) {
+    request_url += '&token=' + (layer.token() || '');
   }
 
   $.ajax({

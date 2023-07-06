@@ -64,6 +64,10 @@ if (!app.wrapper.events.hasOwnProperty('clickOnArcRESTLayerEvent')) {
     }
     qs.push('outFields=' + outFields);
 
+    if (mp_layer.password_protected() && mp_layer.token() && mp_layer.token() != null) {
+      qs.push('token=' + mp_layer.token());
+    }
+
     $.ajax({
       accepts: {
         mycustomtype: 'application/json',

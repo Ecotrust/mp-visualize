@@ -415,6 +415,10 @@ function layerModel(options, parent) {
       }
       
       let legend_url_suffix = path_separator+'legend'+path_separator+query_string_start+'f'+query_string_assignment+'pjson';
+
+      if (self.password_protected() && self.token()) {
+        legend_url_suffix += query_string_separator + 'token' + query_string_assignment + (self.token() || '');
+      }
       
       // Remove tile templating if using ArcGIS TileServer
       let tile_template = path_separator+['tile','{z}','{y}','{x}'].join(path_separator);
@@ -487,6 +491,9 @@ function layerModel(options, parent) {
                               if (j < 1 && label === "") {
                                   label = layerobj['layerName'];
                               }
+                              if (self.password_protected() && self.token()) {
+                                swatchURL += query_string_start + 'token' + query_string_assignment + (self.token() || '');
+                              }
                               self.legend['elements'].push({'swatch': swatchURL, 'label': label});
                             });
                         }
@@ -553,6 +560,10 @@ function layerModel(options, parent) {
         request_url = request_url + '?f=json';
       } else {
         request_url = request_url + '&f=json';
+      }
+
+      if (self.password_protected()) {
+        request_url += '&token=' + (self.token() || '');  // String(null) == 'null'
       }
 
 
@@ -1665,10 +1676,35 @@ function layerModel(options, parent) {
                 } else {
                   document.cookie = self.id + "_token=" + data.token + '; Path=/';
                 }
-                self.token(self.id + "_token");
+                self.token(app.viewModel.getCookie(self.id + "_token"));
+                app.viewModel.password.dialog.modal('hide');
                 self.toggleActive(self, null);
             } else {
-                $('#password-form-errors').html = data;
+              let errorMessage = '<div class="password-error-message">';
+              let keys = [];
+              if (data.hasOwnProperty('error')) {
+                if (data.error.hasOwnProperty('message')) {
+                  errorMessage += "<p>" + data.error.message + "</p>";
+                }
+                if (data.error.hasOwnProperty('details')) {
+                  errorMessage += "<p>Details: " + data.error.details + "</p>";
+                }
+                if (!data.error.hasOwnProperty('message') && !data.error.hasOwnProperty('details') && typeof data.error === 'object' && data.error !== null) {
+                  keys = Object.keys(data.error);
+                  for (var i=0; i < keys.length; i++) {
+                    errorMessage += "<p>" + keys[i] + ": " + data.error[keys[i]] + "</p>";
+                  }
+                } 
+              } else if(typeof data === object && data !== null ){
+                keys = Object.keys(data);
+                  for (var i=0; i < keys.length; i++) {
+                    errorMessage += "<p>" + keys[i] + ": " + data.error[keys[i]] + "</p>";
+                  }
+              } else {
+                errorMessage += "<p>" + data + "</p>";
+              }
+              errorMessage += '</div>';
+              $('#password-form-errors').html(errorMessage);
             }
         }); 
       }
