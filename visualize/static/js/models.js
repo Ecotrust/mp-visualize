@@ -3144,6 +3144,7 @@ function viewModel() {
         layer.name = layer_obj.name;
       }
       if (action == 'return'){
+        layer.getFullLayerRecord(action, event);
         return layer;
       } else if (layer.fullyLoaded || layer.isMDAT || layer.isVTR || (layer_obj.hasOwnProperty('wmsSession') && layer_obj.wmsSession) ) {
         layer.performAction(action, event);
