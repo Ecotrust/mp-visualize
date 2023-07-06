@@ -186,6 +186,32 @@
     </div>
 </div>
 
+<!-- GENERIC PASSWORD MODAL -->
+<div id="password-modal" class="modal fade" data-bind="" tabindex="-1" role="dialog" aria-labelledby="generic-password-modal" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h3>A password is required to load this layer</h3>
+            </div>
+            <div class="modal-body">
+                <form id="generic-password-form">
+                    <label for="username">Username:</label>
+                    <input type="text" id="form-username" name="username" required>
+                    <label for="password">Password:</label>
+                    <input type="password" id="form-password" name="password" required>
+                </form>
+                <span id="password-form-errors"></span>
+            </div>
+            <div class="modal-footer">
+                <button type="submit" class="btn btn-cancel" data-dismiss="modal">Close</button>
+                <button class="btn btn-submit" data-bind="click: app.viewModel.password.layer().requestProtectedLayerToken">Submit</button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
 <!-- GENERIC ALERT MODAL -->
 <div id="alert-modal" class="modal fade" data-bind="" tabindex="-1" role="dialog" aria-labelledby="generic-alert-modal" aria-hidden="true">
     <div class="modal-dialog">

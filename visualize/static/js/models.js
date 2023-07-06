@@ -49,6 +49,7 @@ function layerModel(options, parent) {
     self.minZoom = 0;
     self.maxZoom = 24;
     self.password_protected = ko.observable(false);
+    self.token = ko.observable(false);
 
     // if layer is loaded from hash, preserve opacity, etc...
     self.override_defaults = ko.observable(null);
@@ -371,13 +372,20 @@ function layerModel(options, parent) {
       return true;
     });
 
-    self.isLocked = ko.pureComputed(function() {
-      if (self.password_protected() && self.getCookie(self.id + "_token") == null){
+    self.isLocked = ko.computed(function() {
+      if (self.password_protected() && !self.hasToken()){
         return true;
       }
       return false;
     });
 
+    self.hasToken = ko.computed(function() {
+      let hasToken = (app.viewModel.getCookie(self.id + "_token") != null);
+      if (!self.token() && hasToken) {
+        self.token(app.viewModel.getCookie(self.token()));
+      }
+      return hasToken;
+    });
 
     getArcGISJSONLegend = function(self, protocol) {
       let legend_url = self.url;
@@ -1583,28 +1591,6 @@ function layerModel(options, parent) {
       }
     }
 
-    // Copied From jac on StackOverflow: https://stackoverflow.com/a/5968306/706797
-    self.getCookie = function(name) {
-      var dc = document.cookie;
-      var prefix = name + "=";
-      var begin = dc.indexOf("; " + prefix);
-      if (begin == -1) {
-          begin = dc.indexOf(prefix);
-          if (begin != 0) return null;
-      }
-      else
-      {
-          begin += 2;
-          var end = document.cookie.indexOf(";", begin);
-          if (end == -1) {
-          end = dc.length;
-          }
-      }
-      // because unescape has been deprecated, replaced with decodeURI
-      //return unescape(dc.substring(begin + prefix.length, end));
-      return decodeURI(dc.substring(begin + prefix.length, end));
-    }
-
     self.getFullLayerRecord = function(callbackType, evt) {
       var layer = this;
       if (layer.isMDAT || layer.isVTR || layer.isDrawingModel || layer.isSelectionModel || layer.hasOwnProperty('wmsSession') && layer.wmsSession()) {
@@ -1657,9 +1643,46 @@ function layerModel(options, parent) {
 
     };
 
+    //show password prompt
+    self.getProtectedLayerCredentials = function(){
+      app.viewModel.password.layer(self);
+      app.viewModel.password.dialog.modal('show');
+    }
+
+    self.requestProtectedLayerToken = function(){
+      if (self.url.indexOf('/rest/') >= 0 ) {
+        let tokenURL = self.url.split('/rest/')[0] + '/tokens/generateToken';
+        let username = $('#form-username').val();
+        let password = $('#form-password').val();
+        let referer = location.origin;
+        let params = {'f': 'pjson', 'username': username, 'password': password, 'referer': referer};
+        $.post(tokenURL, params, function(data_str) {
+            let data = JSON.parse(data_str);
+            if (data.hasOwnProperty('token')){
+                if (data.hasOwnProperty('expires')) {
+                  let expiration = new Date(data.expires).toUTCString();
+                  document.cookie = self.id + "_token=" + data.token + '; Path=/; Expires=' + expiration;
+                } else {
+                  document.cookie = self.id + "_token=" + data.token + '; Path=/';
+                }
+                self.token(self.id + "_token");
+                self.toggleActive(self, null);
+            } else {
+                $('#password-form-errors').html = data;
+            }
+        }); 
+      }
+    }
+
     // bound to click handler for layer switching
     self.toggleActive = function(self, event) {
         var layer = this;
+
+        // if layer is pwd protected AND doesn't have a cookie:
+        if (self.isLocked()) {
+          self.getProtectedLayerCredentials();
+          return;
+        }
 
         //handle possible dropdown/sublayer behavior
         if (layer.subLayers.length) {
@@ -2138,6 +2161,10 @@ ExportGeometry.prototype.closeDialog = function() {
     this.dialog.modal('hide');
 }
 
+function PasswordModal() {
+  this.dialog = $('#password-modal');
+}
+
 function AlertModal() {
   this.dialog = $('#alert-modal');
 }
@@ -2159,6 +2186,9 @@ function viewModel() {
     this.alert = new AlertModal();
     this.alert.title = ko.observable('');
     this.alert.content = ko.observable('');
+
+    this.password = new PasswordModal();
+    this.password.layer = ko.observable({'getProtectedLayerCredentials':function(){}});
 
     // list of (func, unlessTarget) for $(doc).mouseDown
     self._outsideClicks = [];
@@ -3574,6 +3604,31 @@ function viewModel() {
           parentLayer.buildMultilayerValueLookup();
         }
       }
+    }
+
+    // Copied From jac on StackOverflow: https://stackoverflow.com/a/5968306/706797
+    self.getCookie = function(name) {
+      if (name==false) {
+        return null;
+      }
+      var dc = document.cookie;
+      var prefix = name + "=";
+      var begin = dc.indexOf("; " + prefix);
+      if (begin == -1) {
+          begin = dc.indexOf(prefix);
+          if (begin != 0) return null;
+      }
+      else
+      {
+          begin += 2;
+          var end = document.cookie.indexOf(";", begin);
+          if (end == -1) {
+          end = dc.length;
+          }
+      }
+      // because unescape has been deprecated, replaced with decodeURI
+      //return unescape(dc.substring(begin + prefix.length, end));
+      return decodeURI(dc.substring(begin + prefix.length, end));
     }
 
     return self;
