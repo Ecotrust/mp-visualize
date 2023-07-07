@@ -6,6 +6,8 @@ function userLayerModel(options) {
     self.uid = options.uid;
     self.name = options.name;
     self.description = options.description;
+    self.password_protected = ko.observable(options.password_protected);
+    self.token = ko.observable(null);
 
     self.layer_type = options.layer_type;
     self.url = options.url;
@@ -91,6 +93,88 @@ function userLayerModel(options) {
             return false;
         }
     }
+
+    self.hasToken = ko.computed(function() {
+        let hasToken = (app.viewModel.getCookie(self.id + "_token") != null);
+        if (!self.token() && hasToken) {
+          self.token(app.viewModel.getCookie(self.token()));
+        }
+        return hasToken;
+      });
+
+    self.isLocked = ko.computed(function() {
+        if (self.password_protected() && !self.hasToken()){
+          return true;
+        }
+        return false;
+      });
+
+    self.isInvisible = ko.pureComputed(function() {
+        if (self.isLocked()) {
+          return true;
+        } 
+        return false;
+      })
+
+      //show password prompt
+    self.getProtectedLayerCredentials = function(){
+        app.viewModel.password.layer(self);
+        app.viewModel.password.dialog.modal('show');
+    }
+
+    self.requestProtectedLayerToken = function(){
+      if (self.url.indexOf('/rest/') >= 0 ) {
+        let tokenURL = self.url.split('/rest/')[0] + '/tokens/generateToken';
+        let username = $('#form-username').val();
+        let password = $('#form-password').val();
+        let referer = location.origin;
+        let params = {'f': 'pjson', 'username': username, 'password': password, 'referer': referer};
+        $.post(tokenURL, params, function(data_str) {
+            let data = JSON.parse(data_str);
+            // let userLayer = app.viewModel.userLayers.getUserLayerById(self.id);
+            if (data.hasOwnProperty('token')){
+                if (data.hasOwnProperty('expires')) {
+                let expiration = new Date(data.expires).toUTCString();
+                document.cookie = self.id + "_token=" + data.token + '; Path=/; Expires=' + expiration;
+                } else {
+                document.cookie = self.id + "_token=" + data.token + '; Path=/';
+                }
+                self.token(app.viewModel.getCookie(self.id + "_token"));
+                app.viewModel.password.dialog.modal('hide');
+                // this doesn't work, so we apply explicit IDs to UserLayer selection items and use jQuery to click it.
+                // userLayer.toggleUserLayer(userLayer, null);
+                $('#'+ self.id + "_selection").click();
+            } else {
+            let errorMessage = '<div class="password-error-message">';
+            let keys = [];
+            if (data.hasOwnProperty('error')) {
+                if (data.error.hasOwnProperty('message')) {
+                errorMessage += "<p>" + data.error.message + "</p>";
+                }
+                if (data.error.hasOwnProperty('details')) {
+                errorMessage += "<p>Details: " + data.error.details + "</p>";
+                }
+                if (!data.error.hasOwnProperty('message') && !data.error.hasOwnProperty('details') && typeof data.error === 'object' && data.error !== null) {
+                keys = Object.keys(data.error);
+                for (var i=0; i < keys.length; i++) {
+                    errorMessage += "<p>" + keys[i] + ": " + data.error[keys[i]] + "</p>";
+                }
+                } 
+            } else if(typeof data === object && data !== null ){
+                keys = Object.keys(data);
+                for (var i=0; i < keys.length; i++) {
+                    errorMessage += "<p>" + keys[i] + ": " + data.error[keys[i]] + "</p>";
+                }
+            } else {
+                errorMessage += "<p>" + data + "</p>";
+            }
+            errorMessage += '</div>';
+            $('#password-form-errors').html(errorMessage);
+            }
+        }); 
+      }
+    }
+
 
     return self;
 
@@ -194,6 +278,8 @@ function userLayersModel(options) {
         var lyrObj = new Object();
         lyrObj.name = userLayer.name;
         lyrObj.url = userLayer.url;
+        lyrObj.password_protected = userLayer.password_protected();
+
         lyrObj.arcgis_layers = userLayer.arcgis_layers;
 
         lyrObj.wms_slug = userLayer.wms_slug;
@@ -216,6 +302,12 @@ function userLayersModel(options) {
         } else {
             var userLayer = self;
         }
+
+        // if layer is pwd protected AND doesn't have a cookie:
+        if (userLayer.isLocked()) {
+            userLayer.getProtectedLayerCredentials();
+            return;
+          }
 
         if (!userLayer.hasOwnProperty('layer') || userLayer.layer() == null) {
             userLayer.layer(false);
@@ -358,6 +450,7 @@ function userLayersModel(options) {
                         description: user_layers[i].description,
                         url: user_layers[i].url,
                         layer_type: user_layers[i].layer_type,
+                        password_protected: user_layers[i].password_protected,
                         arcgis_layers: user_layers[i].arcgis_layers,
                         wmsSession: true,
                         uid: user_layers[i].uid,

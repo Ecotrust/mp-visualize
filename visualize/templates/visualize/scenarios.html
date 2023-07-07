@@ -474,8 +474,8 @@
                                                                 </a>
                                                                 <!-- /ko -->
                                                               </td>
-                                                                <td class="layer-name">
-                                                                    <a class="btn btn-layer" data-bind='click: app.viewModel.userLayers.toggleUserLayer'>
+                                                                <td class="layer-name" data-bind="css: {isInvisible: isInvisible()}">
+                                                                    <a class="btn btn-layer" data-bind='click: app.viewModel.userLayers.toggleUserLayer, attr: { id:id+"_selection"}'>
                                                                         <table>
                                                                             <tr>
                                                                                 <td class="text">
@@ -495,7 +495,12 @@
                                                                                 <span data-bind="text: name"></span>
 
                                                                                 </td>
-                                                                                <td class="add-on"></td>
+                                                                                <td class="add-on">
+                                                                                    <!-- ko if: isLocked -->
+                                                                                        <i title="layer is locked." class="fa fa-lock"></i>
+                                                                                        <span class="zoom-range-message">Password Required</span>
+                                                                                    <!-- /ko -->
+                                                                                </td>
 
                                                                             </tr>
                                                                         </table>

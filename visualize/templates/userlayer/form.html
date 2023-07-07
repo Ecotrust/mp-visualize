@@ -360,6 +360,16 @@
                     {{ form.layer_type }}
                 </div>
             </div>
+            
+            <div id="password-protected-field">
+                <label>Password Protected?:</label>
+                <div class="step1-inputs">
+                    <div class="step1-param">
+                        {{ form.password_protected.errors }}
+                        {{ form.password_protected }}
+                    </div>
+                </div>
+            </div>
 
             <div id="arcgis-layer-field">
                 <p class="instructions">Provide the layer IDs (separate with commas, if more than 1) for your ArcServer layers:</p>

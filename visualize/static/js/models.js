@@ -372,19 +372,19 @@ function layerModel(options, parent) {
       return true;
     });
 
-    self.isLocked = ko.computed(function() {
-      if (self.password_protected() && !self.hasToken()){
-        return true;
-      }
-      return false;
-    });
-
     self.hasToken = ko.computed(function() {
       let hasToken = (app.viewModel.getCookie(self.id + "_token") != null);
       if (!self.token() && hasToken) {
         self.token(app.viewModel.getCookie(self.token()));
       }
       return hasToken;
+    });
+
+    self.isLocked = ko.computed(function() {
+      if (self.password_protected() && !self.hasToken()){
+        return true;
+      }
+      return false;
     });
 
     getArcGISJSONLegend = function(self, protocol) {
@@ -3144,7 +3144,11 @@ function viewModel() {
         layer.name = layer_obj.name;
       }
       if (action == 'return'){
-        layer.getFullLayerRecord(action, event);
+        layer.password_protected(layer_obj.password_protected);
+        layer.url = layer_obj.url;
+        // RDH: calling getFullLayerRecord on sublayers results in infinite loops
+        // and that's REAL bad for your memory!
+        // layer.getFullLayerRecord(action, event);
         return layer;
       } else if (layer.fullyLoaded || layer.isMDAT || layer.isVTR || (layer_obj.hasOwnProperty('wmsSession') && layer_obj.wmsSession) ) {
         layer.performAction(action, event);
