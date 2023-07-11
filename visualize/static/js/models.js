@@ -492,7 +492,11 @@ function layerModel(options, parent) {
                                   label = layerobj['layerName'];
                               }
                               if (self.password_protected() && self.token()) {
-                                swatchURL += query_string_start + 'token' + query_string_assignment + (self.token() || '');
+                                if (self.proxy_url) {
+                                  swatchURL = swatchURL.split('&proxy_params').join(encodeURI('token='+ (self.token() || '') + '&proxy_params'));
+                                } else {
+                                  swatchURL += query_string_start + 'token' + query_string_assignment + (self.token() || '');
+                                }
                               }
                               self.legend['elements'].push({'swatch': swatchURL, 'label': label});
                             });
@@ -1661,8 +1665,14 @@ function layerModel(options, parent) {
     }
 
     self.requestProtectedLayerToken = function(){
-      if (self.url.indexOf('/rest/') >= 0 ) {
-        let tokenURL = self.url.split('/rest/')[0] + '/tokens/generateToken';
+      // if proxied, extract URL from QS
+      let query_url = self.url;
+      if (self.proxy_url) {
+        let params = new URLSearchParams(self.url);
+        query_url = params.get('url');
+      }
+      if (query_url.indexOf('/rest/') >= 0 ) {
+        let tokenURL = query_url.split('/rest/')[0] + '/tokens/generateToken';
         let username = $('#form-username').val();
         let password = $('#form-password').val();
         let referer = location.origin;
