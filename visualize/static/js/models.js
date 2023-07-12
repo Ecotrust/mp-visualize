@@ -1661,7 +1661,7 @@ function layerModel(options, parent) {
     //show password prompt
     self.getProtectedLayerCredentials = function(){
       app.viewModel.password.layer(self);
-      app.viewModel.password.dialog.modal('show');
+      app.viewModel.password.showDialog();
     }
 
     self.requestProtectedLayerToken = function(){
@@ -2209,6 +2209,12 @@ ExportGeometry.prototype.closeDialog = function() {
 
 function PasswordModal() {
   this.dialog = $('#password-modal');
+}
+PasswordModal.prototype.showDialog = function() {
+  $('#form-username').val('');
+  $('#form-password').val('');
+  $('#password-form-errors').html('');
+  this.dialog.modal('show');
 }
 
 function AlertModal() {

@@ -119,7 +119,7 @@ function userLayerModel(options) {
       //show password prompt
     self.getProtectedLayerCredentials = function(){
         app.viewModel.password.layer(self);
-        app.viewModel.password.dialog.modal('show');
+        app.viewModel.password.showDialog();
     }
 
     self.requestProtectedLayerToken = function(){
