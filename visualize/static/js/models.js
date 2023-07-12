@@ -2215,6 +2215,9 @@ PasswordModal.prototype.showDialog = function() {
   $('#form-password').val('');
   $('#password-form-errors').html('');
   this.dialog.modal('show');
+  window.setTimeout(function(){
+    $('#form-username').focus();
+  }, 500);
 }
 
 function AlertModal() {
