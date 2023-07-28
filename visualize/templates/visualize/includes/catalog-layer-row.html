@@ -2,7 +2,7 @@
 
 {% block "after" %}
       <ul class="dropdown-menu dropdown-menu-right layer-menu sublayer-dropdown" data-bind="foreach: subLayers">
-        <li>
+        <li class="layer-name" data-bind="css: {isInvisible: isInvisible()}">
         <!-- ko if: !$parent.isCheckBoxLayer() -->
               <!-- ko if: $data instanceof layerModel -->
                 <span class="slider-button" data-bind="visible: (active() && app.viewModel.showSliderButtons() && $data.hasOwnProperty('is_multilayer_parent') && $data.is_multilayer_parent())">
@@ -16,9 +16,15 @@
                     <span class="deep-blue uppercase sublayer-title" data-bind="text: name"></span>
                     <span class="sublayer-status">
                       <!-- <i class="far green" data-bind="css: { 'fa-check-circle': visible(), 'fa-circle': ! visible() }"></i> -->
-                      <i style="color:red" title="error loading layer" class="fas fa-times-circle"  data-bind="visible: $data.loadStatus()=='error'"></i>
-                      <i class="far green" data-bind="visible: !loadStatus(), css: { 'fa-check-circle': visible(), 'fa-circle': ! visible() }"></i>
-                      <i class="fas fa-spinner fa-spin"  data-bind="visible: $data.loadStatus()=='loading'"></i>
+                      <!-- ko if: isLocked -->
+                        <i title="layer is locked." class="fa fa-lock"></i>
+                        <span class="zoom-range-message">Password Required</span>
+                      <!-- /ko -->
+                      <!-- ko ifnot: isLocked -->
+                        <i style="color:red" title="error loading layer" class="fas fa-times-circle"  data-bind="visible: $data.loadStatus()=='error'"></i>
+                        <i class="far green" data-bind="visible: !loadStatus(), css: { 'fa-check-circle': visible(), 'fa-circle': ! visible() }"></i>
+                        <i class="fas fa-spinner fa-spin"  data-bind="visible: $data.loadStatus()=='loading'"></i>
+                      <!-- /ko -->
                     </span>
                 </a>
         <!-- /ko -->

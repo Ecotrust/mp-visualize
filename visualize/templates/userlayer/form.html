@@ -197,8 +197,10 @@
 
                 if (arclayer_types.indexOf(layer_type_selected) >= 0) {
                     $('#arcgis-layer-field').css({'display':'inherit',});
+                    $('#password-protected-field').css({'display':'inherit',});
                 } else {
                     $('#arcgis-layer-field').css({'display':'none',});
+                    $('#password-protected-field').css({'display':'none',});
                 }
 
                 if (layer_type_selected == 'WMS') {
@@ -358,6 +360,16 @@
                 <div class="step1-param">
                     {{ form.layer_type.errors }}
                     {{ form.layer_type }}
+                </div>
+            </div>
+            
+            <div id="password-protected-field">
+                <label>Password Protected?:</label>
+                <div class="step1-inputs">
+                    <div class="step1-param">
+                        {{ form.password_protected.errors }}
+                        {{ form.password_protected }}
+                    </div>
                 </div>
             </div>
 

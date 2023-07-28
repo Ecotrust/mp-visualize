@@ -51,17 +51,24 @@ app.getState = function () {
 };
 
 $(document).on('map-ready', function () {
-    if ($('#disclaimer-modal').length > 0){
-      try {
+  // Check if disclaimer flag is in local storage
+  var disclaimerAcknowledged = localStorage.getItem('disclaimerAcknowledged');
+  if ($('#disclaimer-modal').length > 0 && !disclaimerAcknowledged) {
+    try {
+      $('#disclaimer-modal').modal('show');
+      app.state = app.getState();
+    } catch (e) {
+      setTimeout(function() {
         $('#disclaimer-modal').modal('show');
         app.state = app.getState();
-      } catch (e) {
-        setTimeout(function(){
-          $('#disclaimer-modal').modal('show');
-          app.state = app.getState();
-        }, 1000)
-      }
+      }, 1000)
     }
+  }
+  // If accept button if continue button is selected, set flag in local storage
+  document.querySelector('[data-decline=false]').addEventListener('click', function() {
+    // Set a flag so we don't show the disclaimer again
+    localStorage.setItem('disclaimerAcknowledged', true);
+  });
 });
 
 app.layersAreLoaded = false;

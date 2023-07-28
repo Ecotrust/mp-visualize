@@ -48,6 +48,8 @@ function layerModel(options, parent) {
 
     self.minZoom = 0;
     self.maxZoom = 24;
+    self.password_protected = ko.observable(false);
+    self.token = ko.observable(false);
 
     // if layer is loaded from hash, preserve opacity, etc...
     self.override_defaults = ko.observable(null);
@@ -71,6 +73,7 @@ function layerModel(options, parent) {
       }
       self.data_url(options.data_url || null);
       self.arcgislayers = options.arcgis_layers || 0;
+      self.password_protected(options.password_protected || false);
       self.wms_slug = options.wms_slug || null;
       self.wms_version = options.wms_version || null;
       self.wms_format = options.wms_format || null;
@@ -351,6 +354,13 @@ function layerModel(options, parent) {
       return false;
     });
 
+    self.isInvisible = ko.pureComputed(function() {
+      if (!self.isVisibleAtZoom() || self.isLocked()) {
+        return true;
+      } 
+      return false;
+    })
+
     self.isVisibleAtZoom = ko.pureComputed(function() {
       if (self.hasOwnProperty('minZoom') && self.hasOwnProperty('maxZoom')){
         if (self.minZoom || self.maxZoom) {
@@ -360,8 +370,22 @@ function layerModel(options, parent) {
         }
       }
       return true;
-    })
+    });
 
+    self.hasToken = ko.computed(function() {
+      let hasToken = (app.viewModel.getCookie(self.id + "_token") != null);
+      if (!self.token() && hasToken) {
+        self.token(app.viewModel.getCookie(self.token()));
+      }
+      return hasToken;
+    });
+
+    self.isLocked = ko.computed(function() {
+      if (self.password_protected() && !self.hasToken()){
+        return true;
+      }
+      return false;
+    });
 
     getArcGISJSONLegend = function(self, protocol) {
       let legend_url = self.url;
@@ -391,6 +415,10 @@ function layerModel(options, parent) {
       }
       
       let legend_url_suffix = path_separator+'legend'+path_separator+query_string_start+'f'+query_string_assignment+'pjson';
+
+      if (self.password_protected() && self.token()) {
+        legend_url_suffix += query_string_separator + 'token' + query_string_assignment + (self.token() || '');
+      }
       
       // Remove tile templating if using ArcGIS TileServer
       let tile_template = path_separator+['tile','{z}','{y}','{x}'].join(path_separator);
@@ -463,6 +491,13 @@ function layerModel(options, parent) {
                               if (j < 1 && label === "") {
                                   label = layerobj['layerName'];
                               }
+                              if (self.password_protected() && self.token()) {
+                                if (self.proxy_url) {
+                                  swatchURL = swatchURL.split('&proxy_params').join(encodeURI('token='+ (self.token() || '') + '&proxy_params'));
+                                } else {
+                                  swatchURL += query_string_start + 'token' + query_string_assignment + (self.token() || '');
+                                }
+                              }
                               self.legend['elements'].push({'swatch': swatchURL, 'label': label});
                             });
                         }
@@ -529,6 +564,10 @@ function layerModel(options, parent) {
         request_url = request_url + '?f=json';
       } else {
         request_url = request_url + '&f=json';
+      }
+
+      if (self.password_protected()) {
+        request_url += '&token=' + (self.token() || '');  // String(null) == 'null'
       }
 
 
@@ -1597,6 +1636,7 @@ function layerModel(options, parent) {
             }
 
             layer.setOptions(data, parent);
+
             layer.fullyLoaded = true;
             if (app.map.hasOwnProperty('zoom')){
               app.map.zoom.valueHasMutated();
@@ -1618,9 +1658,77 @@ function layerModel(options, parent) {
 
     };
 
+    //show password prompt
+    self.getProtectedLayerCredentials = function(){
+      app.viewModel.password.layer(self);
+      app.viewModel.password.showDialog();
+    }
+
+    self.requestProtectedLayerToken = function(){
+      // if proxied, extract URL from QS
+      let query_url = self.url;
+      if (self.proxy_url) {
+        let params = new URLSearchParams(self.url);
+        query_url = params.get('url');
+      }
+      if (query_url.indexOf('/rest/') >= 0 ) {
+        let tokenURL = query_url.split('/rest/')[0] + '/tokens/generateToken';
+        let username = $('#form-username').val();
+        let password = $('#form-password').val();
+        let referer = location.origin;
+        let params = {'f': 'pjson', 'username': username, 'password': password, 'referer': referer};
+        $.post(tokenURL, params, function(data_str) {
+            let data = JSON.parse(data_str);
+            if (data.hasOwnProperty('token')){
+                if (data.hasOwnProperty('expires')) {
+                  let expiration = new Date(data.expires).toUTCString();
+                  document.cookie = self.id + "_token=" + data.token + '; Path=/; Expires=' + expiration;
+                } else {
+                  document.cookie = self.id + "_token=" + data.token + '; Path=/';
+                }
+                self.token(app.viewModel.getCookie(self.id + "_token"));
+                app.viewModel.password.dialog.modal('hide');
+                self.toggleActive(self, null);
+            } else {
+              let errorMessage = '<div class="password-error-message">';
+              let keys = [];
+              if (data.hasOwnProperty('error')) {
+                if (data.error.hasOwnProperty('message')) {
+                  errorMessage += "<p>" + data.error.message + "</p>";
+                }
+                if (data.error.hasOwnProperty('details')) {
+                  errorMessage += "<p>Details: " + data.error.details + "</p>";
+                }
+                if (!data.error.hasOwnProperty('message') && !data.error.hasOwnProperty('details') && typeof data.error === 'object' && data.error !== null) {
+                  keys = Object.keys(data.error);
+                  for (var i=0; i < keys.length; i++) {
+                    errorMessage += "<p>" + keys[i] + ": " + data.error[keys[i]] + "</p>";
+                  }
+                } 
+              } else if(typeof data === object && data !== null ){
+                keys = Object.keys(data);
+                  for (var i=0; i < keys.length; i++) {
+                    errorMessage += "<p>" + keys[i] + ": " + data.error[keys[i]] + "</p>";
+                  }
+              } else {
+                errorMessage += "<p>" + data + "</p>";
+              }
+              errorMessage += '</div>';
+              $('#password-form-errors').html(errorMessage);
+            }
+        }); 
+      }
+    }
+
     // bound to click handler for layer switching
     self.toggleActive = function(self, event) {
         var layer = this;
+
+        // if layer is pwd protected AND doesn't have a cookie:
+        if (self.isLocked()) {
+          self.getProtectedLayerCredentials();
+          return;
+        }
 
         //handle possible dropdown/sublayer behavior
         if (layer.subLayers.length) {
@@ -2099,6 +2207,19 @@ ExportGeometry.prototype.closeDialog = function() {
     this.dialog.modal('hide');
 }
 
+function PasswordModal() {
+  this.dialog = $('#password-modal');
+}
+PasswordModal.prototype.showDialog = function() {
+  $('#form-username').val('');
+  $('#form-password').val('');
+  $('#password-form-errors').html('');
+  this.dialog.modal('show');
+  window.setTimeout(function(){
+    $('#form-username').focus();
+  }, 500);
+}
+
 function AlertModal() {
   this.dialog = $('#alert-modal');
 }
@@ -2120,6 +2241,9 @@ function viewModel() {
     this.alert = new AlertModal();
     this.alert.title = ko.observable('');
     this.alert.content = ko.observable('');
+
+    this.password = new PasswordModal();
+    this.password.layer = ko.observable({'getProtectedLayerCredentials':function(){}});
 
     // list of (func, unlessTarget) for $(doc).mouseDown
     self._outsideClicks = [];
@@ -3039,6 +3163,11 @@ function viewModel() {
         layer.name = layer_obj.name;
       }
       if (action == 'return'){
+        layer.password_protected(layer_obj.password_protected);
+        layer.url = layer_obj.url;
+        // RDH: calling getFullLayerRecord on sublayers results in infinite loops
+        // and that's REAL bad for your memory!
+        // layer.getFullLayerRecord(action, event);
         return layer;
       } else if (layer.fullyLoaded || layer.isMDAT || layer.isVTR || (layer_obj.hasOwnProperty('wmsSession') && layer_obj.wmsSession) ) {
         layer.performAction(action, event);
@@ -3535,6 +3664,31 @@ function viewModel() {
           parentLayer.buildMultilayerValueLookup();
         }
       }
+    }
+
+    // Copied From jac on StackOverflow: https://stackoverflow.com/a/5968306/706797
+    self.getCookie = function(name) {
+      if (name==false) {
+        return null;
+      }
+      var dc = document.cookie;
+      var prefix = name + "=";
+      var begin = dc.indexOf("; " + prefix);
+      if (begin == -1) {
+          begin = dc.indexOf(prefix);
+          if (begin != 0) return null;
+      }
+      else
+      {
+          begin += 2;
+          var end = document.cookie.indexOf(";", begin);
+          if (end == -1) {
+          end = dc.length;
+          }
+      }
+      // because unescape has been deprecated, replaced with decodeURI
+      //return unescape(dc.substring(begin + prefix.length, end));
+      return decodeURI(dc.substring(begin + prefix.length, end));
     }
 
     return self;

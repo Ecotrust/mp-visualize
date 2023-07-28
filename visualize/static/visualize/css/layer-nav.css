@@ -26,22 +26,28 @@ i.btn-user-gen {
   color: var(--bright_icon);
 }
 
-td.layer-name.zoomInvisible, 
-td.layer-name.zoomInvisible td.text, 
-td.layer-name.zoomInvisible td.add-on, 
-td.layer-name.zoomInvisible td.text span.deep-blue {
+.layer-name.isInvisible, 
+.layer-name.isInvisible td.text, 
+.layer-name.isInvisible td.add-on, 
+.layer-name.isInvisible a.sublayer-toggle-title i, 
+.layer-name.isInvisible td.text span.deep-blue {
   color: #888;
   background-color: #DDD;
 }
 
-td.layer-name.zoomInvisible {
+.layer-name.isInvisible {
   padding-bottom: 10px;
 }
 
-td.layer-name.zoomInvisible td.add-on {
+.layer-name.isInvisible a.sublayer-toggle-title i {
+  float: right;
+}
+
+.layer-name.isInvisible td.add-on {
   text-align: right;
 }
 
+span.sublayer-status span.zoom-range-message,
 td.add-on span.zoom-range-message {
   color: red;
   font-size: smaller;

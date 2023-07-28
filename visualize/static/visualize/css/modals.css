@@ -55,3 +55,12 @@ body.template-visualize .btn-link.modal-help-toggle {
 #user-layer-help-modal {
   margin-top: 30px;
 }
+
+#password-form-errors div.password-error-message {
+  margin-top: 1rem;
+  padding: 1rem;
+  border: 1px solid red;
+  border-radius: 0.6rem;
+  background-color: rgba(0,0,0,0.1);
+  color: red;
+}
