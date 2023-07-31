@@ -65,10 +65,12 @@ $(document).on('map-ready', function () {
     }
   }
   // If accept button if continue button is selected, set flag in local storage
-  document.querySelector('[data-decline=false]').addEventListener('click', function() {
-    // Set a flag so we don't show the disclaimer again
-    localStorage.setItem('disclaimerAcknowledged', true);
-  });
+  if (document.querySelector('[data-decline=false]') !== null) {
+    document.querySelector('[data-decline=false]').addEventListener('click', function() {
+      // Set a flag so we don't show the disclaimer again
+      localStorage.setItem('disclaimerAcknowledged', true);
+    });
+  }
 });
 
 app.layersAreLoaded = false;
