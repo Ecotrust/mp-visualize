@@ -3163,7 +3163,7 @@ function viewModel() {
         layer.name = layer_obj.name;
       }
       if (action == 'return'){
-        layer.password_protected(ilayer_obj.password_protected);
+        layer.password_protected(layer_obj.password_protected);
         if (!layer_obj.url == undefined && !layer_obj.url == null) {
           layer.url = layer_obj.url;
         }
