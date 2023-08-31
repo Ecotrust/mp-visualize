@@ -941,7 +941,7 @@ function layerModel(options, parent) {
 
         if (layer instanceof layerModel) {
           if (layer.fullyLoaded || layer.isMDAT || layer.isVTR || layer.wmsSession()) {
-            if (!layer.hasOwnProperty('url') || !layer.url || layer.url.length < 1 || layer.hasOwnProperty('type') && layer.type == 'placeholder') {
+            if (!layer.hasOwnProperty('url') || layer.url == undefined || !layer.url || layer.url.length < 1 || (layer.hasOwnProperty('type') && layer.type == 'placeholder')) {
               layer.loadStatus(false);
             }
 
@@ -3163,8 +3163,10 @@ function viewModel() {
         layer.name = layer_obj.name;
       }
       if (action == 'return'){
-        layer.password_protected(layer_obj.password_protected);
-        layer.url = layer_obj.url;
+        layer.password_protected(ilayer_obj.password_protected);
+        if (!layer_obj.url == undefined && !layer_obj.url == null) {
+          layer.url = layer_obj.url;
+        }
         // RDH: calling getFullLayerRecord on sublayers results in infinite loops
         // and that's REAL bad for your memory!
         // layer.getFullLayerRecord(action, event);
