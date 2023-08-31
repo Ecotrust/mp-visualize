@@ -508,7 +508,7 @@ function layerModel(options, parent) {
                   self.visible(false);
                   self.visible(visible);
               } else {
-                  //debugger;
+                  console.log('Failed to set legend in getArcGISJSONLegend');
               }
           }
       });
@@ -941,12 +941,12 @@ function layerModel(options, parent) {
 
         if (layer instanceof layerModel) {
           if (layer.fullyLoaded || layer.isMDAT || layer.isVTR || layer.wmsSession()) {
-            if (!layer.hasOwnProperty('url') || !layer.url || layer.url.length < 1 || layer.hasOwnProperty('type') && layer.type == 'placeholder') {
+            if (!layer.hasOwnProperty('url') || layer.url == undefined || !layer.url || layer.url.length < 1 || (layer.hasOwnProperty('type') && layer.type == 'placeholder')) {
               layer.loadStatus(false);
             }
 
             // if legend is not provided, try using legend from web services
-            if ( !self.legend && self.url && (self.arcgislayers !== -1) ) {
+            if ( !self.legend && self.hasOwnProperty('url') && self.url !== undefined && self.url && (self.arcgislayers !== -1) ) {
               setTimeout(function() {
                 if ( self.url.indexOf('FeatureServer') >= 0) {
                   try {
@@ -3164,7 +3164,9 @@ function viewModel() {
       }
       if (action == 'return'){
         layer.password_protected(layer_obj.password_protected);
-        layer.url = layer_obj.url;
+        if (!layer_obj.url == undefined && !layer_obj.url == null) {
+          layer.url = layer_obj.url;
+        }
         // RDH: calling getFullLayerRecord on sublayers results in infinite loops
         // and that's REAL bad for your memory!
         // layer.getFullLayerRecord(action, event);
