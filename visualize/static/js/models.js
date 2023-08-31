@@ -508,7 +508,7 @@ function layerModel(options, parent) {
                   self.visible(false);
                   self.visible(visible);
               } else {
-                  //debugger;
+                  console.log('Failed to set legend in getArcGISJSONLegend');
               }
           }
       });
@@ -946,7 +946,7 @@ function layerModel(options, parent) {
             }
 
             // if legend is not provided, try using legend from web services
-            if ( !self.legend && self.url && (self.arcgislayers !== -1) ) {
+            if ( !self.legend && self.hasOwnProperty('url') && self.url !== undefined && self.url && (self.arcgislayers !== -1) ) {
               setTimeout(function() {
                 if ( self.url.indexOf('FeatureServer') >= 0) {
                   try {
