@@ -1450,7 +1450,7 @@ function layerModel(options, parent) {
 
                 $mdatSpinner.hide();
                 $parentDirs.show();
-                self.toggleActive();
+                self.toggleActive(layer);
                 app.viewModel.activeLayer(layer);
                 if (layer.showSublayers()) {
                     $layerText.val('');
