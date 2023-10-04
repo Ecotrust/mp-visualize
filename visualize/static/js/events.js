@@ -400,19 +400,21 @@ if (!app.wrapper.events.hasOwnProperty('generateAttributeReport')) {
     if (data.length > 0){
       for (var i = 0; i < data.length; i++) {
         var feature = data[i];
-        if (mp_layer.label_field) {
-          var feature_name = feature[mp_layer.label_field]
-        } else {
-          var feature_name = 'Feature ' + (i+1);
+        if (feature != null) {
+          if (mp_layer.label_field) {
+            var feature_name = feature[mp_layer.label_field]
+          } else {
+            var feature_name = 'Feature ' + (i+1);
+          }
+          var feature_id = mp_layer.featureAttributionName + '-' + i;
+          var report_title = mp_layer.featureAttributionName;
+          var report_feature = {
+            'name': feature_name,
+            'id': feature_id,
+            'attributes': app.wrapper.events.formatAttributeReportEntry(feature, mp_layer)
+          }
+          report_features.push(report_feature);
         }
-        var feature_id = mp_layer.featureAttributionName + '-' + i;
-        var report_title = mp_layer.featureAttributionName;
-        var report_feature = {
-          'name': feature_name,
-          'id': feature_id,
-          'attributes': app.wrapper.events.formatAttributeReportEntry(feature, mp_layer)
-        }
-        report_features.push(report_feature);
       }
       if (report_features && report_features.length && report_features[0]) {
         clickAttributes[mp_layer.featureAttributionName] = report_features;
