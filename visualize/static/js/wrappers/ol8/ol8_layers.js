@@ -20,14 +20,13 @@ for (var i = 0; i < app.wrapper.baseLayers.length; i++) {
       crossOrigin: 'anonymous'
     });
   } else if (baseLayer.technology == 'ArcGIS') {
-    
-  } else if (baseLayer.technology == 'ArcMapServer') {
     var source = new ol.source.TileArcGISRest({
       url: baseLayer.url,
       projection: baseLayer.projection,
+      attributions: baseLayer.attribution,
       params: baseLayer.params,
       crossOrigin: 'anonymous'
-    })
+    });
   } else {
     // assume 'XYZ' by default
 
