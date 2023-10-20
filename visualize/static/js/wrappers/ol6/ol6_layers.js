@@ -21,6 +21,7 @@ for (var i = 0; i < app.wrapper.baseLayers.length; i++) {
     });
   } else if (baseLayer.technology == 'ArcGIS') {
     var source = new ol.source.TileArcGISRest({
+      attributions: baseLayer.attribution,
       url: baseLayer.url,
       projection: baseLayer.projection,
       params: baseLayer.params,
