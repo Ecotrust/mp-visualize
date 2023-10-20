@@ -66,7 +66,8 @@ body.template-visualize{
       position: absolute;
       z-index: 1020;
       padding: 2px;
-      font-size: 12px;
+      text-align: center;
+      font-size: 10px;
     }
 
     #baselayers {
@@ -258,6 +259,24 @@ body.template-visualize{
         right: 13px;
     }
 
+    .ol-attribution {
+        left: 0.5em;
+        right: auto;
+        max-width: calc(100vw - 315px);
+        max-height: 35px;
+        ul {
+            overflow-y: auto;
+            max-height: 35px;
+        }
+    }
+
+
+    .ol-scale-line {
+        bottom: 5px;
+        right: 35px;
+        left: auto;
+    }
+
     .olControlMousePosition {
         bottom: 37px;
         right: 165px;
@@ -380,15 +399,18 @@ body.template-visualize{
         bottom: 32px;
         right: 150px;
         background-color: $gray-light;
-        border: 2px solid $gray-light;
-        max-width: 495px;
+        border: 2px solid $gray-darker;
+        border-radius: 0.5rem;
         text-align: left;
         background: $gray-light;
         opacity: 1;
-        border-radius: 0px;
         display: none;
         overflow: hidden;
-        width: 495px;
+    }
+
+    .SimpleLayerSwitcher.olControlNoSelect {
+        max-width: 286px;
+        width: 286px;
     }
 
     .SimpleLayerSwitcher a.basey {
@@ -409,10 +431,11 @@ body.template-visualize{
         font-weight: bold;
         opacity: 1;
         filter: alpha(opacity=100);
+        border: 3px solid black;
+        margin-top: -1px;
     }
 
     .SimpleLayerSwitcher a {
-      /*border-top:1px solid #eee;*/
       border: 1px solid black;
       div{
         display: table-cell;
@@ -426,8 +449,11 @@ body.template-visualize{
 
     }
 
-    .SimpleLayerSwitcher a:hover {
+    .SimpleLayerSwitcher a.basey-off:hover {
         opacity: 1;
+        border: 3px solid darkblue;
+        cursor: pointer;
+        margin-top: -1px;
     }
 
     .SimpleLayerSwitcher a.basey-off {
