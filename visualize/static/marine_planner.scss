@@ -399,7 +399,7 @@ body.template-visualize{
         bottom: 32px;
         right: 150px;
         background-color: $gray-light;
-        border: 2px solid $gray-darker;
+        border: 1px solid $gray-darker;
         border-radius: 0.5rem;
         text-align: left;
         background: $gray-light;
@@ -411,6 +411,7 @@ body.template-visualize{
     .SimpleLayerSwitcher.olControlNoSelect {
         max-width: 286px;
         width: 286px;
+        padding-top: 0.5rem;
     }
 
     .SimpleLayerSwitcher a.basey {
