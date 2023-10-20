@@ -1,0 +1,86 @@
+/* CONTROLS */
+
+body.template-visualize .olControlMousePosition {
+  position: absolute;
+}
+
+body.template-visualize .SimpleLayerSwitcher {
+  max-width: 495px;
+  width: 495px;
+}
+
+.ol-zoom {
+  position: absolute;
+  bottom: 44px;
+  right: 30px;
+  top: auto;
+  left: auto;
+  border-radius: 0px;
+  padding: 2px;
+}
+
+
+.ol-zoom button:focus {
+  background-color: rgba(231,231,232,1);
+  color: #58585b;
+  border: 1px solid #58585b;
+}
+
+.ol-zoom button:hover {
+  background-color: rgba(0,60,136,1);
+}
+
+.ol-zoom button {
+  width: 3rem;
+  height: 3rem;
+  /* OL5 Default */
+  /* background-color: rgba(0,60,136,.5); */
+  /* Original OL2 values */
+  background-color: rgba(231,231,232,1);
+  color: #58585b;
+  border: 1px solid #58585b;
+}
+
+.ol-attribution {
+  left: 0.5em;
+  right: auto;
+}
+
+.ol-scale-line {
+  left: unset;
+  background: rgba(255,255,255,0.3);
+}
+
+.ol-scale-line-inner {
+  border: 2px solid #000;
+  border-top: none;
+  color: #000;
+}
+
+body.template-visualize #map-controls .quick-button{
+  border: 2px solid #58585b;
+  border-radius: 5px;
+  width: 31px;
+  height: 29px;
+  padding: 2px;
+}
+
+body.template-visualize #map-controls .quick-button:hover{
+  border: 2px solid #00a564;
+}
+
+body.template-visualize #map-controls a.img-icon {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+body.template-visualize #map-controls a.img-icon img.quick-launch-icon{
+  filter: invert(36%) sepia(10%) saturate(141%) hue-rotate(202deg) brightness(88%) contrast(87%);
+  height: 65%;
+}
+
+body.template-visualize #map-controls a.img-icon:hover img.quick-launch-icon,
+body.template-visualize #map-controls a.img-icon img.quick-launch-icon:hover {
+  filter: invert(56%) sepia(59%) saturate(6532%) hue-rotate(134deg) brightness(94%) contrast(101%);
+}
