@@ -66,7 +66,7 @@ app.wrapper = {
     {
       'name': 'nautical',
       'altName': 'nautical',
-      'verboseName': 'Nautical Charts',
+      'verboseName': 'NOAA Nautical Chart',
       'url': 'https://gis.charttools.noaa.gov/arcgis/rest/services/MCS/NOAAChartDisplay/MapServer/exts/MaritimeChartService/MapServer',
       'attribution': 'NOAA',
       'minZoom': null,
@@ -81,8 +81,8 @@ app.wrapper = {
     },
     {
       'name': "gray",
-      'altName': 'Positron',
-      'verboseName': 'Gray',
+      'altName': 'Gray',
+      'verboseName': 'Carto Positron Gray',
       // 'url': 'https://services.arcgisonline.com/arcgis/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}?token=' + app.ARCGIS_API_KEY,
       // 'attribution': 'Sources: Esri, GEBCO, NOAA, National Geographic, DeLorme, NAVTEQ, Geonames.org, and others',
       'url': 'https://a.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png',
@@ -98,7 +98,7 @@ app.wrapper = {
     {
       'name': 'nationalmap',
       'altName': 'National Map',
-      'verboseName': 'USGS Map',
+      'verboseName': 'USGS National Map',
       'url': 'https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer/tile/{z}/{y}/{x}',
       'attribution': 'USGS The National Map: National Boundaries Dataset, 3DEP Elevation Program, Geographic Names Information System, National Hydrography Dataset, National Land Cover Database, National Structures Dataset, and National Transportation Dataset; USGS Global Ecosystems; U.S. Census Bureau TIGER/Line data; USFS Road Data; Natural Earth Data; U.S. Department of State Humanitarian Information Unit; and NOAA National Centers for Environmental Information, U.S. Coastal Relief Model. Data refreshed April, 2023.',
       'minZoom': null,
