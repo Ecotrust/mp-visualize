@@ -19,7 +19,12 @@ for (var i = 0; i < app.wrapper.baseLayers.length; i++) {
     var source = new ol.source.OSM({
       crossOrigin: 'anonymous'
     });
-  } else if (baseLayer.technology == 'ArcGIS') {
+  // } else if (baseLayer.technology == 'ArcVectorStyle') {
+  //   // todo
+  //   // https://basemapstyles-api.arcgis.com/arcgis/rest/services/styles/v2/styles/
+  //   console.log('Esri Todo');
+  // olms.apply(app.map, 'https://basemapstyles-api.arcgis.com/arcgis/rest/services/styles/v2/styles/arcgis/oceans?type=style&token=' + token)
+} else if (baseLayer.technology == 'ArcGIS') {
     var source = new ol.source.TileArcGISRest({
       url: baseLayer.url,
       projection: baseLayer.projection,
@@ -78,6 +83,7 @@ app.wrapper.layers['ocean_labels'] = new ol.layer.VectorTile({
       //  Using the default is still preferred, but it'd be nice to figure out how to stop the 't.getStyle is not a function'
       // format: new ol.format.MVT({featureClass: ol.Feature}),
       format: new ol.format.MVT({featureClass: ol.render.Feature}),
+      // url: 'https://basemapstyles-api.arcgis.com/arcgis/rest/services/styles/v2/styles/arcgis/oceans/VectorTileServer/tile/{z}/{y}/{x}.pbf?token='+app.ARCGIS_API_KEY,
       url: 'https://basemaps.arcgis.com/arcgis/rest/services/World_Basemap_v2/VectorTileServer/tile/{z}/{y}/{x}.pbf?token='+app.ARCGIS_API_KEY,
       // zDirection: 0,
   }),
