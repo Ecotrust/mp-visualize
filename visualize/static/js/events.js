@@ -30,9 +30,13 @@ if (!app.wrapper.events.hasOwnProperty('clickOnArcRESTLayerEvent')) {
       var geometryType = 'esriGeometryPoint';
     } else {
       // buffer click by two pixels each direction and use that for selection envelope
+      let query_buffer = 2;
+      if (mp_layer.query_buffer) {
+        query_buffer = mp_layer.query_buffer
+      }
       var geometry_raw = {
-        UL: app.map.getCoordinateFromPixel([evt.pixel[0]-2, evt.pixel[1]-2]),
-        LR: app.map.getCoordinateFromPixel([evt.pixel[0]+2, evt.pixel[1]+2])
+        UL: app.map.getCoordinateFromPixel([evt.pixel[0]-query_buffer, evt.pixel[1]-query_buffer]),
+        LR: app.map.getCoordinateFromPixel([evt.pixel[0]+query_buffer, evt.pixel[1]+query_buffer])
       }
       var geometry = [geometry_raw.UL, geometry_raw.LR].join(',');
       var geometryType = 'esriGeometryEnvelope';
