@@ -505,11 +505,17 @@ app.wrapper.map.addArcRestLayerToMap = function(layer) {
     }
     layer_params['token'] = layer.token();
   }
+  let export_idx = layer.url.toLowerCase().indexOf('/export');
+  if(export_idx<0) {
+    url = layer.url;
+  } else {
+    url = layer.url.substr(0,export_idx);
+  }
   var layerSource = new ol.source.TileArcGISRest({
     attributions: '',
     params: layer_params,
     projection: 'ESPG:3857',
-    url: layer.url,
+    url: url,
     hidpi: false,
     crossOrigin: 'anonymous',
     tilePixelRatio: 1,
