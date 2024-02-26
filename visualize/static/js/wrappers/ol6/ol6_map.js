@@ -620,6 +620,10 @@ app.wrapper.map.addArcFeatureServerLayerToMap = function(layer) {
     layer.layer.setMaxZoom(layer.maxZoom);
   }
 
+  if (layer.url[layer.url.length-1] != "/"){
+    layer.url = layer.url + "/";
+  }
+
   let request_url = layer.url + layer.arcgislayers;
   if (layer.proxy_url) {
     let url_split = layer.url.split(encodeURIComponent('?'));
