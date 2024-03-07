@@ -46,7 +46,8 @@ var madrona = {
             var url = $form.attr('action'),
                 $bar = $form.closest('.tab-pane').find('.bar'),
                 data = {},
-                barTimer;
+                barTimer,
+                formId = $form[0].getAttribute('id');
 
             //progress bar
             barTimer = setInterval(function () {
@@ -95,7 +96,12 @@ var madrona = {
                     app.viewModel.scenarios.loadingMessage(null);
                     clearInterval(barTimer);
                     if (result.status === 400) {
-                        $('#scenario-form').append(result.responseText);
+                        // if response message is a new replacement form with errors embedded:
+                        if (result.responseText.indexOf("<form") >= 0) {
+                            $('#'+formId).html(result.responseText);
+                        } else {
+                            $('#'+formId).append(result.responseText);
+                        }
                         app.viewModel.scenarios.scenarioForm(true);
                     } else {
                         app.viewModel.scenarios.errorMessage(result.responseText.split('\n\n')[0]);
@@ -1726,19 +1732,34 @@ function scenariosModel(options) {
                 } else if (feature.features.length == 1 && feature.features[0].properties.hasOwnProperty('name')) {
                   layer_name = feature.features[0].properties.name;
                 }
-                var layer = new layerModel({
-                  'id': scenarioId,
-                  'name': layer_name,
-                  'order': 0,
-                  'url': "/features/generic-links/links/geojson/" + scenarioId + "/",
-                  'type': 'Vector',
-                  'isDrawingModel': isDrawingModel,
-                  'isSelectionModel': isSelectionModel
-                  // 'disabled_message'
-                  // 'attributes'
-                  // 'lookups'
 
-                }, false);
+                let layer_settings = {
+                    'id': scenarioId,
+                    'name': layer_name,
+                    'order': 0,
+                    'url': "/features/generic-links/links/geojson/" + scenarioId + "/",
+                    'type': 'Vector',
+                    'isDrawingModel': isDrawingModel,
+                    'isSelectionModel': isSelectionModel
+                  }
+
+                  if (feature && feature.hasOwnProperty('features') && feature.features.length > 0 && feature.features[0].hasOwnProperty('properties')) {
+                    let properties = feature.features[0].properties;
+                    if (properties.hasOwnProperty('color')){
+                        layer_settings['color'] = properties.color;
+                    }
+                    if (properties.hasOwnProperty('fill_opacity')){
+                        layer_settings['fillOpacity'] = properties.fill_opacity;
+                    }
+                    if (properties.hasOwnProperty('stroke_color')){
+                        layer_settings['outline_color'] = properties.stroke_color;
+                    }
+                    if (properties.hasOwnProperty('stroke_width')){
+                        layer_settings['outline_width'] = properties.stroke_width;
+                    }
+                  }
+
+                  var layer = new layerModel(layer_settings, false);
 
                 // app.wrapper.scenarios.addFeaturesToScenarioLayer(layer, feature);
 
@@ -1758,6 +1779,10 @@ function scenariosModel(options) {
                             description: properties.description,
                             features: layer.features
                         });
+                        layer.color = properties.color;
+                        layer.fillOpacity = properties.fill_opacity;
+                        layer.outline_color = properties.stroke_color;
+                        layer.outline_width = properties.stroke_width;
                         self.toggleDrawingsOpen('open');
                         self.zoomToScenario(scenario);
                     } else if (isSelectionModel) {
