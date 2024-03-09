@@ -1,6 +1,6 @@
 .legend-swatch {
-    width: 1.5rem;
-    height: 1.5rem;
+    width: 30px;
+    height: 30px;
     margin: auto 1.5rem auto 0.5rem;
     float: left;
 }
@@ -8,7 +8,14 @@
 .legend-line {
     width: 2rem;
     height: 0;
-    margin: 1rem 1rem 0 0.5rem;
+    margin: 1rem 1rem 0 0.75rem;
+    float: left;
+}
+
+.legend-point_image {
+    width: 30px;
+    height: 30px;
+    margin: auto 1.5rem auto 0.25rem;
     float: left;
 }
 

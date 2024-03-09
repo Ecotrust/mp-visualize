@@ -1688,6 +1688,25 @@ function scenariosModel(options) {
 
     self.createPointDesign = function() {};
 
+    // hexToRgb function Thanks to kennebec @
+    // https://stackoverflow.com/a/30971075/706797
+    // With a slight tweak to the return inspired by Paul S. @
+    // https://stackoverflow.com/a/30970691/706797
+    function hexToRgb(c){
+        // if(/^#([a-f0-9]{3}){1,2}$/.test(c)){
+            if(c.length== 4){
+                c= '#'+[c[1], c[1], c[2], c[2], c[3], c[3]].join('');
+            }
+            c= '0x'+c.substring(1);
+            // return 'rgb('+[(c>>16)&255, (c>>8)&255, c&255].join(',')+')';
+            return {
+                'r': (c>>16)&255,
+                'g': (c>>8)&255,
+                'b': c&255
+            };
+        // }
+        return '';
+    }
     //
     self.addScenarioToMap = function(scenario, options) {
         var scenarioId,
@@ -1743,19 +1762,81 @@ function scenariosModel(options) {
                     'isSelectionModel': isSelectionModel
                   }
 
+                  let custom_legend = false;
+                  let scenario_properties = feature.features[0].properties;
                   if (feature && feature.hasOwnProperty('features') && feature.features.length > 0 && feature.features[0].hasOwnProperty('properties')) {
-                    let properties = feature.features[0].properties;
-                    if (properties.hasOwnProperty('color')){
-                        layer_settings['color'] = properties.color;
+                    if (scenario_properties.hasOwnProperty('color')){
+                        layer_settings['color'] = scenario_properties.color;
+                        custom_legend = true;
                     }
-                    if (properties.hasOwnProperty('fill_opacity')){
-                        layer_settings['fillOpacity'] = properties.fill_opacity;
+                    if (scenario_properties.hasOwnProperty('fill_opacity')){
+                        layer_settings['fillOpacity'] = scenario_properties.fill_opacity;
+                        custom_legend = true;
                     }
-                    if (properties.hasOwnProperty('stroke_color')){
-                        layer_settings['outline_color'] = properties.stroke_color;
+                    if (scenario_properties.hasOwnProperty('stroke_color')){
+                        layer_settings['outline_color'] = scenario_properties.stroke_color;
+                        custom_legend = true;
                     }
-                    if (properties.hasOwnProperty('stroke_width')){
-                        layer_settings['outline_width'] = properties.stroke_width;
+                    if (scenario_properties.hasOwnProperty('stroke_width')){
+                        layer_settings['outline_width'] = scenario_properties.stroke_width;
+                        custom_legend = true;
+                    }
+                  }
+
+                  if (custom_legend) {
+                    let swatch_element = {};
+                    // get feature type
+                    // -- If any feature is a polygon, we build a square swatch
+                    // -- Else if any feature is a point, we build a circle swatch
+                    // -- Else it's a line and we make a line, ignoring any fill.
+                    let type = false;
+                    for (var collection_index = 0; collection_index < feature.features.length; collection_index++){
+                        collection = feature.features[collection_index];
+                        if (type != "Polygon" || !scenario_properties) {
+                            for (var feature_index = 0; feature_index < collection.geometry.geometries.length; feature_index++){
+                                if (!scenario_properties) {
+                                    scenario_properties = collection.properties; 
+                                }
+                                geometry = collection.geometry.geometries[feature_index];
+                                if (geometry.type == "Polygon") {
+                                    type = "Polygon";
+                                    break;
+                                } else if (geometry.type == "Point") {
+                                    type = "Point";
+                                } else {
+                                    type = geometry.type;
+                                }
+                            }
+                        }
+                    }
+                    if (scenario_properties) {
+                        swatch_element.label = scenario_properties.name;
+                        if (type=="LineString") {
+                            swatch_element.type = 'line';
+                            // swatch_element.color = properties.stroke_color;
+                            style = `border-top: ${scenario_properties.stroke_width}px solid ${scenario_properties.stroke_color};`; 
+                            swatch_element.viz = `<div class="legend-line" style="${style}"></div>`;
+                        } else {
+                            let fill_dict = hexToRgb(scenario_properties.color);
+                            fill_dict.a = scenario_properties.fill_opacity;
+                            let fill_color = `rgba(${fill_dict.r},${fill_dict.g},${fill_dict.b},${fill_dict.a})`;
+                            svg_size = 30;
+                            svg_center = svg_size/2;
+                            svg_stroke_width = scenario_properties.stroke_width;
+                            svg_stroke_color = scenario_properties.stroke_color;
+                            if (type=="Point") {
+                                svg_r = (svg_size-5)/2-svg_stroke_width;
+                                svg_circle = `<circle r="${svg_r}px" cx="${svg_center}px" cy="${svg_center}px" stroke="${svg_stroke_color}" stroke-width="${svg_stroke_width}px" fill="${fill_color}" />`;
+                                swatch_element.type = 'point_image';
+                                swatch_element.viz = `<svg height="${svg_size}px" width="${svg_size}px" xmlns="http://www.w3.org/2000/svg" class="legend-${swatch_element.type}">${svg_circle}</svg>`;
+                            } else {
+                                swatch_size = svg_size-5-(2*svg_stroke_width);
+                                svg_swatch = `<rect width="${swatch_size}px" height="${swatch_size}px" x="${svg_stroke_width}px" y="${svg_stroke_width}px" style="fill:${fill_color};stroke-width=${svg_stroke_width};stroke:${svg_stroke_color}" />`;
+                                swatch_element.type = 'swatch';
+                                swatch_element.viz = `<svg width="${svg_size}px" height="${svg_size}px" xmlns="http://www.w3.org/2000/svg" class="legend-${swatch_element.type}">${svg_swatch}</svg>`;
+                            }
+                        }
+                        layer_settings.legend = {'elements': [swatch_element]};
                     }
                   }
 
