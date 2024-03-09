@@ -179,7 +179,9 @@ const validate_input_file = function() {
             input_file_name.toLowerCase().indexOf('.csv') > 0 ||
             input_file_name.toLowerCase().indexOf('.tsv') > 0 ||
             input_file_name.toLowerCase().indexOf('.json') > 0 ||
-            input_file_name.toLowerCase().indexOf('.geojson') > 0
+            input_file_name.toLowerCase().indexOf('.geojson') > 0 ||
+            input_file_name.toLowerCase().indexOf('.kml') > 0 ||
+            input_file_name.toLowerCase().indexOf('.kmz') > 0
         )
     ) {
         is_valid = true;
@@ -204,6 +206,16 @@ const interpret_json = function(field) {
             add_geojson_to_map(geojson_object);
         }, "text");
     finishGISFileImport();
+}
+
+const interpret_kml = function(field) {
+    let file = field.prop('files')[0];
+    let file_url = URL.createObjectURL(file);
+    $.ajax(file_url).done(function(xml) {
+        let geojson_object = toGeoJSON.kml(xml);
+        add_geojson_to_map(geojson_object);
+        finishGISFileImport();
+    });
 }
 
 const interpret_zip = function(field) {
@@ -335,7 +347,13 @@ const interpret_file = function() {
         case '7z':
             interpret_alt_zip();
             break;
+        case 'kml':
+            interpret_kml(field);
+            break;
+        case 'kmz':
+            // interpret_kml(field)
+            window.alert('KMZs are not yet supported. Please unzip the file and updload the resulting .kml file.');
         default:
-            window.alert('Unsupported file type "' + filename_type + '". Please convert to a zipped Shapefile, GeoJSON, or .CSV. Please use the "feedback" tool to let us know if you\'d like another format supported.');
+            window.alert('Unsupported file type "' + filename_type + '". Please convert to a zipped Shapefile, GeoJSON, KML/KMZ, or .CSV. Please use the "feedback" tool to let us know if you\'d like another format supported.');
     }
 }
