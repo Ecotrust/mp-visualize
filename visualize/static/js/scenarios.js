@@ -1,3 +1,22 @@
+// hexToRgb function Thanks to kennebec @
+// https://stackoverflow.com/a/30971075/706797
+// With a slight tweak to the return inspired by Paul S. @
+// https://stackoverflow.com/a/30970691/706797
+function hexToRgb(c){
+    // if(/^#([a-f0-9]{3}){1,2}$/.test(c)){
+        if(c.length== 4){
+            c= '#'+[c[1], c[1], c[2], c[2], c[3], c[3]].join('');
+        }
+        c= '0x'+c.substring(1);
+        // return 'rgb('+[(c>>16)&255, (c>>8)&255, c&255].join(',')+')';
+        return {
+            'r': (c>>16)&255,
+            'g': (c>>8)&255,
+            'b': c&255
+        };
+    // }
+    return '';
+}
 
 var madrona = {
     onShow: function(callback) { callback(); },
@@ -27,6 +46,39 @@ var madrona = {
             submitForm($form);
             $form.closest('.panel').off('click', '.submit_button');
         });
+
+        setFormStyle = function() {
+            rgba_dict = hexToRgb($('#id_color').val());
+            fill_val = `rgba(${rgba_dict.r}, ${rgba_dict.g}, ${rgba_dict.b}, ${parseFloat($('#id_fill_opacity').val())})`;
+            stroke_color = $('#id_stroke_color').val();
+            stroke_width = parseInt($('#id_stroke_width').val());
+
+            new_style = {
+                "fill-color": fill_val,
+            };
+            if (stroke_width > 0) {
+                new_style["stroke-color"] = stroke_color;
+                new_style["stroke-width"] = stroke_width;
+
+            }
+            app.map.drawingLayer.setStyle(new_style);
+        }
+
+        $form.find('#id_color').on('change', function(e){
+            setFormStyle();
+        })
+
+        $form.find('#id_fill_opacity').on('input', function(e){
+            setFormStyle();
+        })
+
+        $form.find('#id_stroke_color').on('change', function(e){
+            setFormStyle();
+        })
+
+        $form.find('#id_stroke_width').on('input', function(e){
+            setFormStyle();
+        })
 
         //no longer needed...? (if it was going here it meant there was a problem)
         /*
@@ -1688,25 +1740,6 @@ function scenariosModel(options) {
 
     self.createPointDesign = function() {};
 
-    // hexToRgb function Thanks to kennebec @
-    // https://stackoverflow.com/a/30971075/706797
-    // With a slight tweak to the return inspired by Paul S. @
-    // https://stackoverflow.com/a/30970691/706797
-    function hexToRgb(c){
-        // if(/^#([a-f0-9]{3}){1,2}$/.test(c)){
-            if(c.length== 4){
-                c= '#'+[c[1], c[1], c[2], c[2], c[3], c[3]].join('');
-            }
-            c= '0x'+c.substring(1);
-            // return 'rgb('+[(c>>16)&255, (c>>8)&255, c&255].join(',')+')';
-            return {
-                'r': (c>>16)&255,
-                'g': (c>>8)&255,
-                'b': c&255
-            };
-        // }
-        return '';
-    }
     //
     self.addScenarioToMap = function(scenario, options) {
         var scenarioId,
