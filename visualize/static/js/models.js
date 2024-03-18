@@ -2234,6 +2234,22 @@ AlertModal.prototype.closeDialog = function() {
   this.dialog.modal('hide');
 }
 
+function RUSModal() {
+  this.dialog = $('#rus-modal');
+}
+RUSModal.prototype.showDialog = function(title, content, action){
+  app.viewModel.rus.title(title);
+  app.viewModel.rus.content(content);
+  app.viewModel.rus.action(action);
+  this.dialog.modal('show');
+}
+RUSModal.prototype.closeDialog = function() {
+  app.viewModel.rus.title(null);
+  app.viewModel.rus.content(null);
+  app.viewModel.rus.action(null);
+  this.dialog.modal('hide');
+}
+
 function viewModel() {
     var self = this;
 
@@ -2241,6 +2257,11 @@ function viewModel() {
     this.alert = new AlertModal();
     this.alert.title = ko.observable('');
     this.alert.content = ko.observable('');
+
+    this.rus = new RUSModal();
+    this.rus.title = ko.observable();
+    this.rus.content = ko.observable();
+    this.rus.action = ko.observable();
 
     this.password = new PasswordModal();
     this.password.layer = ko.observable({'getProtectedLayerCredentials':function(){}});
