@@ -2107,7 +2107,14 @@ function scenariosModel(options) {
         self.zoomToScenario(drawing);
     };
     self.deleteDrawing = function(drawing) {
-        drawing.deleteScenario();
+        // Insert RUS before submitting
+        app.viewModel.rus.showDialog(
+            "Remove Drawing?", 
+            `Are you sure you wish to delete your drawing "${drawing.name}"?`,
+            function(){
+                drawing.deleteScenario();
+            }
+        );
     };
 
 

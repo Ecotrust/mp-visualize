@@ -270,8 +270,15 @@ function bookmarksModel(options) {
     };
 
     self.removeBookmark = function(bookmark, event) {
-        $.jsonrpc('remove_bookmark', [bookmark.uid],
-                  {complete: self.getBookmarks});
+        // Insert RUS before submitting
+        app.viewModel.rus.showDialog(
+            "Remove Bookmark?", 
+            `Are you sure you wish to delete your bookmark "${bookmark.name}"?`,
+            function(){
+                $.jsonrpc('remove_bookmark', [bookmark.uid],
+                        {complete: self.getBookmarks});
+            }
+        );
     };
 
     // handle the bookmark submit
