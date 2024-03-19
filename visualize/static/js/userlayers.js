@@ -375,8 +375,15 @@ function userLayersModel(options) {
     }
 
     self.removeUserLayer = function(userLayer, event) {
-        $.jsonrpc('remove_user_layer', [userLayer.uid],
+        // Insert RUS before submitting
+        app.viewModel.rus.showDialog(
+            "Remove Layer?", 
+            `Are you sure you wish to delete your imported layer "${userLayer.name}"?`,
+            function(){
+                $.jsonrpc('remove_user_layer', [userLayer.uid],
                   {complete: self.getUserLayers});
+            }
+        );
     };
 
     self.addUserLayer = function(name, description, layer_type, url, arcgis_layers, wms_slug, wms_srs, wms_params, wms_version, wms_format, wms_styles) {
