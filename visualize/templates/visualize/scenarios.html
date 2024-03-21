@@ -129,7 +129,7 @@
                                                                                        data-placement="right">
                                                                                         <i class="fa fa-user"></i>
                                                                                     </a>
-                                                                                    <a data-bind="attr: {title: 'Shared with ' + selectedGroups().join(', ')}, visible: selectedGroups().length > 0"
+                                                                                    <a data-bind="attr: {title: 'Shared with ' + selectedGroups().join(', ')}, visible: selectedGroups().length > 0 && sharedBy() != undefined"
                                                                                        style="text-decoration: none; cursor: default;"
                                                                                        data-toggle="tooltip"
                                                                                        data-placement="right">
