@@ -1023,24 +1023,14 @@ function scenarioModel(options) {
     self.shared = ko.observable();
     self.sharedByName = options.sharedByName || null;
     self.sharedByUsername = options.sharedByUsername;
-    if (self.sharedByName && $.trim(self.sharedByName) !== '') {
-        self.sharedByWho = self.sharedByName + ' (' + self.sharedByUsername + ')';
-    } else {
-        self.sharedByWho = self.sharedByUsername;
-    }
     self.sharedBy = ko.observable();
-    if (options.shared) {
-        self.shared(true);
-        self.sharedBy('Shared by ' + self.sharedByWho);
-    } else {
-        self.shared(false);
-        self.sharedBy(false);
-    }
+
     self.selectedGroups = ko.observableArray();
     self.sharedGroupsList = [];
     if (options.sharingGroups && options.sharingGroups.length) {
         self.selectedGroups(options.sharingGroups);
     }
+
     self.sharedWith = ko.observable();
     self.updateSharedWith = function() {
         if (self.selectedGroups().length) {
@@ -1051,6 +1041,20 @@ function scenarioModel(options) {
             self.sharedWith(groupNames);
         }
     };
+
+    if (options.shared) {
+        self.shared(true);
+        var s = ['Shared By',
+                 self.sharedByName,
+                 'to group' + (self.selectedGroups().length == 1 ? '' : 's'),
+                 self.selectedGroups().join(", ")];
+        self.sharedBy(s.join(" "));
+    }
+    else {
+        self.shared(false);
+        self.sharedBy(false);
+    }
+    
     self.updateSharedWith();
     self.selectedGroups.subscribe( function() {
         self.updateSharedWith();
