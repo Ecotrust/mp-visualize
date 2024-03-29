@@ -803,6 +803,21 @@ app.wrapper.map.createOLStyleMap = function(layer, feature){
     };
   }
 
+  if (feature !== undefined) {
+    if (feature.get('color') !== undefined) {
+      layer.color = feature.get('color');
+    }
+    if (feature.get('fill_opacity') !== undefined) {
+      layer.fillOpacity = feature.get('fill_opacity');
+    }
+    if (feature.get('stroke_color') !== undefined) {
+      layer.outline_color = feature.get('stroke_color');
+    }
+    if (feature.get('stroke_width') !== undefined) {
+      layer.outline_width = feature.get('stroke_width');
+    }
+  }
+
   var stroke = new ol.style.Stroke({
     color: layer.outline_color,
     width: layer.outline_width
@@ -944,7 +959,7 @@ app.wrapper.map.getSelectedStyle = function(feature) {
 app.wrapper.map.getLayerStyle = function(feature) {
   if (feature && feature.getLayer()) {
     var layer = app.viewModel.getLayerByOLId(feature.getLayer().ol_uid);
-    var styles = app.wrapper.map.createOLStyleMap(layer);
+    var styles = app.wrapper.map.createOLStyleMap(layer, feature);
     if (layer.type == 'ArcFeatureServer' && layer.hasOwnProperty('defaultStyleFunction')) {
       var styles = {};
       styles[feature.getGeometry().getType()] = layer.defaultStyleFunction(feature)[0];

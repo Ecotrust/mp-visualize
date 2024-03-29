@@ -129,11 +129,11 @@
                                                                                        data-placement="right">
                                                                                         <i class="fa fa-user"></i>
                                                                                     </a>
-                                                                                    <a data-bind="attr: {title: 'Shared with ' + selectedGroups().join(', ')}, visible: selectedGroups().length > 0"
+                                                                                    <a data-bind="attr: {title: 'Shared with ' + selectedGroups().join(', ')}, visible: selectedGroups().length > 0 && sharedBy() != undefined"
                                                                                        style="text-decoration: none; cursor: default;"
                                                                                        data-toggle="tooltip"
                                                                                        data-placement="right">
-                                                                                        <i class="fa fa-group"></i>
+                                                                                        <i class="fa fa-user-friends"></i>
                                                                                     </a>
 
                                                                                 <span data-bind="click: loadBookmark">
@@ -246,8 +246,8 @@
                                                                                 <i class="fa fa-user"></i>
                                                                             </span>
                                                                             <span rel="tooltip"
-                                                                                  data-bind="visible: selectedGroups().length, attr: {title: sharedWith}">
-                                                                                <i class="fa fa-group"></i>
+                                                                                  data-bind="visible: selectedGroups().length > 0 && !sharedBy(), attr: {title: sharedWith}">
+                                                                                <i class="fa fa-user-friends"></i>
                                                                             </span>
                                                                             <span data-bind='text: name'></span>
                                                                         </td>
@@ -485,11 +485,11 @@
                                                                                        data-placement="right">
                                                                                         <i class="fa fa-user"></i>
                                                                                     </a>
-                                                                                    <a data-bind="attr: {title: 'Shared with ' + selectedGroups().join(', ')}, visible: selectedGroups().length > 0"
+                                                                                    <a data-bind="attr: {title: 'Shared with ' + selectedGroups().join(', ')}, visible: selectedGroups().length > 0 && !sharedBy()"
                                                                                        style="text-decoration: none; cursor: default;"
                                                                                        data-toggle="tooltip"
                                                                                        data-placement="right">
-                                                                                        <i class="fa fa-group"></i>
+                                                                                        <i class="fa fa-user-friends"></i>
                                                                                     </a>
 
                                                                                 <span data-bind="text: name"></span>
@@ -608,8 +608,8 @@
                                                                             <i class="fa fa-user"></i>
                                                                         </span>
                                                                         <span rel="tooltip"
-                                                                              data-bind="visible: selectedGroups().length, attr: {title: sharedWith}">
-                                                                            <i class="fa fa-group"></i>
+                                                                              data-bind="visible: selectedGroups().length && !sharedBy(), attr: {title: sharedWith}">
+                                                                            <i class="fa fa-user-friends"></i>
                                                                         </span>
                                                                             <span data-bind='text: name'></span>
                                                                         </td>
@@ -810,8 +810,8 @@
                                                                                 <i class="fa fa-user"></i>
                                                                             </span>
                                                                             <span rel="tooltip"
-                                                                                  data-bind="visible: selectedGroups().length, attr: {title: sharedWith}">
-                                                                                <i class="fa fa-group"></i>
+                                                                                  data-bind="visible: selectedGroups().length && !sharedBy(), attr: {title: sharedWith}">
+                                                                                <i class="fa fa-user-friends"></i>
                                                                             </span>
                                                                             <span data-bind='text: name'></span>
                                                                         </td>
