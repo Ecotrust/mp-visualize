@@ -61,7 +61,21 @@ var madrona = {
                 new_style["stroke-width"] = stroke_width;
 
             }
-            app.map.drawingLayer.setStyle(new_style);
+            
+            // app.map.drawingLayer.setStyle(new_style);
+
+
+            app.map.drawingLayer.setStyle(
+                new ol.style.Style({
+                    fill: new ol.style.Fill({
+                        color: new_style['fill-color'],
+                    }),
+                    stroke: new ol.style.Stroke({
+                        color: new_style['stroke-color'],
+                        width: new_style['stroke-width']
+                    })
+                })
+            );
         }
 
         $form.find('#id_color').on('change', function(e){

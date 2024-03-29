@@ -491,6 +491,42 @@ app.wrapper.map.formatOL5URLTemplate = function(layerUrl){
 }
 
 /**
+ * parseUrlQueryStringParameters
+ * @param {string} qs  -- the querystring (will decode if URIEncoded)
+ * @returns object containing an object of key-value 'parameters' and a list of 'non-standard' parameter strings
+ */
+app.parseUrlQueryStringParameters = function(qs) {
+  let parameters = {};
+  // RDH 20240319: I'm not sure if params can be passed in a QueryString without an '='. Can it be a flag/binary? I've written this
+  //  to capture those strings in a list, in case there's a way to use them later and have called them 'nonstandard' despite being
+  //  100% ignorant of the standards.
+  let nonstandard_params = [];
+  if(qs.indexOf('?') == 0) {
+    qs = qs.substring(1);
+  }
+  if(qs.indexOf('%26') >= 0) {
+    //decode qs
+    qs = decodeURIComponent(qs);
+  }
+  qs_parts = qs.split('&');
+  for (var idx = 0; idx < qs_parts.length; idx++) {
+    param = qs_parts[idx];
+    if (param.indexOf('=')<0) {
+      nonstandard_params = nonstandard_params.concat(param);
+    } else {
+      parameters[param.split('=')[0]] = param.split('=')[1];
+    }
+  }
+
+  return {
+    'parameters': parameters,
+    'nonstandard_params': nonstandard_params
+  }
+
+
+}
+
+/**
   * addArcRestLayerToMap - add an arcRest layer to the (ol6) map
   * @param {object} layer - the mp layer definition to add to the map
   */
@@ -505,11 +541,22 @@ app.wrapper.map.addArcRestLayerToMap = function(layer) {
     }
     layer_params['token'] = layer.token();
   }
+let export_idx = layer.url.toLowerCase().indexOf('/export');
+  if(export_idx<0) {
+    url = layer.url;
+  } else {
+    url = layer.url.substr(0,export_idx);
+    extra_params = app.parseUrlQueryStringParameters(layer.url.substring(export_idx + '/export'.length ))['parameters'];
+    // TODO: What about 'nonstandard' params? Is that even a thing?
+    for (let [key, value] of Object.entries(extra_params)) {
+      layer_params[key] = value;
+    }
+  }
   var layerSource = new ol.source.TileArcGISRest({
     attributions: '',
     params: layer_params,
     projection: 'ESPG:3857',
-    url: layer.url,
+    url: url,
     hidpi: false,
     crossOrigin: 'anonymous',
     tilePixelRatio: 1,
@@ -756,6 +803,21 @@ app.wrapper.map.createOLStyleMap = function(layer, feature){
     };
   }
 
+  if (feature !== undefined) {
+    if (feature.get('color') !== undefined) {
+      layer.color = feature.get('color');
+    }
+    if (feature.get('fill_opacity') !== undefined) {
+      layer.fillOpacity = feature.get('fill_opacity');
+    }
+    if (feature.get('stroke_color') !== undefined) {
+      layer.outline_color = feature.get('stroke_color');
+    }
+    if (feature.get('stroke_width') !== undefined) {
+      layer.outline_width = feature.get('stroke_width');
+    }
+  }
+
   var stroke = new ol.style.Stroke({
     color: layer.outline_color,
     width: layer.outline_width
@@ -897,7 +959,7 @@ app.wrapper.map.getSelectedStyle = function(feature) {
 app.wrapper.map.getLayerStyle = function(feature) {
   if (feature && feature.getLayer()) {
     var layer = app.viewModel.getLayerByOLId(feature.getLayer().ol_uid);
-    var styles = app.wrapper.map.createOLStyleMap(layer);
+    var styles = app.wrapper.map.createOLStyleMap(layer, feature);
     if (layer.type == 'ArcFeatureServer' && layer.hasOwnProperty('defaultStyleFunction')) {
       var styles = {};
       styles[feature.getGeometry().getType()] = layer.defaultStyleFunction(feature)[0];
