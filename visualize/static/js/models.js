@@ -138,6 +138,14 @@ function layerModel(options, parent) {
         //  * We encode the URL -- this means we also need to re-write all logic that parses the URL (like legend, export, and query)
         //  * finally, we add proxy_params=true -- this gives us a nice pattern to break on (anything appended is assumed to be meant for 'url')
         self.url = "/visualize/proxy?layer_id=" + self.id + "&url=" + encodeURIComponent(self.url) + "%3F&proxy_params=true";
+        if (self.type == "ArcRest") {
+          if (self.url.toLowerCase().indexOf('imageserver') >=0 ) {
+            self.url += "&proxy_tech=ImageServer";
+          } else if ( (self.url.toLowerCase().indexOf('mapserver') >=0 )) {
+            self.url += "&proxy_tech=MapServer";
+          }
+        }
+
         if (self.type == "XYZ" || self.type == "VectorTile") {
           // RDH 2022-06-07: Proxies get harder
           //  XYZ templates are interpreted client-side by OpenLayers, so they CAN'T be encoded, or OL will never recognize them.
