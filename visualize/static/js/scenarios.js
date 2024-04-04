@@ -1871,18 +1871,27 @@ function scenariosModel(options) {
                             let fill_dict = hexToRgb(scenario_properties.color);
                             fill_dict.a = scenario_properties.fill_opacity;
                             let fill_color = `rgba(${fill_dict.r},${fill_dict.g},${fill_dict.b},${fill_dict.a})`;
-                            svg_size = 30;
+                            svg_size = 17;
                             svg_center = svg_size/2;
                             svg_stroke_width = scenario_properties.stroke_width;
                             svg_stroke_color = scenario_properties.stroke_color;
                             if (type=="Point") {
-                                svg_r = (svg_size-5)/2-svg_stroke_width;
+                                svg_r = (svg_size-svg_stroke_width)/2;
+                                svg_center += svg_stroke_width;
                                 svg_circle = `<circle r="${svg_r}px" cx="${svg_center}px" cy="${svg_center}px" stroke="${svg_stroke_color}" stroke-width="${svg_stroke_width}px" fill="${fill_color}" />`;
                                 swatch_element.type = 'point_image';
                                 swatch_element.viz = `<svg height="${svg_size}px" width="${svg_size}px" xmlns="http://www.w3.org/2000/svg" class="legend-${swatch_element.type}">${svg_circle}</svg>`;
                             } else {
-                                swatch_size = svg_size-5-(2*svg_stroke_width);
-                                svg_swatch = `<rect width="${swatch_size}px" height="${swatch_size}px" x="${svg_stroke_width}px" y="${svg_stroke_width}px" style="fill:${fill_color};stroke-width=${svg_stroke_width};stroke:${svg_stroke_color}" />`;
+                                if (type=="Polygon") {
+                                    swatch_size = svg_size-2*svg_stroke_width;
+                                    if (swatch_size < 4) {
+                                        swatch_size = 4;
+                                        svg_stroke_width = (svg_size-4)/2;
+                                    }
+                                } else {
+                                    swatch_size = svg_size-5-(2*svg_stroke_width);
+                                }
+                                svg_swatch = `<rect width="${svg_size}px" height="${svg_size}px" x="1px" y="1px" style="fill:${fill_color};stroke-width:${svg_stroke_width};stroke:${svg_stroke_color}" />`;
                                 swatch_element.type = 'swatch';
                                 swatch_element.viz = `<svg width="${svg_size}px" height="${svg_size}px" xmlns="http://www.w3.org/2000/svg" class="legend-${swatch_element.type}">${svg_swatch}</svg>`;
                             }
