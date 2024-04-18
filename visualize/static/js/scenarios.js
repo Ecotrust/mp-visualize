@@ -107,6 +107,8 @@ var madrona = {
     }
 }; // end madrona init
 
+
+
 function scenarioFormModel(options) {
     var self = this;
 
@@ -1075,7 +1077,7 @@ function scenarioModel(options) {
             //app.viewModel.scenarios.addScenarioToMap(scenario);
         }
     };
-
+    
     self.activateLayer = function() {
         var scenario = this;
         app.viewModel.scenarios.addScenarioToMap(scenario);
@@ -1092,6 +1094,8 @@ function scenarioModel(options) {
         // }
         self.active(true);
     };
+
+
 
     self.deactivateLayer = function() {
         var scenario = this;
