@@ -1633,6 +1633,7 @@ function layerModel(options, parent) {
           url: '/data_manager/get_layer_details/' + layer.id,
           crossDomain: true,
           success: function(data) {
+            if(data==undefined){debugger;}
             if (data.hasOwnProperty('name')) {
               layer.name = data.name;
               app.viewModel.layerIndex[layer.id.toString()] = layer;
@@ -1978,6 +1979,36 @@ function layerModel(options, parent) {
 
     return self;
 } // end layerModel
+
+function reactToggleTheme(theme_id) {
+  console.log(app.viewModel.themes())
+  var selectedTheme = app.viewModel.themes().find(theme => theme.id === theme_id);
+
+  if (selectedTheme != undefined) {
+    selectedTheme.setOpenTheme()
+  // Get all layers of the selected theme
+  }
+  // app.viewModel.themes()[theme_id].layers()[layerId].activateLayer()
+
+}
+
+function getAncestorTheme(theme_id) {
+  var selectedTheme = app.viewModel.themes().find(theme => theme.id === theme_id);
+  if (selectedTheme != undefined) {
+    return selectedTheme
+  } else {
+    var selectedLayer = app.viewModel.getLayerById(theme_id)
+  }
+}
+
+function reactToggleLayer(layerId, theme_id){
+  var selectedTheme = app.viewModel.themes().find(theme => theme.id === theme_id);
+  var layers = selectedTheme.layers();
+  console.log(layers)
+  // Find the specific layer by layerId
+  var selectedLayer = layers.find(layer => layer.id === layerId);
+  selectedLayer.toggleActive(selectedLayer,null);
+}
 
 function themeModel(options) {
     var self = this;
