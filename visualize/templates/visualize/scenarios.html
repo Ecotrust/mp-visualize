@@ -98,7 +98,6 @@
                                                         <table class="layer-row">
                                                             <tr>
                                                               <td>
-                                                                <!-- ko if: $data.description -->
                                                                   <a class="btn btn-info-sign"
                                                                      data-bind="click: toggleDescription, css: { 'active': infoActive()}"
                                                                      data-toggle="tooltip"
@@ -106,17 +105,6 @@
                                                                      data-title="More Info">
                                                                       <i class="fa fa-info-circle"></i>
                                                                   </a>
-                                                                <!-- /ko -->
-                                                                <!-- ko ifnot: $data.description -->
-                                                                <a class="btn btn-info-sign"
-                                                                   style="cursor: default;"
-                                                                   data-toggle="tooltip"
-                                                                   data-placement="right"
-                                                                   data-title="More Info">
-                                                                   &nbsp;&nbsp;&nbsp;
-                                                                    <!-- <i class="fa fa-info-circle"></i> -->
-                                                                </a>
-                                                                <!-- /ko -->
                                                               </td>
                                                                 <td class="layer-name">
                                                                     <a class="btn btn-layer">
@@ -154,7 +142,6 @@
                                                                 </td>
                                                             </tr>
                                                         </table>
-                                                        <!-- ko if: $data.description -->
                                                         <div class="layer-info" data-bind="visible: infoActive()">
                                                             <div class="layer-text">
                                                               <span data-bind="text: description" class="layer-description"></span>
@@ -169,7 +156,6 @@
 
                                                             </div>
                                                         </div>
-                                                        <!-- /ko -->
                                                     </li>
                                                 </ul>
                                             </div>
