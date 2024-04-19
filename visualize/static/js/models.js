@@ -1751,7 +1751,7 @@ function layerModel(options, parent) {
 
         if (layer.active()) { // if layer is active
             layer.deactivateLayer();
-
+            reactRemoveLayerFromActive(layer.id);
             if (layer.hasOwnProperty('scenarioModel') && event) {
               layer.scenarioModel.deactivateLayer(self, false);
             }
@@ -1979,22 +1979,29 @@ function reactToggleTheme(theme_id) {
 
 }
 
-function getAncestorTheme(theme_id) {
-  var selectedTheme = app.viewModel.themes().find(theme => theme.id === theme_id);
-  if (selectedTheme != undefined) {
-    return selectedTheme
-  } else {
-    var selectedLayer = app.viewModel.getLayerById(theme_id)
-  }
+function reactRemoveLayerFromActive(layerId) {
+  // Your logic to deactivate the layer
+  console.log('Layer deactivated:', layerId);
+
+  // Create a custom event with layer information
+  var event = new CustomEvent('LayerDeactivated', { detail: { layerId } });
+  window.dispatchEvent(event);
 }
 
-function reactToggleLayer(layerId, theme_id){
-  var selectedTheme = app.viewModel.themes().find(theme => theme.id === theme_id);
+function reactToggleLayer(layerId, theme_id, topLevelThemeId){
+  var selectedTheme = app.viewModel.themes().find(theme => theme.id === topLevelThemeId);
   var layers = selectedTheme.layers();
   console.log(layers)
   // Find the specific layer by layerId
-  var selectedLayer = layers.find(layer => layer.id === layerId);
-  selectedLayer.toggleActive(selectedLayer,null);
+  if (theme_id != topLevelThemeId) {
+    var sublayers = layers.find(layer => layer.id === theme_id);
+    var selectedLayer = sublayers.subLayers.find(layer => layer.id === layerId)
+    selectedLayer.toggleActive(selectedLayer,null);
+  }
+  else {
+    var selectedLayer = layers.find(layer => layer.id === layerId)
+    selectedLayer.toggleActive(selectedLayer,null);
+  }
 }
 
 function themeModel(options) {
