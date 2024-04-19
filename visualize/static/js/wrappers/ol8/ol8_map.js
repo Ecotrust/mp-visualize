@@ -957,7 +957,14 @@ app.wrapper.map.getSelectedStyle = function(feature) {
 }
 
 app.wrapper.map.getLayerStyle = function(feature) {
-  if (feature && feature.getLayer() && app.viewModel.getLayerByOLId(feature.getLayer().ol_uid).defaultStyleFunction(feature) != null) {
+  if (
+    feature && 
+    feature.getLayer() && 
+    (
+      !app.viewModel.getLayerByOLId(feature.getLayer().ol_uid) ||
+      app.viewModel.getLayerByOLId(feature.getLayer().ol_uid).defaultStyleFunction(feature) != null
+    )
+  ) {
     var layer = app.viewModel.getLayerByOLId(feature.getLayer().ol_uid);
     var styles = app.wrapper.map.createOLStyleMap(layer, feature);
     if (layer.type == 'ArcFeatureServer' && layer.hasOwnProperty('defaultStyleFunction')) {
