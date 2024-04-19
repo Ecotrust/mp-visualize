@@ -158,6 +158,15 @@
                                                         <div class="layer-info" data-bind="visible: infoActive()">
                                                             <div class="layer-text">
                                                               <span data-bind="text: description" class="layer-description"></span>
+                                                              <div 
+                                                                class='sharing-info' 
+                                                                data-bind="text: sharedBy, visible: shared()"
+                                                              ></div>
+                                                              <div 
+                                                                class='sharing-info' 
+                                                                data-bind="text: 'You share this with: ' + selectedGroups().join(', '), visible: selectedGroups().length > 0 && sharedBy() != undefined"
+                                                              ></div>
+
                                                             </div>
                                                         </div>
                                                         <!-- /ko -->
@@ -376,6 +385,14 @@
                                                     </div>
                                                     <div class="layer-text">
                                                         <span data-bind="text: description" class="layer-description"></span>
+                                                        <div 
+                                                            class='sharing-info' 
+                                                            data-bind="text: sharedBy, visible: shared()"
+                                                        ></div>
+                                                        <div 
+                                                            class='sharing-info' 
+                                                            data-bind="text: 'You share this with: ' + selectedGroups().join(', '), visible: selectedGroups().length > 0 && !sharedBy()"
+                                                        ></div>
                                                         <!-- ko if: $data.data_url -->
                                                         <a data-bind="attr: {href: $data.data_url}">read
                                                             more</a>.
@@ -454,7 +471,6 @@
                                                         <table class="layer-row">
                                                             <tr>
                                                               <td>
-                                                                <!-- ko if: $data.description -->
                                                                   <a class="btn btn-info-sign"
                                                                      data-bind="click: toggleDescription, css: { 'active': infoActive()}"
                                                                      data-toggle="tooltip"
@@ -462,17 +478,6 @@
                                                                      data-title="More Info">
                                                                       <i class="fa fa-info-circle"></i>
                                                                   </a>
-                                                                <!-- /ko -->
-                                                                <!-- ko ifnot: $data.description -->
-                                                                <a class="btn btn-info-sign"
-                                                                   style="cursor: default;"
-                                                                   data-toggle="tooltip"
-                                                                   data-placement="right"
-                                                                   data-title="More Info">
-                                                                   &nbsp;&nbsp;&nbsp;
-                                                                    <!-- <i class="fa fa-info-circle"></i> -->
-                                                                </a>
-                                                                <!-- /ko -->
                                                               </td>
                                                                 <td class="layer-name" data-bind="css: {isInvisible: isInvisible()}">
                                                                     <a class="btn btn-layer" data-bind='click: app.viewModel.userLayers.toggleUserLayer, attr: { id:id+"_selection"}'>
@@ -513,13 +518,19 @@
                                                                 </td>
                                                             </tr>
                                                         </table>
-                                                        <!-- ko if: $data.description -->
                                                         <div class="layer-info" data-bind="visible: infoActive()">
                                                             <div class="layer-text">
-                                                              <span data-bind="text: description" class="layer-description"></span>
+                                                            <span data-bind="text: description" class="layer-description"></span>
+                                                            <div 
+                                                                class='sharing-info' 
+                                                                data-bind="text: sharedBy, visible: shared()"
+                                                            ></div>
+                                                            <div 
+                                                                class='sharing-info' 
+                                                                data-bind="text: 'You share this with: ' + selectedGroups().join(', '), visible: selectedGroups().length > 0 && !sharedBy()"
+                                                                ></div>
                                                             </div>
                                                         </div>
-                                                        <!-- /ko -->
                                                     </li>
                                                 </ul>
                                             </div>
