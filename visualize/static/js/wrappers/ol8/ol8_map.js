@@ -960,10 +960,9 @@ app.wrapper.map.getLayerStyle = function(feature) {
   if (
     feature && 
     feature.getLayer() && 
-    (
-      !app.viewModel.getLayerByOLId(feature.getLayer().ol_uid) ||
-      app.viewModel.getLayerByOLId(feature.getLayer().ol_uid).defaultStyleFunction(feature) != null
-    )
+    feature.getLayer() != undefined &&
+    feature.getLayer().ol_id != undefined &&
+    app.viewModel.getLayerByOLId(feature.getLayer().ol_uid).defaultStyleFunction(feature) != null
   ) {
     var layer = app.viewModel.getLayerByOLId(feature.getLayer().ol_uid);
     var styles = app.wrapper.map.createOLStyleMap(layer, feature);
