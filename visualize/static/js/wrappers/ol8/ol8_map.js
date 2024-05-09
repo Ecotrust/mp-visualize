@@ -961,7 +961,7 @@ app.wrapper.map.getLayerStyle = function(feature) {
     feature && 
     feature.getLayer() && 
     feature.getLayer() != undefined &&
-    feature.getLayer().ol_id != undefined &&
+    feature.getLayer().ol_uid != undefined &&
     app.viewModel.getLayerByOLId(feature.getLayer().ol_uid).defaultStyleFunction(feature) != null
   ) {
     var layer = app.viewModel.getLayerByOLId(feature.getLayer().ol_uid);
