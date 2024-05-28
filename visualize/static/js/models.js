@@ -1993,12 +1993,64 @@ function reactToggleTheme(theme_id) {
 }
 
 function reactRemoveLayerFromActive(layerId) {
-  // Your logic to deactivate the layer
   console.log('Layer deactivated:', layerId);
 
   // Create a custom event with layer information
   var event = new CustomEvent('LayerDeactivated', { detail: { layerId } });
   window.dispatchEvent(event);
+}
+
+window.addEventListener("ReactLayerActivated", reactLayerActivated)
+window.addEventListener("ReactLayerDeactivated", reactLayerDeactivated)
+
+function reactLayerActivated(event){
+  console.log(event.detail)
+  const topLevelThemeId = event.detail.topLevelThemeId
+  const layerId = event.detail.layerId
+  const theme_id = event.detail.theme_id
+  var selectedTheme = app.viewModel.themes().find(theme => theme.id === topLevelThemeId);
+  var layers = selectedTheme.layers();
+  console.log(layers)
+  // Find the specific layer by layerId
+  if (theme_id != topLevelThemeId) {
+    var sublayers = layers.find(layer => layer.id === theme_id);
+    var selectedLayer = sublayers.subLayers.find(layer => layer.id === layerId)
+    if (!selectedLayer.active()) {
+      selectedLayer.toggleActive(selectedLayer,null);
+    }
+    
+  }
+  else {
+    var selectedLayer = layers.find(layer => layer.id === layerId)
+    if (!selectedLayer.active()) {
+      selectedLayer.toggleActive(selectedLayer,null);
+    }
+  }
+  console.log("hi")
+}
+
+function reactLayerDeactivated(event){
+  const topLevelThemeId = event.detail.topLevelThemeId
+  const layerId = event.detail.layerId
+  const theme_id = event.detail.theme_id
+  var selectedTheme = app.viewModel.themes().find(theme => theme.id === topLevelThemeId);
+  var layers = selectedTheme.layers();
+  console.log(layers)
+  // Find the specific layer by layerId
+  if (theme_id != topLevelThemeId) {
+    var sublayers = layers.find(layer => layer.id === theme_id);
+    var selectedLayer = sublayers.subLayers.find(layer => layer.id === layerId)
+    if (selectedLayer.active()) {
+      selectedLayer.toggleActive(selectedLayer,null);
+    }
+  }
+  else {
+    var selectedLayer = layers.find(layer => layer.id === layerId)
+    if (selectedLayer.active()) {
+      selectedLayer.toggleActive(selectedLayer,null);
+    }
+  }
+  console.log("hi")
 }
 
 function reactToggleLayer(layerId, theme_id, topLevelThemeId){
