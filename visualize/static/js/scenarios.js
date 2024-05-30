@@ -53,29 +53,56 @@ var madrona = {
             stroke_color = $('#id_stroke_color').val();
             stroke_width = parseInt($('#id_stroke_width').val());
 
-            new_style = {
-                "fill-color": fill_val,
-            };
-            if (stroke_width > 0) {
-                new_style["stroke-color"] = stroke_color;
-                new_style["stroke-width"] = stroke_width;
-
-            }
+            // Allowing users a stroke-width of 0 would be cool, but
+            //  makes no sense for linestrings. Also 0-width strokes
+            //  are not yet respected when rendering the final style
+            //  after editing is done. Uncomment the code below once 
+            //  that is fixed.
             
-            // app.map.drawingLayer.setStyle(new_style);
-
-
-            app.map.drawingLayer.setStyle(
-                new ol.style.Style({
+            // if (stroke_width > 0) {
+                line_poly_style = new ol.style.Style({
                     fill: new ol.style.Fill({
-                        color: new_style['fill-color'],
+                        color: fill_val,
                     }),
                     stroke: new ol.style.Stroke({
-                        color: new_style['stroke-color'],
-                        width: new_style['stroke-width']
+                        color: stroke_color,
+                        width: stroke_width
+                    }),
+                });
+                point_style = new ol.style.Style({
+                    image: new ol.style.Circle({
+                        fill: new ol.style.Fill({
+                            color: fill_val,
+                        }),
+                        radius: 5,
+                        stroke: new ol.style.Stroke({
+                            color: stroke_color,
+                            width: stroke_width
+                        }),
                     })
-                })
-            );
+                });
+            // } else {
+            //     line_poly_style = new ol.style.Style({
+            //         fill: new ol.style.Fill({
+            //             color: fill_val,
+            //         }),
+            //     });
+            //     point_style = new ol.style.Style({
+            //         image: new ol.style.Circle({
+            //             fill: new ol.style.Fill({
+            //                 color: fill_val,
+            //             }),
+            //             radius: 5,
+            //         })
+            //     });
+            // }
+
+            styles = [
+                line_poly_style,
+                point_style
+            ]
+
+            app.map.drawingLayer.setStyle(styles);
         }
 
         $form.find('#id_color').on('change', function(e){
