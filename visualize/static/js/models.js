@@ -625,8 +625,13 @@ function layerModel(options, parent) {
 
           } else if (legendobj.symbol.type == "esriSFS"){
             color = 'rgba(' + legendobj.symbol.color.join(',') + ')';
-            outline_color = 'rgba(' + legendobj.symbol.outline.color.join(',') + ')';
-            outline_width = legendobj.symbol.outline.width;
+            if (legendobj.symbol.outline != null) {
+              outline_color = 'rgba(' + legendobj.symbol.outline.color.join(',') + ')';
+              outline_width = legendobj.symbol.outline.width;
+            } else {
+              outline_color = 'rgba(0,0,0,0)';
+              outline_width = 0;
+            }
             style = `border: ${outline_width}px ${outline_style} ${outline_color}; background-color: ${color}`;
             viz = `<div class="legend-${type}" style="${style}"></div>`;
           } else if (legendobj.symbol.type == "esriSLS"){
