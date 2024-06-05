@@ -363,10 +363,20 @@ function layerModel(options, parent) {
     });
 
     self.isInvisible = ko.pureComputed(function() {
-      if (!self.isVisibleAtZoom() || self.isLocked()) {
-        return true;
-      } 
-      return false;
+      // if (!self.isVisibleAtZoom() || self.isLocked()) {
+      //   return true;
+      // } 
+      // return false;
+
+      var isInvisible = !self.isVisibleAtZoom() || self.isLocked();
+        
+        // Dispatch a custom event when isInvisible changes
+        var event = new CustomEvent('layerVisibilityChanged', {
+            detail: { isInvisible: isInvisible }
+        });
+        window.dispatchEvent(event);
+
+        return isInvisible;
     })
 
     self.isVisibleAtZoom = ko.pureComputed(function() {
@@ -2002,8 +2012,17 @@ function reactRemoveLayerFromActive(layerId) {
 
 window.addEventListener("ReactLayerActivated", reactLayerActivated)
 window.addEventListener("ReactLayerDeactivated", reactLayerDeactivated)
+window.addEventListener("ReactThemeExpanded", reactThemeExpanded)
 
-function reactLayerActivated(event){
+function reactThemeExpanded (event){
+  const themeId = event.detail.themeId
+  var selectedTheme = app.viewModel.themes().find(theme => theme.id === themeId);
+  if (selectedTheme && selectedTheme.layers().length == 1 && selectedTheme.layers()[0].id == null || selectedTheme.layers().length == 0) {
+    selectedTheme.getLayers();
+  }
+}
+
+async function reactLayerActivated(event){
   console.log(event.detail)
   const topLevelThemeId = event.detail.topLevelThemeId
   const layerId = event.detail.layerId
@@ -2114,10 +2133,12 @@ function themeModel(options) {
     //add to open themes
     self.setOpenTheme = function() {
         var theme = this;
-
+        console.log("this is theme in setopentheme", theme)
         if (self.isOpenTheme(theme)) {
+          console.log("this is to remove theme in set open theme", theme)
           app.viewModel.openThemes.remove(theme);
         } else {
+          console.log("this is to add theme in setopentheme", theme)
           app.viewModel.openThemes.push(theme);
           self.trackTheme(theme.name);
         }
@@ -3362,16 +3383,20 @@ function viewModel() {
         }
         //self.activeTheme(theme);
         if (!(found.theme instanceof themeModel)) {
+          console.log(found)
           if (Number.isInteger(found.theme)) {
             found.theme = app.viewModel.getThemeById(found.theme);
-          } else if (found.theme.hasOwnProperty('id')) {
+          } else if (found.theme && found.theme.hasOwnProperty('id')) {
             found.theme = app.viewModel.getThemeById(found.theme.id);
-          } else {
+          } else if (found.theme === null) {
+            console.log("theme is null")
+          }
+          else {
             console.log("Did not find theme for layer indicated.");
             return false;
           }
         }
-        if (self.openThemes.indexOf(found.theme) === -1) {
+        if (self.openThemes.indexOf(found.theme) === -1 && found.theme) {
           // self.openThemes.push(found.theme);
 
           found.theme.setOpenTheme();
@@ -3381,6 +3406,9 @@ function viewModel() {
         }
         if (found.layer instanceof layerModel) {
           found.layer.activateLayer();
+          // Dispatch custom event
+          const layerActivatedEvent = new CustomEvent('layerActivated', { detail: { layerId: found.layer.id  } });
+          window.dispatchEvent(layerActivatedEvent);
         } else {
           var layer_obj = {id:found.layer, name:"Loading..."};
           var parent = null;
