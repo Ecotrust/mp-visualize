@@ -1630,7 +1630,8 @@ function layerModel(options, parent) {
     }
 
     self.getFullLayerRecord = function(callbackType, evt) {
-      var layer = this;
+      const layer = this;
+
       if (layer.isMDAT || layer.isVTR || layer.isDrawingModel || layer.isSelectionModel || layer.hasOwnProperty('wmsSession') && layer.wmsSession()) {
         layer.fullyLoaded = true;
         if (app.map.hasOwnProperty('zoom')){
@@ -1666,8 +1667,10 @@ function layerModel(options, parent) {
               app.map.zoom.valueHasMutated();
             }
             layer.performAction(callbackType, evt);
-            app.viewModel.layerIndex[layer.id.toString()] = layer;
 
+            if (layer.id){
+              app.viewModel.layerIndex[layer.id.toString()] = layer;
+            }
             if (!data.hasOwnProperty('url') || !data.url || !data.url.length > 0 || data.hasOwnProperty('type') && data.type == 'placeholder') {
               layer.loadStatus(false);
             }
@@ -2017,8 +2020,14 @@ window.addEventListener("ReactThemeExpanded", reactThemeExpanded)
 function reactThemeExpanded (event){
   const themeId = event.detail.themeId
   var selectedTheme = app.viewModel.themes().find(theme => theme.id === themeId);
-  if (selectedTheme && selectedTheme.layers().length == 1 && selectedTheme.layers()[0].id == null || selectedTheme.layers().length == 0) {
-    selectedTheme.getLayers();
+  if (selectedTheme) {
+    // Ensure the layers array is accessible before checking its properties
+    const layers = selectedTheme.layers();
+    if ((layers.length === 1 && layers[0].id == null) || layers.length === 0) {
+      selectedTheme.getLayers();
+    }
+  } else {
+    console.log(`Theme with ID ${themeId} not found`);
   }
 }
 
@@ -3407,7 +3416,8 @@ function viewModel() {
         if (found.layer instanceof layerModel) {
           found.layer.activateLayer();
           // Dispatch custom event
-          const layerActivatedEvent = new CustomEvent('layerActivated', { detail: { layerId: found.layer.id  } });
+          console.log("this is found.theme: ", found.theme)
+          const layerActivatedEvent = new CustomEvent('layerActivated', { detail: { layerId: found.layer.id, themeId: found.theme?.id ?? null } });
           window.dispatchEvent(layerActivatedEvent);
         } else {
           var layer_obj = {id:found.layer, name:"Loading..."};
