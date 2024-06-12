@@ -369,12 +369,6 @@ function layerModel(options, parent) {
       // return false;
 
       var isInvisible = !self.isVisibleAtZoom() || self.isLocked();
-        
-        // Dispatch a custom event when isInvisible changes
-        var event = new CustomEvent('layerVisibilityChanged', {
-            detail: { isInvisible: isInvisible }
-        });
-        window.dispatchEvent(event);
 
         return isInvisible;
     })
