@@ -428,7 +428,9 @@
     <script src="{% static 'jqueryui-touch-punch/jquery.ui.touch-punch.min.js' %}"></script>
 
 
+    {% block context_js %}
     <script src="{% static 'js/contextual_menu.js' %}"></script>
+    {% endblock %}
     <script src="{% static 'js/fixtures.js' %}"></script>
 
     <script type="text/javascript">
