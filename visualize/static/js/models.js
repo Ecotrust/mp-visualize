@@ -717,7 +717,7 @@ function layerModel(options, parent) {
         }
 
         layer.layer = null;
-
+        reactRemoveLayerFromActive(layer.id);
     };
 
     // called from deactivateLayer
@@ -1024,11 +1024,14 @@ function layerModel(options, parent) {
                   if (layer.parentMDATDirectory) {
                     if (!layer.parentMDATDirectory.searchQueryable) {
                       self.activateCompanionLayer()
+                      console.log('im activating companion layer MDAT')
                     }
                   } else {
                     self.activateCompanionLayer();
+                    console.log('im activating companion layer else')
                   }
                 }
+                
               }
 
               //activate multilayer groups
@@ -1038,6 +1041,10 @@ function layerModel(options, parent) {
               }
 
               self.trackLayer(layer.name);
+
+              // Dispatch custom event
+              const layerActivatedEvent = new CustomEvent('layerActivated', { detail: { layerId: layer.id, themeId: layer.theme?.id ?? null } });
+              window.dispatchEvent(layerActivatedEvent);
             }
           } else {
             if (callbackOverride){
@@ -1624,6 +1631,7 @@ function layerModel(options, parent) {
     }
 
     self.getFullLayerRecord = function(callbackType, evt) {
+      console.log("getFullLayerRecord called for layer: ", this.id, " callbackType: ", callbackType);
       const layer = this;
 
       if (layer.isMDAT || layer.isVTR || layer.isDrawingModel || layer.isSelectionModel || layer.hasOwnProperty('wmsSession') && layer.wmsSession()) {
@@ -1771,7 +1779,7 @@ function layerModel(options, parent) {
 
         if (layer.active()) { // if layer is active
             layer.deactivateLayer();
-            reactRemoveLayerFromActive(layer.id);
+            
             if (layer.hasOwnProperty('scenarioModel') && event) {
               layer.scenarioModel.deactivateLayer(self, false);
             }
@@ -2111,6 +2119,7 @@ function themeModel(options) {
 
     //Get Theme's layers if not done yet
     self.getLayers = function() {
+      console.log("getLayers called for theme: ", this.id);
       var theme = this;
       $.ajax({
         url: '/data_manager/get_layers_for_theme/' + theme.id,
@@ -2135,6 +2144,7 @@ function themeModel(options) {
 
     //add to open themes
     self.setOpenTheme = function() {
+      console.log("setOpenTheme called for theme: ", this.id);
         var theme = this;
         console.log("this is theme in setopentheme", theme)
         if (self.isOpenTheme(theme)) {
@@ -3294,6 +3304,7 @@ function viewModel() {
       * @param {event} event - an optional event that triggered this request to be passed on when loading the layer
       */
     self.getOrCreateLayer = function(layer_obj, parent, action, event, override_defaults) {
+      console.log("getOrCreateLayer called with: ", layer_obj, " action: ", action);
       var layer = self.getLayerById(layer_obj.id);
       if (!layer) {
         if (!layer_obj.hasOwnProperty('name')) {
@@ -3356,6 +3367,7 @@ function viewModel() {
         self.searchTermInput(undefined);
     }
     self.layerSearch = function() {
+      console.log("Layer search initiated for term: ", self.searchTerm());
         var found = self.layerSearchIndex[self.searchTerm()];
         if (!found) {
             console.log("Did not find search term", self.searchTerm());
@@ -3399,9 +3411,9 @@ function viewModel() {
             return false;
           }
         }
-        if (self.openThemes.indexOf(found.theme) === -1 && found.theme) {
+        if (self.openThemes.indexOf(found.theme) === -1 && found.theme && found.theme.name != "Companion") {
           // self.openThemes.push(found.theme);
-
+          console.log("this is the found theme:" + found.theme)
           found.theme.setOpenTheme();
           window.setTimeout(function() {
             $('#activeTab').tab('show');
@@ -3410,9 +3422,11 @@ function viewModel() {
         if (found.layer instanceof layerModel) {
           found.layer.activateLayer();
           // Dispatch custom event
-          console.log("this is found.theme: ", found.theme)
-          const layerActivatedEvent = new CustomEvent('layerActivated', { detail: { layerId: found.layer.id, themeId: found.theme?.id ?? null } });
-          window.dispatchEvent(layerActivatedEvent);
+          // console.log("this is found.theme: ", found.theme)
+          // if (found.theme && found.theme.name != "Companion"){
+          //   const layerActivatedEvent = new CustomEvent('layerActivated', { detail: { layerIds: [found.layer.id], themeId: found.theme?.id ?? null } });
+          //   window.dispatchEvent(layerActivatedEvent);
+          // }
         } else {
           var layer_obj = {id:found.layer, name:"Loading..."};
           var parent = null;
