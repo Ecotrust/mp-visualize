@@ -559,7 +559,7 @@ app.addLayerToMap = function(layer) {
         app.addWmsLayerToMap(layer);
       } else if (layer.type === 'VectorTile') {
         app.addVectorTileLayerToMap(layer);
-      } else if (layer.type === 'XYZ'){ //if XYZ with no utfgrid
+      } else if (layer.type === 'XYZ' || layer.type === "slider"){ //if XYZ with no utfgrid
         app.addXyzLayerToMap(layer);
       }
     }

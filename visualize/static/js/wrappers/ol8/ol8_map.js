@@ -418,6 +418,7 @@ app.wrapper.map.removeLayerByUID = function(uid) {
   * @param {object} layer - mp layer instance
   */
 app.wrapper.map.postProcessLayer = function(layer){
+
   layer.layer.set('name', layer.name);
   layer.layer.set('type', 'overlay');
   layer.layer.set('mpid', layer.id);
