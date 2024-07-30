@@ -2038,19 +2038,20 @@ function reactThemeExpanded (event){
 
 function reactLayerActivated(event){
 
-  app.viewModel.layerIndex[event.detail.layerId]
   const topLevelThemeId = event.detail.topLevelThemeId
   const layerId = event.detail.layerId
   const theme_id = event.detail.theme_id
+  const layerName = event.detail.layerName
   // var selectedTheme = app.viewModel.themes().find(theme => theme.id === topLevelThemeId);
   // selectedTheme.asyncGetLayers()
   // var layers = selectedTheme.layers();
 
   // Find the specific layer by layerId
-  var selectedLayer = app.viewModel.layerIndex[event.detail.layerId];
-  if (!selectedLayer.active()) {
-    selectedLayer.toggleActive(selectedLayer, null);
-  }
+  app.viewModel.searchTerm(layerName);
+  app.viewModel.layerSearch();
+  // if (!selectedLayer.active()) {
+  //   selectedLayer.toggleActive(selectedLayer, null);
+  // }
 }
 
 function reactLayerDeactivated(event){
@@ -2061,8 +2062,7 @@ function reactLayerDeactivated(event){
   var layers = selectedTheme.layers();
   // Find the specific layer by layerId
   if (theme_id != topLevelThemeId) {
-    var sublayers = layers.find(layer => layer.id === theme_id);
-    var selectedLayer = sublayers.subLayers.find(layer => layer.id === layerId)
+    var selectedLayer = app.viewModel.layerIndex[layerId];
     if (selectedLayer.active()) {
       selectedLayer.toggleActive(selectedLayer,null);
     }
