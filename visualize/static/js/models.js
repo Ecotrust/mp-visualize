@@ -2021,6 +2021,12 @@ function reactRemoveLayerFromActive(layerId) {
 window.addEventListener("ReactLayerActivated", reactLayerActivated)
 window.addEventListener("ReactLayerDeactivated", reactLayerDeactivated)
 window.addEventListener("ReactThemeExpanded", reactThemeExpanded)
+window.addEventListener("ReactVTRLayer", ReactVTRLayer)
+
+function ReactVTRLayer (event){
+  console.log(event.detail)
+  app.viewModel.activateVTRLayer(event.detail.layer)
+}
 
 function reactThemeExpanded (event){
   const themeId = event.detail.themeId
@@ -2068,7 +2074,7 @@ function reactLayerDeactivated(event){
     }
   }
   else {
-    var selectedLayer = layers.find(layer => layer.id === layerId)
+    var selectedLayer = app.viewModel.layerIndex[layerId];
     if (selectedLayer.active()) {
       selectedLayer.toggleActive(selectedLayer,null);
     }
