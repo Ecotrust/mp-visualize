@@ -2022,10 +2022,34 @@ window.addEventListener("ReactLayerActivated", reactLayerActivated)
 window.addEventListener("ReactLayerDeactivated", reactLayerDeactivated)
 window.addEventListener("ReactThemeExpanded", reactThemeExpanded)
 window.addEventListener("ReactVTRLayer", ReactVTRLayer)
+window.addEventListener("ReactMDATLayer", ReactMDATLayer)
 
 function ReactVTRLayer (event){
-  console.log(event.detail)
   app.viewModel.activateVTRLayer(event.detail.layer)
+}
+
+async function ReactMDATLayer(event) {
+  // var selectedTheme = app.viewModel.themes().find(theme => theme.id === 24);
+
+  // try {
+  //   // Wait for the promise to resolve
+  //   const layers = await selectedTheme.asyncGetLayers();
+  //   console.log(layers); // Now you can see the actual layers data
+  // } catch (error) {
+  //   console.error("Error fetching layers:", error);
+  // }
+  // var layers = selectedTheme.layers();
+  var mdatLayer = event.detail.layer
+  var selectedLayer = app.viewModel.layerIndex[event.detail.parentTheme.id]
+  selectedLayer.type = "ArcRest"
+  selectedLayer.url = event.detail.parentTheme.url
+  selectedLayer.mdat_param = event.detail.parentTheme.url + "?f=pjson"
+  console.log(selectedLayer)
+  mdatLayer.parentDirectory = selectedLayer
+  // console.log(selectedLayer)
+  // selectedLayer.toggleActive(selectedLayer, null);
+  // app.viewModel.activeLayer(selectedLayer);
+  app.viewModel.activateMDATLayer(mdatLayer)
 }
 
 function reactThemeExpanded (event){
@@ -2060,23 +2084,48 @@ function reactLayerActivated(event){
   // }
 }
 
+function findLayerByName(layerName) {
+   // Assuming `app.viewModel.layerIndex` holds all the layers
+   const matchingLayers = Object.values(app.viewModel.layerIndex).filter(layer => layer.name === layerName);
+  
+   // Return all layers that match the given name
+   return matchingLayers;
+}
+
 function reactLayerDeactivated(event){
-  const topLevelThemeId = event.detail.topLevelThemeId
-  const layerId = event.detail.layerId
-  const theme_id = event.detail.theme_id
-  var selectedTheme = app.viewModel.themes().find(theme => theme.id === topLevelThemeId);
-  var layers = selectedTheme.layers();
-  // Find the specific layer by layerId
-  if (theme_id != topLevelThemeId) {
-    var selectedLayer = app.viewModel.layerIndex[layerId];
-    if (selectedLayer.active()) {
-      selectedLayer.toggleActive(selectedLayer,null);
-    }
-  }
-  else {
-    var selectedLayer = app.viewModel.layerIndex[layerId];
-    if (selectedLayer.active()) {
-      selectedLayer.toggleActive(selectedLayer,null);
+  const topLevelThemeId = event.detail.topLevelThemeId;
+  const layerId = event.detail.layerId;
+  const theme_id = event.detail.theme_id;
+  const layerName = event.detail.layerName;  // Assuming layerName is passed in the event detail
+  const selectedTheme = app.viewModel.themes().find(theme => theme.id === topLevelThemeId);
+  let layers = selectedTheme.layers();
+
+  // Check if layerId is a string and contains "mdat" or "vtr"
+  if (typeof layerId === 'string' && (layerId.includes("mdat") || layerId.includes("vtr"))) {
+     // Find all layers with the same name
+     const matchingLayers = findLayerByName(layerName);
+
+     // Loop through each matching layer and deactivate if active
+     matchingLayers.forEach(layer => {
+       if (layer.active()) {
+         layer.toggleActive(layer, null);  // Deactivate the layer
+         console.log(`Deactivated layer by name: ${layer.name}`);
+       }
+     });
+  } else {
+    // If no "mdat" or "vtr", or if layerId is not a string, use the normal layerId-based logic
+    if (theme_id !== topLevelThemeId) {
+      var selectedLayer = app.viewModel.layerIndex[layerId];
+      if (selectedLayer && selectedLayer.active()) {
+        selectedLayer.toggleActive(selectedLayer, null);  // Deactivate the layer by ID
+        console.log(`Deactivated layer by ID: ${selectedLayer.name}`);
+      }
+    } else {
+      var selectedLayer = app.viewModel.layerIndex[layerId];
+      if (selectedLayer && selectedLayer.active()) {
+        selectedLayer.toggleActive(selectedLayer, null);  // Deactivate the layer by ID
+        console.log(`Deactivated layer by ID: ${selectedLayer.name}`);
+      }
     }
   }
 
