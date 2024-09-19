@@ -717,6 +717,7 @@ function layerModel(options, parent) {
         }
 
         layer.layer = null;
+        console.log(layer.id)
         reactRemoveLayerFromActive(layer.id);
     };
 
@@ -2011,9 +2012,6 @@ function reactToggleTheme(theme_id) {
 }
 
 function reactRemoveLayerFromActive(layerId) {
-
-
-  // Create a custom event with layer information
   var event = new CustomEvent('LayerDeactivated', { detail: { layerId } });
   window.dispatchEvent(event);
 }
@@ -2039,12 +2037,12 @@ async function ReactMDATLayer(event) {
   //   console.error("Error fetching layers:", error);
   // }
   // var layers = selectedTheme.layers();
+
   var mdatLayer = event.detail.layer
   var selectedLayer = app.viewModel.layerIndex[event.detail.parentTheme.id]
   selectedLayer.type = "ArcRest"
   selectedLayer.url = event.detail.parentTheme.url
   selectedLayer.mdat_param = event.detail.parentTheme.url + "?f=pjson"
-  console.log(selectedLayer)
   mdatLayer.parentDirectory = selectedLayer
   // console.log(selectedLayer)
   // selectedLayer.toggleActive(selectedLayer, null);
@@ -2066,6 +2064,14 @@ function reactThemeExpanded (event){
   }
 }
 
+function findLayerByName(layerName) {
+  // Assuming `app.viewModel.layerIndex` holds all the layers
+  const matchingLayers = Object.values(app.viewModel.layerIndex).filter(layer => layer.name === layerName);
+ 
+  // Return all layers that match the given name
+  return matchingLayers;
+}
+
 function reactLayerActivated(event){
 
   const topLevelThemeId = event.detail.topLevelThemeId
@@ -2076,20 +2082,14 @@ function reactLayerActivated(event){
   // selectedTheme.asyncGetLayers()
   // var layers = selectedTheme.layers();
 
-  // Find the specific layer by layerId
-  app.viewModel.searchTerm(layerName);
-  app.viewModel.layerSearch();
+  const matchingLayers = findLayerByName(layerName);
+     // Loop through each matching layer 
+     matchingLayers.forEach(layer => {
+      layer.toggleActive(layer, null);  
+     });
   // if (!selectedLayer.active()) {
   //   selectedLayer.toggleActive(selectedLayer, null);
   // }
-}
-
-function findLayerByName(layerName) {
-   // Assuming `app.viewModel.layerIndex` holds all the layers
-   const matchingLayers = Object.values(app.viewModel.layerIndex).filter(layer => layer.name === layerName);
-  
-   // Return all layers that match the given name
-   return matchingLayers;
 }
 
 function reactLayerDeactivated(event){
@@ -2109,7 +2109,6 @@ function reactLayerDeactivated(event){
      matchingLayers.forEach(layer => {
        if (layer.active()) {
          layer.toggleActive(layer, null);  // Deactivate the layer
-         console.log(`Deactivated layer by name: ${layer.name}`);
        }
      });
   } else {
@@ -2118,13 +2117,11 @@ function reactLayerDeactivated(event){
       var selectedLayer = app.viewModel.layerIndex[layerId];
       if (selectedLayer && selectedLayer.active()) {
         selectedLayer.toggleActive(selectedLayer, null);  // Deactivate the layer by ID
-        console.log(`Deactivated layer by ID: ${selectedLayer.name}`);
       }
     } else {
       var selectedLayer = app.viewModel.layerIndex[layerId];
       if (selectedLayer && selectedLayer.active()) {
         selectedLayer.toggleActive(selectedLayer, null);  // Deactivate the layer by ID
-        console.log(`Deactivated layer by ID: ${selectedLayer.name}`);
       }
     }
   }
@@ -3176,12 +3173,14 @@ function viewModel() {
         };
 
         var id_exists = true;
-        for(var i=0; id_exists == true && i < 1000; i++) {
-          mdatObj.id = 'mdat_layer_' + i;
-          if (Object.keys(app.viewModel.layerIndex).indexOf(mdatObj.id) < 0) {
-            id_exists = false;
-          }
-        }
+        console.log(layer.id)
+        mdatObj.id = layer.id;
+        // for(var i=0; id_exists == true && i < 1000; i++) {
+        //   mdatObj.id = 'mdat_layer_' + i;
+        //   if (Object.keys(app.viewModel.layerIndex).indexOf(mdatObj.id) < 0) {
+        //     id_exists = false;
+        //   }
+        // }
 
         var mdatLayer = app.viewModel.getOrCreateLayer(mdatObj, null, 'return', null),
             avianAbundance = '/MDAT/Avian_Abundance',
@@ -3253,12 +3252,13 @@ function viewModel() {
         };
 
         var id_exists = true;
-        for(var i=0; id_exists == true && i < 1000; i++) {
-          vtrObj.id = 'vtr_layer_' + i;
-          if (Object.keys(app.viewModel.layerIndex).indexOf(vtrObj.id) < 0) {
-            id_exists = false;
-          }
-        }
+        vtrObj.id = layer.id;
+        // for(var i=0; id_exists == true && i < 1000; i++) {
+        //   vtrObj.id = 'vtr_layer_' + i;
+        //   if (Object.keys(app.viewModel.layerIndex).indexOf(vtrObj.id) < 0) {
+        //     id_exists = false;
+        //   }
+        // }
 
         var vtrLayer = app.viewModel.getOrCreateLayer(vtrObj, null, 'activateLayer', null);
 
