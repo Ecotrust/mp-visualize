@@ -3162,14 +3162,14 @@ function viewModel() {
         if (layer.proxy_url) {
           export_flag = "%2Fexport";
         }
-
+        let numberAfterLastUnderscore = layer.id.split('_').pop();
         var mdatObj = {
             type: 'ArcRest',
             name: layer.name,
             isMDAT: true,
             parentDirectory: layer.parentDirectory,
             url: layer.url+export_flag,
-            arcgis_layers: layer.id
+            arcgis_layers: numberAfterLastUnderscore
         };
 
         var id_exists = true;
@@ -3241,6 +3241,7 @@ function viewModel() {
           export_flag = "%2Fexport";
           path_separator = "%2F";
         }
+        let numberAfterLastUnderscore = layer.id.split('_').pop();
 
         var vtrObj = {
             type: 'ArcRest',
@@ -3248,7 +3249,7 @@ function viewModel() {
             isVTR: true,
             dateRangeDirectory: layer.dateRangeDirectory,
             url: layer.url+path_separator+'MapServer'+export_flag,
-            arcgis_layers: layer.id
+            arcgis_layers: numberAfterLastUnderscore
         };
 
         var id_exists = true;
