@@ -193,7 +193,7 @@
 
             $('#id_layer_type').change(function() {
                 var layer_type_selected = $('#id_layer_type').val();
-                var arclayer_types = ['ArcRest', 'ArcFeatureServer'];
+                var arclayer_types = ['ArcRest', 'ArcFeatureServer', 'ArcImageServer'];
 
                 if (arclayer_types.indexOf(layer_type_selected) >= 0) {
                     $('#arcgis-layer-field').css({'display':'inherit',});
@@ -297,6 +297,18 @@
                                             <li><i>Example:</i> https://biamaps.doi.gov/server/rest/services/Hosted/Tribal_Leaders_Directory_Source_File_DO_NOT_DELETE/FeatureServer/</li>
                                         -->
                                         <li><i>Example:</i> https://coast.noaa.gov/arcgismc/rest/services/Hosted/AtoNs/FeatureServer/</li>
+                                    </ul>
+                                </li>
+                                <li>
+                                    <b>ArcImageServer</b> (ESRI): 
+                                    <ul>
+                                        <li>A very popular raster source for map layers</li>
+                                        <li> You will need to provide the IDs of the layers you wish to include in a special 'ArcGIS Layers' field in a later step.</li>
+                                        <li>Urls look like: https://{domain}/{path}/rest/services/{service}/ImageServer/</li>
+                                        <!--
+                                            <li><i>Example:</i> https://biamaps.doi.gov/server/rest/services/Hosted/Tribal_Leaders_Directory_Source_File_DO_NOT_DELETE/FeatureServer/</li>
+                                            <li><i>Example:</i> https://coast.noaa.gov/arcgismc/rest/services/Hosted/AtoNs/FeatureServer/</li>
+                                        -->
                                     </ul>
                                 </li>
                                 <li>

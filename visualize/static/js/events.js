@@ -9,7 +9,9 @@ if (!app.wrapper.events.hasOwnProperty('clickOnArcRESTLayerEvent')) {
 
       var identifyUrl = app.wrapper.map.getLayerParameter(layer, 'url');
 
-      if (identifyUrl.indexOf('export') >= 0) {
+      if (identifyUrl.indexOf('exportimage') >= 0) {
+        identifyUrl = identifyUrl.replace('exportimage', app.wrapper.map.getLayerParameter(layer, 'arcgislayers') + '/query');
+      } else if (identifyUrl.indexOf('export') >= 0) {
         identifyUrl = identifyUrl.replace('export', app.wrapper.map.getLayerParameter(layer, 'arcgislayers') + '/query');
       } else {
         if (identifyUrl[identifyUrl.length-1] != "/") {

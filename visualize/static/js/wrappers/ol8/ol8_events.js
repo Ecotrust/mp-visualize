@@ -331,6 +331,7 @@ app.wrapper.events.reportGMLAttributes = function(mp_layer, data) {
 app.wrapper.events.tileSources = [
   'XYZ',
   'ArcRest',
+  'ArcImageServer',
   'WMS',
 ];
 

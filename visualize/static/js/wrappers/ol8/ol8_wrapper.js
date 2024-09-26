@@ -58,6 +58,10 @@ app.init_map = function(base, target, srid, center_x, center_y, zoom, maxZoom){
       if (app.wrapper.events.hasOwnProperty('clickOnArcRESTLayerEvent')) {
         app.wrapper.events.clickOnArcRESTLayerEvent(layer, app.wrapper.map.event)
       }
+    } else if (layer.get('tech') == 'ArcImageServer'){
+      if (app.wrapper.events.hasOwnProperty('clickOnArcRESTLayerEvent')) {
+        app.wrapper.events.clickOnArcRESTLayerEvent(layer, app.wrapper.map.event)
+      }
     } else if (layer.get('tech') == 'Vector'){
       if (app.wrapper.events.hasOwnProperty('clickOnVectorLayerEvent')) {
         app.wrapper.events.clickOnVectorLayerEvent(layer, app.wrapper.map.event)

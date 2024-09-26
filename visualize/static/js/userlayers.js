@@ -16,7 +16,8 @@ function userLayerModel(options) {
     if (
             (
                 self.layer_type == 'ArcRest' || 
-                self.layer_type == 'ArcFeatureServer'
+                self.layer_type == 'ArcFeatureServer' ||
+                self.layer_type == 'ArcImageServer'
             ) &&
             self.arcgis_layers == null
     ) {

@@ -334,7 +334,7 @@ function bookmarksModel(options) {
           new_layer.isVTR = false;
         }
 
-        if (new_layer.type == "ArcRest" || new_layer.type == "ArcFeatureServer") {
+        if (new_layer.type == "ArcRest" || new_layer.type == "ArcFeatureServer" || new_layer.type == "ArcImageServer") {
           new_layer.arcgislayers = layer_record.arcgislayers;
         } else {
           new_layer.arcgislayers = null;

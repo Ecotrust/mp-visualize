@@ -71,6 +71,15 @@ function layerModel(options, parent) {
         url_split[0] = url_split[0] + export_flag;
         self.url = url_split.join('?');
       }
+      if (self.url && ["ArcImageServer",].indexOf(self.type) >= 0 && self.url.toLowerCase().indexOf("/exportimage") == -1) {
+        let url_split =  self.url.split('?');
+        let export_flag = '/exportimage';
+        if (url_split[0][url_split[0].length-1] == "/") {
+          export_flag = 'exportimage';
+        }
+        url_split[0] = url_split[0] + export_flag;
+        self.url = url_split.join('?');
+      }
       self.data_url(options.data_url || null);
       self.arcgislayers = options.arcgis_layers || 0;
       self.password_protected(options.password_protected || false);
@@ -138,7 +147,7 @@ function layerModel(options, parent) {
         //  * We encode the URL -- this means we also need to re-write all logic that parses the URL (like legend, export, and query)
         //  * finally, we add proxy_params=true -- this gives us a nice pattern to break on (anything appended is assumed to be meant for 'url')
         self.url = "/visualize/proxy?layer_id=" + self.id + "&url=" + encodeURIComponent(self.url) + "%3F&proxy_params=true";
-        if (self.type == "ArcRest") {
+        if (self.type == "ArcRest" || self.type == "ArcImageServer") {
           if (self.url.toLowerCase().indexOf('imageserver') >=0 ) {
             self.url += "&proxy_tech=ImageServer";
           } else if ( (self.url.toLowerCase().indexOf('mapserver') >=0 )) {
@@ -1932,7 +1941,7 @@ function layerModel(options, parent) {
           layer.getFullLayerRecord('toggleDescription', null);
         } else {
           // if no description is provided, try using the web services description
-          if ( self.type == "ArcRest" && (!self.overview || !self.description()) && self.url && (self.arcgislayers !== -1) ) {
+          if ( (self.type == "ArcRest" || self.type == "ArcImageServer") && (!self.overview || !self.description()) && self.url && (self.arcgislayers !== -1) ) {
             try {
               getArcGISJSONDescription(self, window.location.protocol);
             } catch (err) {

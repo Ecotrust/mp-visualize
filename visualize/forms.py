@@ -20,6 +20,7 @@ class UserLayerForm(FeatureForm):
                 choices=(
                     ('ArcRest', 'ArcRest'),
                     ('ArcFeatureServer', 'ArcFeatureServer'),
+                    ('ArcImageServer', 'ArcImageServer'),
                     ('XYZ', 'XYZ'),
                     ('WMS', 'WMS'),
                     ('Vector', 'Vector'),

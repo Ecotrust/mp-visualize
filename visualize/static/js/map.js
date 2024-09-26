@@ -553,6 +553,8 @@ app.addLayerToMap = function(layer) {
         app.addVectorLayerToMap(layer);
       } else if (layer.type === 'ArcRest') {
         app.addArcRestLayerToMap(layer);
+      } else if (layer.type === 'ArcImageServer') {
+        app.addArcRestLayerToMap(layer);
       } else if (layer.type === 'ArcFeatureServer') {
         app.addArcFeatureServerLayerToMap(layer);
       } else if (layer.type === 'WMS') {
