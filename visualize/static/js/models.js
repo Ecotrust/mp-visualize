@@ -2323,23 +2323,40 @@ function mapLinksModel() {
     };
 
     self.useShortURL = function() {
-        var bitly_login = "p97dev",
-            bitly_api_key = 'R_27f2b2cc886e49fb9f35c37b7b633749',
-            long_url = self.getURL();
+        // var bitly_login = "p97dev",
+        //     bitly_api_key = 'R_27f2b2cc886e49fb9f35c37b7b633749',
+        //     long_url = self.getURL();
 
-        $.getJSON(
-            "https://api-ssl.bitly.com/v3/shorten?callback=?",
-            {
-                "format": "json",
-                "apiKey": bitly_api_key,
-                "login": bitly_login,
-                "longUrl": long_url
-            },
-            function(response)
-            {
-                $('#short-url')[0].value = response.data.url;
-            }
-        );
+        // $.getJSON(
+        //     "https://api-ssl.bitly.com/v3/shorten?callback=?",
+        //     {
+        //         "format": "json",
+        //         "apiKey": bitly_api_key,
+        //         "login": bitly_login,
+        //         "longUrl": long_url
+        //     },
+        //     function(response)
+        //     {
+        //         $('#short-url')[0].value = response.data.url;
+        //     }
+        // );
+        var long_url = self.getURL();
+
+      $.ajax({
+          type: "POST",
+          url: "/url_shortener/",  // Assuming this is your URL shortening endpoint
+          data: {
+              "url": long_url,
+              "csrfmiddlewaretoken": $('input[name="csrfmiddlewaretoken"]').val()  // Including CSRF token for Django's CSRF protection
+          },
+          success: function(response) {
+              // Assuming the server returns the new shortened URL in the response
+              $('#short-url')[0].value = response.shortened_url;
+          },
+          error: function(xhr, status, error) {
+              console.log("Error shortening URL:", error);
+          }
+      });
     };
 
     self.getPortalURL = function() {
