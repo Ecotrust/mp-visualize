@@ -717,7 +717,6 @@ function layerModel(options, parent) {
         }
 
         layer.layer = null;
-        console.log(layer.id)
         reactRemoveLayerFromActive(layer.id);
     };
 
@@ -2302,11 +2301,12 @@ function mapLinksModel() {
     };
 
     self.getURL = function() {
-        if (window.location.hostname == "localhost") {
-          return window.location.protocol + '//portal.midatlanticocean.org' + app.viewModel.currentURL();
-        } else {
-          return window.location.origin + app.viewModel.currentURL();
-        }
+        // if (window.location.hostname == "localhost") {
+        //   return window.location.protocol + '//portal.midatlanticocean.org' + app.viewModel.currentURL();
+        // } else {
+          // return window.location.origin + app.viewModel.currentURL();
+          return app.viewModel.currentURL();
+        // }
     };
 
     self.shrinkURL = ko.observable();
@@ -2344,13 +2344,12 @@ function mapLinksModel() {
 
       $.ajax({
           type: "POST",
-          url: "/url_shortener/",  // Assuming this is your URL shortening endpoint
+          url: "/url_shortener/", 
           data: {
               "url": long_url,
-              "csrfmiddlewaretoken": $('input[name="csrfmiddlewaretoken"]').val()  // Including CSRF token for Django's CSRF protection
+              "csrfmiddlewaretoken": $('input[name="csrfmiddlewaretoken"]').val()  
           },
           success: function(response) {
-              // Assuming the server returns the new shortened URL in the response
               $('#short-url')[0].value = response.shortened_url;
           },
           error: function(xhr, status, error) {
@@ -3190,7 +3189,6 @@ function viewModel() {
         };
 
         var id_exists = true;
-        console.log(layer.id)
         mdatObj.id = layer.id;
         // for(var i=0; id_exists == true && i < 1000; i++) {
         //   mdatObj.id = 'mdat_layer_' + i;
