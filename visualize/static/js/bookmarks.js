@@ -230,9 +230,8 @@ function bookmarksModel(options) {
         $.ajax({
             type: "POST",
             url: "/url_shortener/",  
-            data: params,  // Send the long URL as data
+            data: params,  
             success: function(response) {
-                // Check if the server returned the shortened URL
                 if (response.shortened_url != undefined) {
                     $('.in #short-url')[0].value = response.shortened_url;
                 } else {
@@ -242,7 +241,7 @@ function bookmarksModel(options) {
             error: function(xhr, status, error) {
                 console.log("Error shortening URL:", error);
             },
-            dataType: 'json',  // Expect JSON response
+            dataType: 'json',  
             contentType: "application/x-www-form-urlencoded",  // Use URL encoding for the data
         });
     };

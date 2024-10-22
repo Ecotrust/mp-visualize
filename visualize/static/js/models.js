@@ -2309,7 +2309,7 @@ function mapLinksModel() {
         // }
     };
 
-    self.shrinkURL = ko.observable();
+    self.shrinkURL = ko.observable(false);
     self.shrinkURL.subscribe( function() {
         if (self.shrinkURL()) {
             self.useShortURL();
@@ -2340,8 +2340,9 @@ function mapLinksModel() {
         //         $('#short-url')[0].value = response.data.url;
         //     }
         // );
+        app.updateUrl();
         var long_url = self.getURL();
-
+        print(long_url)
       $.ajax({
           type: "POST",
           url: "/url_shortener/", 
@@ -3105,11 +3106,23 @@ function viewModel() {
 
     self.showMapLinks = function() {
         app.updateUrl();
-        self.mapLinks.shrinkURL(true);
+        // self.mapLinks.shrinkURL(true);
         $('#short-url').text = self.mapLinks.getURL();
         self.mapLinks.setIFrameHTML();
         $('#map-links-modal').modal()
     };
+
+    $(document).ready(function(){
+      // Detect when the modal is closed
+      $('#map-links-modal').on('hidden.bs.modal', function () {
+          // Set shrinkURL to false when the modal is closed
+          if (typeof self.mapLinks.shrinkURL === 'function') {
+              self.mapLinks.shrinkURL(false);  // This assumes shrinkURL is a Knockout observable
+          } else {
+              shrinkURL = false;  // If shrinkURL is a regular variable
+          }
+      });
+    });
 
     self.startNewDrawing = function() {
       $('#designsTab').click();
