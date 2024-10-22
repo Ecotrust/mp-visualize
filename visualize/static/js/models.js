@@ -2342,7 +2342,6 @@ function mapLinksModel() {
         // );
         app.updateUrl();
         var long_url = self.getURL();
-        print(long_url)
       $.ajax({
           type: "POST",
           url: "/url_shortener/", 
@@ -3106,7 +3105,7 @@ function viewModel() {
 
     self.showMapLinks = function() {
         app.updateUrl();
-        // self.mapLinks.shrinkURL(true);
+        self.mapLinks.shrinkURL(true);
         $('#short-url').text = self.mapLinks.getURL();
         self.mapLinks.setIFrameHTML();
         $('#map-links-modal').modal()
