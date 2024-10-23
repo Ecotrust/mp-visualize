@@ -159,12 +159,17 @@ function bookmarksModel(options) {
 
     self.getCurrentBookmarkURL = function() {
         if ( self.sharingBookmark() ) {
-            self.shrinkBookmarkURL(true);
-            return self.useShortBookmarkURL();
-            // return self.sharingBookmark().getBookmarkUrl();
+            if (self.shrinkBookmarkURL()) {
+                // If "Short URL" is checked, get the shortened URL
+                self.useShortBookmarkURL();  // This will update currentBookmarkURL with the shortened URL
+            } else {
+                // If "Short URL" is unchecked, use the long URL
+                self.currentBookmarkURL(self.sharingBookmark().getBookmarkUrl());
+            }
         } else {
-            return '';
+            self.currentBookmarkURL('');
         }
+        return self.currentBookmarkURL();
     };
 
     self.shrinkBookmarkURL = ko.observable(true);
@@ -232,10 +237,9 @@ function bookmarksModel(options) {
             url: "/url_shortener/",  
             data: params,  
             success: function(response) {
+                console.log(response)
                 if (response.shortened_url != undefined) {
-                    $('.in #short-url')[0].value = response.shortened_url;
-                } else {
-                    $('.in #short-url')[0].value = long_url;  // If no shortened URL, fall back to the long URL
+                    self.currentBookmarkURL(response.shortened_url);  // Set the value directly
                 }
             },
             error: function(xhr, status, error) {
@@ -245,7 +249,7 @@ function bookmarksModel(options) {
             contentType: "application/x-www-form-urlencoded",  // Use URL encoding for the data
         });
     };
-
+    self.currentBookmarkURL = ko.observable('');
     self.setBookmarkIFrameHTML = function() {
         var bookmarkState = self.sharingBookmark().getBookmarkHash();
         $('.in #bookmark-iframe-html')[0].value = app.viewModel.mapLinks.getIFrameHTML(bookmarkState);

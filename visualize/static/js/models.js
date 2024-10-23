@@ -2301,12 +2301,11 @@ function mapLinksModel() {
     };
 
     self.getURL = function() {
-        // if (window.location.hostname == "localhost") {
-        //   return window.location.protocol + '//portal.midatlanticocean.org' + app.viewModel.currentURL();
-        // } else {
-          // return window.location.origin + app.viewModel.currentURL();
-          return app.viewModel.currentURL();
-        // }
+      var origin = window.location.origin;  
+
+      
+      return origin + app.viewModel.currentURL();
+      
     };
 
     self.shrinkURL = ko.observable(false);
