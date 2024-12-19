@@ -58,6 +58,7 @@ function layerModel(options, parent) {
 
       self.id = options.id || null;
       self.name = options.name || null;
+      self.layerName = options.layerName || null;
       self.featureAttributionName = self.name;
       self.order = options.order;
       self.type = options.type || null
@@ -1651,8 +1652,8 @@ function layerModel(options, parent) {
           crossDomain: true,
           success: function(data) {
             if(data==undefined){debugger;}
-            if (data.hasOwnProperty('name')) {
-              layer.name = data.name;
+            if (data.hasOwnProperty('layerName')) {
+              layer.layerName = data.layerName;
               app.viewModel.layerIndex[layer.id.toString()] = layer;
             }
             var parent = null;
@@ -2065,7 +2066,7 @@ function reactThemeExpanded (event){
 
 function findLayerByName(layerName) {
   // Assuming `app.viewModel.layerIndex` holds all the layers
-  const matchingLayers = Object.values(app.viewModel.layerIndex).filter(layer => layer.name === layerName);
+  const matchingLayers = Object.values(app.viewModel.layerIndex).filter(layer => (layer.layerName || layer.name) === layerName);
  
   // Return all layers that match the given name
   return matchingLayers;
