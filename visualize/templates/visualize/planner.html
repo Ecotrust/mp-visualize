@@ -1,6 +1,11 @@
 {% extends "base.html" %}
 {% load static %}
 
+{% block templatename %}
+    {{ block.super }}
+    <!-- PLANNER: mp-visualize/visualize/templates/visualize/planner.html -->
+{% endblock templatename %}
+
 {% block title %}{{ REGION.name }} Data Portal - Marine Planner{% endblock %}
 
 {% block extra_css %}
