@@ -1,13 +1,12 @@
 {% extends "visualize/planner.html" %}
 {% load static %}
 
+{% block templatename %}
+    {{ block.super }}
+    <!-- EMBEDDED: mp-visualize/visualize/templates/visualize/embedded.html -->
+{% endblock templatename %}
+
 {% block extra_css %}
-        <!--
-        <link href="{% static 'visualize/css/print.css' %}" rel="stylesheet" media="print">
-        <link href="{% static 'visualize/css/scalebar-thin.css' %}" rel="stylesheet">
-        <link rel="stylesheet" type="text/css" href="{% static 'js/lib/openlayers/theme/default/style.css' %}">
-        <link href="{% static 'jquery-ui/themes/smoothness/jquery-ui.min.css' %}" rel="stylesheet">
-        -->
       {{ block.super }}
       <link href="{% static 'visualize/css/embedded.css' %}" rel="stylesheet">
 {% endblock%}
@@ -20,58 +19,16 @@
 
 {% block outer_content %}
 
+    {% include "visualize/modals.html" %}
+    {% if user.is_authenticated %}
+        {% include "visualize/bookmark-modals.html" %}
+    {% endif %}
+
     <div class="container-fluid" id="primary-content">
         <div id="fullscreen">
             <div id="map-wrapper">
                 <div id="map" click="click: outsideSubLayer"></div>
                 <div id="map-controls"></div>
-                <!-- the following container is used to estimate width for the actual Aggregated Attribution Overlay -->
-                <div id="aggregated-attribute-overlay-test" style="position: absolute; visibility: hidden; height: auto; width: auto; top:0px">
-                    <div data-bind="foreach: attributeLayers()" style="overflow: hidden; max-height: 10px;">
-                        <div data-bind="css: {display: $root.aggregatedAttributes()[featureAttributionName] ? 'block' : 'none'}">
-                            <h4 data-bind="text: featureAttributionName"></h4>
-                            <dl data-bind="foreach: { data: $root.aggregatedAttributes()[featureAttributionName], afterAdd:$root.updateMarker }">
-                                <dt>
-                                    <span data-bind="text: display"></span><span data-bind="visible: display && data ? true : data===0">:</span>
-                                    <span style="font-weight: normal" data-bind="html: data"></span>
-                                </dt>
-                            </dl>
-                        </div>
-                    </div>
-                </div>
-                <!-- Aggregated Attribution Overlay -->
-                <div id="aggregated-attribute-overlay" data-bind="visible: aggregatedAttributes && showFeatureAttribution, style: {width: aggregatedAttributesWidth}" style="display: none">
-                    <div id="aggregated-attribute-heading">
-                        <h4>Available Information</h4>
-                    </div>
-                    <div id="aggregated-attribute-content" class="accordion">
-                        <div data-bind="foreach: attributeLayers()">
-                            <div class="accordion-group">
-                                <div data-bind="visible: $root.aggregatedAttributes()[featureAttributionName]">
-                                    <div class="accordion-heading" data-bind="click: toggleLayerAttribution, css: { 'active': showingLayerAttribution }">
-                                        <a class="accordion-toggle">
-                                            <span data-bind="text: featureAttributionName"></span>
-                                        </a>
-                                    </div>
-                                    <div class="accordion-body collapse in" data-bind="attr: { id: $root.convertToSlug(featureAttributionName) }" >
-                                        <div class="accordion-inner">
-                                            <dl data-bind="foreach: { data: $root.aggregatedAttributes()[featureAttributionName], afterAdd:$root.updateMarker }">
-                                                <dt>
-                                                    <!-- ko if: $data.hasOwnProperty("tab") -->
-                                                    <span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-                                                    <!-- /ko -->
-                                                    <span data-bind="text: display"></span><span data-bind="visible: display && data ? true : data===0">:</span>
-                                                    <span style="font-weight: normal" data-bind="html: data"></span>
-                                                </dt>
-                                            </dl>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <span id="close-attribute-overlay" class="pull-right"><a href="#" style="position: absolute; top: 0px; right: 0px; opacity: .6;" class="btn btn-mini close" data-bind="click: closeAttribution"> x </a> </span>
-                </div>
 
                 <div id="left-panel" class="panel panel-default collapsible" data-bind="css: { collapsed: !showLayers() }">
                     <div class="panel-heading">
@@ -115,7 +72,15 @@
                                                                 <div data-bind="if: legend['elements']">
                                                                     <div data-bind="foreach: legend['elements']">
                                                                         <div>
-                                                                            <img data-bind="attr: {src: swatch}" />
+                                                                            <!-- ko if: $data.hasOwnProperty("swatch") -->
+                                                                                <img data-bind="attr: {src: swatch}" />
+                                                                            <!-- /ko -->
+                                                                            <!-- ko ifnot: $data.hasOwnProperty("swatch") -->
+                                                                              <!-- ko if: $data.hasOwnProperty("viz") -->
+                                                                                <!-- <div class='legend-swatch' data-bind='attr: {style: style}'></div> -->
+                                                                                <div data-bind="html: viz"></div>
+                                                                              <!-- /ko -->
+                                                                            <!-- /ko -->
                                                                             <span data-bind="text: label" style="font-size: 11px; font-weight: bold;"></span>
                                                                         </div>
                                                                     </div>
@@ -138,6 +103,67 @@
                         </div>
                     </div>
                 </div>
+                <!-- the following container is used to estimate width for the actual Aggregated Attribution Overlay -->
+                <!-- <div id="aggregated-attribute-overlay-test" style="position: absolute; visibility: hidden; height: auto; width: auto; top:0px">
+                    <div data-bind="foreach: attributeLayers()" style="overflow: hidden; max-height: 10px;">
+                        <div data-bind="css: {display: $root.aggregatedAttributes()[featureAttributionName] ? 'block' : 'none'}">
+                            <h4 data-bind="text: featureAttributionName"></h4>
+                            <dl data-bind="foreach: { data: $root.aggregatedAttributes()[featureAttributionName], afterAdd:$root.updateMarker }">
+                                <dt>
+                                    <span data-bind="text: display"></span><span data-bind="visible: display && data ? true : data===0">:</span>
+                                    <span style="font-weight: normal" data-bind="html: data"></span>
+                                </dt>
+                            </dl>
+                        </div>
+                    </div>
+                </div> -->
+                <!-- Aggregated Attribution Overlay -->
+
+                <div id="aggregated-attribute-overlay" data-bind="visible: aggregatedAttributes && showFeatureAttribution, style: {width: aggregatedAttributesWidth}" style="display: none">
+                    <div id="aggregated-attribute-heading">
+                        <h4>Available Information</h4>
+                    </div>
+                    <div id="aggregated-attribute-content" class="accordion">
+                        <div data-bind="foreach: attributeLayers()">
+                            <div class="accordion-group">
+                                <div data-bind="visible: $root.aggregatedAttributes()[featureAttributionName]">
+                                    <div class="accordion-heading" data-bind="click: toggleLayerAttribution, css: { 'active': showingLayerAttribution }">
+                                        <a class="accordion-toggle">
+                                            <span data-bind="text: featureAttributionName"></span>
+                                        </a>
+                                    </div>
+                                    <div class="accordion-body collapse in" data-bind="attr: { id: $root.convertToSlug(featureAttributionName) }" >
+                                        <div class="accordion-inner feature-attributes">
+                                            <div data-bind="foreach: { data: $root.aggregatedAttributes()[featureAttributionName], afterAdd:$root.updateMarker }">
+                                                <div class="accordion-heading" data-bind="visible: $root.aggregatedAttributes()[$parent.featureAttributionName].length > 1">
+                                                    <a class="accordion-toggle feature-attributes-title" data-bind="click: $parent.toggleFeatureAttribution">
+                                                        <span data-bind="text: $data.name"></span>
+                                                    </a>
+                                                </div>
+                                                <div class="accordion-body collapse in" data-bind="attr: { id: $root.convertToSlug($data.id) }" >
+                                                    <div class="accordion-inner">
+    
+                                                      <dl data-bind="foreach: { data: $data.attributes }">
+                                                          <dt>
+                                                              <!-- ko if: $data.hasOwnProperty("tab") -->
+                                                              <span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                                                              <!-- /ko -->
+                                                              <span data-bind="text: display"></span><span data-bind="visible: display && data ? true : data===0">:</span>
+                                                              <span class="attribute-text" data-bind="html: data"></span>
+                                                          </dt>
+                                                      </dl>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <span id="close-attribute-overlay" class="pull-right"><a href="#" style="position: absolute; top: 0px; right: 0px; opacity: .6;" class="btn btn-mini close" data-bind="click: closeAttribution"> x </a> </span>
+                </div>
+
             </div>
             <span class="timestamp" data-bind="visible: mapTitle"><span data-bind="text: new Date().toString('M/d/yyyy HH:mm')"></span></span>
         </div>
@@ -146,6 +172,8 @@
 
 {% block extra_js %}
     {{ block.super }}
+    {% block context_js %}
+    {% endblock %}
     <script src="{% static 'js/embedded.js' %}"></script>
 
 {% endblock %}

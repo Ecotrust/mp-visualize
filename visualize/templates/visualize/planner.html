@@ -1,6 +1,11 @@
 {% extends "base.html" %}
 {% load static %}
 
+{% block templatename %}
+    {{ block.super }}
+    <!-- PLANNER: mp-visualize/visualize/templates/visualize/planner.html -->
+{% endblock templatename %}
+
 {% block title %}{{ REGION.name }} Data Portal - Marine Planner{% endblock %}
 
 {% block extra_css %}
@@ -428,7 +433,9 @@
     <script src="{% static 'jqueryui-touch-punch/jquery.ui.touch-punch.min.js' %}"></script>
 
 
+    {% block context_js %}
     <script src="{% static 'js/contextual_menu.js' %}"></script>
+    {% endblock %}
     <script src="{% static 'js/fixtures.js' %}"></script>
 
     <script type="text/javascript">
