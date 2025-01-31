@@ -137,7 +137,7 @@ app.viewModel.loadLayersFromServer = function() {
 
 // Begin Cacheless Overhaul
 app.viewModel.initLeftNav = function() {
-  return $.getJSON('/data_manager/get_themes', function(data) {
+  return $.getJSON('/layers/top_level_themes/', function(data) {
     app.viewModel.getSearchData();
     app.viewModel.loadThemes(data);
   })
@@ -147,7 +147,7 @@ app.viewModel.loadThemes = function(data) {
   var self = app.viewModel;
 
   // load themes
-    $.each(data.themes, function(i, themeFixture) {
+    $.each(data.top_level_themes, function(i, themeFixture) {
       if (themeFixture) {
         var layers = [],
             theme = new themeModel(themeFixture);
