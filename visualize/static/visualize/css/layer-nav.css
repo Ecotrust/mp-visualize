@@ -5,6 +5,15 @@ body.template-visualize .layer-info .layer-text {
   border-radius: 0.3rem;
 }
 
+body.template-visualize .layer-info .layer-text div.sharing-info {
+  text-decoration: none;
+  cursor: default;
+  font-weight: bold;
+  font-size: smaller;
+  font-style: italic;
+  margin-top: 1.5rem;
+}
+
 #user-content-notice {
   position: absolute;
   color: white;

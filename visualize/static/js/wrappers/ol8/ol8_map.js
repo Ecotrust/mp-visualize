@@ -957,7 +957,12 @@ app.wrapper.map.getSelectedStyle = function(feature) {
 }
 
 app.wrapper.map.getLayerStyle = function(feature) {
-  if (feature && feature.getLayer() && app.viewModel.getLayerByOLId(feature.getLayer().ol_uid).defaultStyleFunction(feature) != null) {
+  if (
+    feature && 
+    feature.getLayer() && 
+    feature.getLayer() != undefined &&
+    feature.getLayer().ol_uid != undefined
+  ) {
     var layer = app.viewModel.getLayerByOLId(feature.getLayer().ol_uid);
     var styles = app.wrapper.map.createOLStyleMap(layer, feature);
     if (layer.type == 'ArcFeatureServer' && layer.hasOwnProperty('defaultStyleFunction')) {
@@ -1219,17 +1224,17 @@ app.wrapper.map.addWMSLayerToMap = function(layer) {
     TRANSPARENT: "true"
   }
   if (layer.wms_format){
-    layer_params.format = layer.format;
+    layer_params.FORMAT = layer.format;
   } else {
-    layer_params.format = "image/png";
+    layer_params.FORMAT = "image/png";
   }
 
   if (!wms_proxy) {
     if (layer.wms_styles){
-      layer_params.styles = layer.wms_styles;
+      layer_params.STYLES = layer.wms_styles;
     }
     if (layer.wms_timing){
-      layer_params.time = layer.wms_timing;
+      layer_params.TIME = layer.wms_timing;
     }
     if (layer.wms_additional){
       if (layer.wms_additional[0] == '?') {
@@ -1241,7 +1246,7 @@ app.wrapper.map.addWMSLayerToMap = function(layer) {
         if (key_val.length == 2) {
           key = key_val[0];
           value = key_val[1];
-          layer_params[key] = value;
+          layer_params[key.toUpperCase()] = value;
         }
       }
     }
