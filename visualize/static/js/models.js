@@ -1012,8 +1012,15 @@ function layerModel(options, parent) {
               }
 
               //activate marine life layers
-              if (layer.isMDAT && self.hasOwnProperty('parentMDATDirectory') && self.parentMDATDirectory) {
-                self.parentMDATDirectory.visible(true);
+              if (layer.isMDAT && self.hasOwnProperty('parentMDATDirectory') && 
+                  self.parentMDATDirectory && 
+                  self.parentMDATDirectory.hasOwnProperty('visible')
+              ) {
+                if (typeof(self.parentMDATDirectory.visible) == "function") {
+                  self.parentMDATDirectory.visible(true);
+                } else {
+                  self.parentMDATDirectory.visible = true;
+                }
               }
 
               if (layer.isVTR || layer.wmsSession()) {
@@ -1651,7 +1658,6 @@ function layerModel(options, parent) {
           url: '/data_manager/get_layer_details/' + layer.id,
           crossDomain: true,
           success: function(data) {
-            if(data==undefined){debugger;}
             if (data.hasOwnProperty('layerName')) {
               layer.layerName = data.layerName;
               app.viewModel.layerIndex[layer.id.toString()] = layer;
@@ -1852,7 +1858,11 @@ function layerModel(options, parent) {
           }
 
           if (parentDirArray.length == 0) {
+            if (layer.parentMDATDirectory.hasOwnProperty('visible') && typeof(layer.parentMDATDirectory.visible) == "function") {
               layer.parentMDATDirectory.visible(false);
+            } else {
+              layer.parentMDATDirectory.visible = false;
+            }
           }
       }
     };
@@ -2039,14 +2049,14 @@ async function ReactMDATLayer(event) {
   // var layers = selectedTheme.layers();
 
   var mdatLayer = event.detail.layer
-  var selectedLayer = app.viewModel.layerIndex[event.detail.parentTheme.id]
-  selectedLayer.type = "ArcRest"
-  selectedLayer.url = event.detail.parentTheme.url
-  selectedLayer.mdat_param = event.detail.parentTheme.url + "?f=pjson"
-  mdatLayer.parentDirectory = selectedLayer
-  // console.log(selectedLayer)
-  // selectedLayer.toggleActive(selectedLayer, null);
-  // app.viewModel.activeLayer(selectedLayer);
+  // var selectedLayer = app.viewModel.layerIndex[event.detail.parentTheme.id]
+  // selectedLayer.type = "ArcRest"
+  // selectedLayer.url = event.detail.parentTheme.url
+  // selectedLayer.mdat_param = event.detail.parentTheme.url + "?f=pjson"
+  // mdatLayer.parentDirectory = selectedLayer
+  // // console.log(selectedLayer)
+  // // selectedLayer.toggleActive(selectedLayer, null);
+  // // app.viewModel.activeLayer(selectedLayer);
   app.viewModel.activateMDATLayer(mdatLayer)
 }
 
@@ -2189,25 +2199,25 @@ function themeModel(options) {
     
     self.asyncGetLayers = async function() {
       var theme = this;
-      await $.ajax({
-        url: '/data_manager/get_layers_for_theme/' + theme.id,
-        crossDomain: true,
-        success: function(data) {
-          layer_objects = [];
-          for (var i = 0; i < data.layers.length; i++) {
-            new_layer = app.viewModel.getOrCreateLayer(data.layers[i], null, 'return', null);
-            new_layer.themes.push(theme);
-            layer_objects.push(new_layer);
-            if (!new_layer.fullyLoaded) {
-              new_layer.getFullLayerRecord(null, null);
-            }
-          }
-          theme.layers(layer_objects);
-        },
-        error: function(data) {
-          console.log('error getting layers for Theme "' + theme.name + '".');
-        }
-      })
+      // await $.ajax({
+      //   url: '/data_manager/get_layers_for_theme/' + theme.id,
+      //   crossDomain: true,
+      //   success: function(data) {
+      //     layer_objects = [];
+      //     for (var i = 0; i < data.layers.length; i++) {
+      //       new_layer = app.viewModel.getOrCreateLayer(data.layers[i], null, 'return', null);
+      //       new_layer.themes.push(theme);
+      //       layer_objects.push(new_layer);
+      //       if (!new_layer.fullyLoaded) {
+      //         new_layer.getFullLayerRecord(null, null);
+      //       }
+      //     }
+      //     theme.layers(layer_objects);
+      //   },
+      //   error: function(data) {
+      //     console.log('error getting layers for Theme "' + theme.name + '".');
+      //   }
+      // })
     }
     //add to open themes
     self.setOpenTheme = function() {
