@@ -2074,68 +2074,20 @@ function reactThemeExpanded (event){
   }
 }
 
-function findLayerByName(layerName) {
-  // Assuming `app.viewModel.layerIndex` holds all the layers
-  const matchingLayers = Object.values(app.viewModel.layerIndex).filter(layer => (layer.layerName || layer.name) === layerName);
- 
-  // Return all layers that match the given name
-  return matchingLayers;
-}
-
 function reactLayerActivated(event){
-
-  const topLevelThemeId = event.detail.topLevelThemeId
-  const layerId = event.detail.layerId
-  const theme_id = event.detail.theme_id
-  const layerName = event.detail.layerName
-  // var selectedTheme = app.viewModel.themes().find(theme => theme.id === topLevelThemeId);
-  // selectedTheme.asyncGetLayers()
-  // var layers = selectedTheme.layers();
-
-  const matchingLayers = findLayerByName(layerName);
-     // Loop through each matching layer 
-     matchingLayers.forEach(layer => {
-      layer.toggleActive(layer, null);  
-     });
-  // if (!selectedLayer.active()) {
-  //   selectedLayer.toggleActive(selectedLayer, null);
-  // }
+  const layerId = event.detail.layerId;
+  let matching_layer = app.viewModel.getLayerById(layerId);
+  if (matching_layer && !matching_layer.active()) {
+    matching_layer.toggleActive(layer, null);  
+  }
 }
 
 function reactLayerDeactivated(event){
-  const topLevelThemeId = event.detail.topLevelThemeId;
   const layerId = event.detail.layerId;
-  const theme_id = event.detail.theme_id;
-  const layerName = event.detail.layerName;  // Assuming layerName is passed in the event detail
-  const selectedTheme = app.viewModel.themes().find(theme => theme.id === topLevelThemeId);
-  let layers = selectedTheme.layers();
-
-  // Check if layerId is a string and contains "mdat" or "vtr"
-  if (typeof layerId === 'string' && (layerId.includes("mdat") || layerId.includes("vtr"))) {
-     // Find all layers with the same name
-     const matchingLayers = findLayerByName(layerName);
-
-     // Loop through each matching layer and deactivate if active
-     matchingLayers.forEach(layer => {
-       if (layer.active()) {
-         layer.toggleActive(layer, null);  // Deactivate the layer
-       }
-     });
-  } else {
-    // If no "mdat" or "vtr", or if layerId is not a string, use the normal layerId-based logic
-    if (theme_id !== topLevelThemeId) {
-      var selectedLayer = app.viewModel.layerIndex[layerId];
-      if (selectedLayer && selectedLayer.active()) {
-        selectedLayer.toggleActive(selectedLayer, null);  // Deactivate the layer by ID
-      }
-    } else {
-      var selectedLayer = app.viewModel.layerIndex[layerId];
-      if (selectedLayer && selectedLayer.active()) {
-        selectedLayer.toggleActive(selectedLayer, null);  // Deactivate the layer by ID
-      }
-    }
+  let matching_layer = app.viewModel.getLayerById(layerId);
+  if (matching_layer && matching_layer.active()) {
+    matching_layer.toggleActive(layer, null);
   }
-
 }
 
 function reactToggleLayer(layerId, theme_id, topLevelThemeId){
