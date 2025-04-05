@@ -2022,42 +2022,17 @@ function reactToggleTheme(theme_id) {
 }
 
 function reactRemoveLayerFromActive(layerId) {
-  var event = new CustomEvent('LayerDeactivated', { detail: { layerId } });
+  var event = new CustomEvent('layerDeactivated', { detail: { layerId } });
   window.dispatchEvent(event);
 }
 
 window.addEventListener("ReactLayerActivated", reactLayerActivated)
 window.addEventListener("ReactLayerDeactivated", reactLayerDeactivated)
 window.addEventListener("ReactThemeExpanded", reactThemeExpanded)
-window.addEventListener("ReactVTRLayer", ReactVTRLayer)
-window.addEventListener("ReactMDATLayer", ReactMDATLayer)
+window.addEventListener("ReactVisualizeLayer", ReactVisualizeLayer)
 
-function ReactVTRLayer (event){
-  app.viewModel.activateVTRLayer(event.detail.layer)
-}
-
-async function ReactMDATLayer(event) {
-  // var selectedTheme = app.viewModel.themes().find(theme => theme.id === 24);
-
-  // try {
-  //   // Wait for the promise to resolve
-  //   const layers = await selectedTheme.asyncGetLayers();
-  //   console.log(layers); // Now you can see the actual layers data
-  // } catch (error) {
-  //   console.error("Error fetching layers:", error);
-  // }
-  // var layers = selectedTheme.layers();
-
-  var mdatLayer = event.detail.layer
-  // var selectedLayer = app.viewModel.layerIndex[event.detail.parentTheme.id]
-  // selectedLayer.type = "ArcRest"
-  // selectedLayer.url = event.detail.parentTheme.url
-  // selectedLayer.mdat_param = event.detail.parentTheme.url + "?f=pjson"
-  // mdatLayer.parentDirectory = selectedLayer
-  // // console.log(selectedLayer)
-  // // selectedLayer.toggleActive(selectedLayer, null);
-  // // app.viewModel.activeLayer(selectedLayer);
-  app.viewModel.activateMDATLayer(mdatLayer)
+function ReactVisualizeLayer(event) {
+  new_layer = app.viewModel.getOrCreateLayer(event.detail.layer, null, 'return', event);
 }
 
 function reactThemeExpanded (event){
@@ -2342,7 +2317,6 @@ function mapLinksModel() {
             urlOrigin = 'http://' + window.location.host;
         }
         var embedURL = urlOrigin + '/embed/map/' + urlHash;
-        //console.log(embedURL);
         return '<iframe width="600" height="450" frameborder="0" scrolling="no" marginheight="0" marginwidth="0"' +
                                      'src="' + embedURL + '">' + '</iframe>';
         //$('#iframe-html')[0].value = '<iframe width="600" height="450" frameborder="0" scrolling="no" marginheight="0" marginwidth="0"' +
@@ -3137,54 +3111,6 @@ function viewModel() {
       }
     }
 
-    /* marine-life-library, not databased MDAT layers */
-    self.activateMDATLayer = function(layer) {
-        var activeMDATQueryLayers = $.grep(app.viewModel.activeLayers(), function(mdatLyr) {
-            return (mdatLyr.name === layer.name && mdatLyr.url === layer.url);
-        });
-
-        //if this layer is already active, don't create a duplicate layer object
-        if (activeMDATQueryLayers.length > 0) {
-            return false;
-        }
-
-        let export_flag = "/export";
-        if (layer.proxy_url) {
-          export_flag = "%2Fexport";
-        }
-        let numberAfterLastUnderscore = layer.id.split('_').pop();
-        var mdatObj = {
-            type: 'ArcRest',
-            name: layer.name,
-            isMDAT: true,
-            parentDirectory: layer.parentDirectory,
-            url: layer.url+export_flag,
-            arcgis_layers: numberAfterLastUnderscore
-        };
-
-        var id_exists = true;
-        mdatObj.id = layer.id;
-        // for(var i=0; id_exists == true && i < 1000; i++) {
-        //   mdatObj.id = 'mdat_layer_' + i;
-        //   if (Object.keys(app.viewModel.layerIndex).indexOf(mdatObj.id) < 0) {
-        //     id_exists = false;
-        //   }
-        // }
-
-        var mdatLayer = app.viewModel.getOrCreateLayer(mdatObj, null, 'return', null),
-            avianAbundance = '/MDAT/Avian_Abundance',
-            avianOccurrence = '/MDAT/Avian_Occurrence';
-
-        //if the MDAT Query is an AvianOccurence or AvianAbundance service,
-        //activate its companion
-        if (layer.url.indexOf(avianAbundance) > -1 || layer.url.indexOf(avianOccurrence) > -1) {
-            activateAvianQueryCompanion(mdatLayer);
-            mdatLayer['hasCompanion'] = true;
-        }
-
-        mdatLayer.activateLayer();
-    }
-
     function activateAvianQueryCompanion(lyr) {
         /*
             NOTE:
@@ -3213,46 +3139,6 @@ function viewModel() {
             lyr.companion =[companionLyr];
         }
     }
-
-    self.activateVTRLayer = function(layer) {
-        var activeVTRQueryLayers = $.grep(app.viewModel.activeLayers(), function(vtrLyr) {
-            return (vtrLyr.name === layer.name && vtrLyr.url === layer.url);
-        });
-
-        //if this layer is already active, don't create a duplicate layer object
-        if (activeVTRQueryLayers.length > 0) {
-            return false;
-        }
-
-        let export_flag = "/export";
-        let path_separator = "/";
-        if (layer.proxy_url) {
-          export_flag = "%2Fexport";
-          path_separator = "%2F";
-        }
-        let numberAfterLastUnderscore = layer.id.split('_').pop();
-
-        var vtrObj = {
-            type: 'ArcRest',
-            name: layer.name,
-            isVTR: true,
-            dateRangeDirectory: layer.dateRangeDirectory,
-            url: layer.url+path_separator+'MapServer'+export_flag,
-            arcgis_layers: numberAfterLastUnderscore
-        };
-
-        var id_exists = true;
-        vtrObj.id = layer.id;
-        // for(var i=0; id_exists == true && i < 1000; i++) {
-        //   vtrObj.id = 'vtr_layer_' + i;
-        //   if (Object.keys(app.viewModel.layerIndex).indexOf(vtrObj.id) < 0) {
-        //     id_exists = false;
-        //   }
-        // }
-
-        var vtrLayer = app.viewModel.getOrCreateLayer(vtrObj, null, 'activateLayer', null);
-
-    };
 
     self.selectedLayer = ko.observable();
 
@@ -3381,6 +3267,9 @@ function viewModel() {
         layer.password_protected(layer_obj.password_protected);
         if (!layer_obj.url == undefined && !layer_obj.url == null) {
           layer.url = layer_obj.url;
+        }
+        if (layer_obj.hasOwnProperty('isDynamic') && layer_obj.isDynamic) {
+          layer.fullyLoaded = true; // dynamic layers are considered fully loaded by default
         }
         // RDH: calling getFullLayerRecord on sublayers results in infinite loops
         // and that's REAL bad for your memory!
