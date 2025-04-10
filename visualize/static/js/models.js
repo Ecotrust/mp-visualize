@@ -1651,7 +1651,9 @@ function layerModel(options, parent) {
           url: '/data_manager/get_layer_details/' + layer.id,
           crossDomain: true,
           success: function(data) {
-            if(data==undefined){debugger;}
+            if (data === undefined) {
+              console.error('Error: Received undefined data from the server.');
+            }
             if (data.hasOwnProperty('layerName')) {
               layer.layerName = data.layerName;
               app.viewModel.layerIndex[layer.id.toString()] = layer;
