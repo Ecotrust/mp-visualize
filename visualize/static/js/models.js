@@ -58,6 +58,7 @@ function layerModel(options, parent) {
 
       self.id = options.id || null;
       self.name = options.name || null;
+      self.layerName = options.layerName || null;
       self.featureAttributionName = self.name;
       self.order = options.order;
       self.type = options.type || null
@@ -363,10 +364,14 @@ function layerModel(options, parent) {
     });
 
     self.isInvisible = ko.pureComputed(function() {
-      if (!self.isVisibleAtZoom() || self.isLocked()) {
-        return true;
-      } 
-      return false;
+      // if (!self.isVisibleAtZoom() || self.isLocked()) {
+      //   return true;
+      // } 
+      // return false;
+
+      var isInvisible = !self.isVisibleAtZoom() || self.isLocked();
+
+        return isInvisible;
     })
 
     self.isVisibleAtZoom = ko.pureComputed(function() {
@@ -713,7 +718,7 @@ function layerModel(options, parent) {
         }
 
         layer.layer = null;
-
+        reactRemoveLayerFromActive(layer.id);
     };
 
     // called from deactivateLayer
@@ -948,6 +953,7 @@ function layerModel(options, parent) {
     //    and opacity can be applied
     self.activateLayer = function(is_companion, override_defaults, callbackOverride) {
         var layer = this;
+
         if (override_defaults) {
           layer.override_defaults(true);
         }
@@ -988,7 +994,7 @@ function layerModel(options, parent) {
 
             if (!layer.active() && layer.type !== 'placeholder' && !layer.isDisabled()) {
 
-              self.activateBaseLayer();
+                self.activateBaseLayer();
 
               // save reference in parent layer
               if (layer.parent) {
@@ -1025,6 +1031,7 @@ function layerModel(options, parent) {
                     self.activateCompanionLayer();
                   }
                 }
+                
               }
 
               //activate multilayer groups
@@ -1034,6 +1041,14 @@ function layerModel(options, parent) {
               }
 
               self.trackLayer(layer.name);
+              const layer_theme = layer.themes()
+
+              if (!(layer.hasOwnProperty('parent') && layer.parent && layer.parent.type == "slider")) {
+                // Dispatch custom event
+                const layerActivatedEvent = new CustomEvent('layerActivated', { detail: { layerId: layer.id, themeId: layer.themes()[0]?.id ?? null } });
+                window.dispatchEvent(layerActivatedEvent);
+              }
+            
             }
           } else {
             if (callbackOverride){
@@ -1052,7 +1067,7 @@ function layerModel(options, parent) {
     // called from activateLayer
     self.activateBaseLayer = function() {
         var layer = this;
-
+      
         app.addLayerToMap(layer);
 
         //now that we no longer use the selectfeature control we can simply do the following
@@ -1233,6 +1248,7 @@ function layerModel(options, parent) {
           if (mlayer) {
             mlayer.is_multilayer(true);
             if (mlayer.fullyLoaded){
+
               mlayer.activateLayer();
               mlayer.opacity(0);
             } else {
@@ -1620,7 +1636,9 @@ function layerModel(options, parent) {
     }
 
     self.getFullLayerRecord = function(callbackType, evt) {
-      var layer = this;
+      
+      const layer = this;
+
       if (layer.isMDAT || layer.isVTR || layer.isDrawingModel || layer.isSelectionModel || layer.hasOwnProperty('wmsSession') && layer.wmsSession()) {
         layer.fullyLoaded = true;
         if (app.map.hasOwnProperty('zoom')){
@@ -1633,8 +1651,11 @@ function layerModel(options, parent) {
           url: '/data_manager/get_layer_details/' + layer.id,
           crossDomain: true,
           success: function(data) {
-            if (data.hasOwnProperty('name')) {
-              layer.name = data.name;
+            if (data === undefined) {
+              console.error('Error: Received undefined data from the server.');
+            }
+            if (data.hasOwnProperty('layerName')) {
+              layer.layerName = data.layerName;
               app.viewModel.layerIndex[layer.id.toString()] = layer;
             }
             var parent = null;
@@ -1655,12 +1676,13 @@ function layerModel(options, parent) {
               app.map.zoom.valueHasMutated();
             }
             layer.performAction(callbackType, evt);
-            app.viewModel.layerIndex[layer.id.toString()] = layer;
 
+            if (layer.id){
+              app.viewModel.layerIndex[layer.id.toString()] = layer;
+            }
             if (!data.hasOwnProperty('url') || !data.url || !data.url.length > 0 || data.hasOwnProperty('type') && data.type == 'placeholder') {
               layer.loadStatus(false);
             }
-
           },
           error: function(data) {
             console.log('Failed to pull full layer record for ' + layer.name);
@@ -1763,7 +1785,7 @@ function layerModel(options, parent) {
 
         if (layer.active()) { // if layer is active
             layer.deactivateLayer();
-
+            
             if (layer.hasOwnProperty('scenarioModel') && event) {
               layer.scenarioModel.deactivateLayer(self, false);
             }
@@ -1979,6 +2001,151 @@ function layerModel(options, parent) {
     return self;
 } // end layerModel
 
+function reactToggleTheme(theme_id) {
+
+  var selectedTheme = app.viewModel.themes().find(theme => theme.id === theme_id);
+
+  if (selectedTheme != undefined) {
+    selectedTheme.setOpenTheme()
+  // Get all layers of the selected theme
+  }
+  // app.viewModel.themes()[theme_id].layers()[layerId].activateLayer()
+
+}
+
+function reactRemoveLayerFromActive(layerId) {
+  var event = new CustomEvent('LayerDeactivated', { detail: { layerId } });
+  window.dispatchEvent(event);
+}
+
+window.addEventListener("ReactLayerActivated", reactLayerActivated)
+window.addEventListener("ReactLayerDeactivated", reactLayerDeactivated)
+window.addEventListener("ReactThemeExpanded", reactThemeExpanded)
+window.addEventListener("ReactVTRLayer", ReactVTRLayer)
+window.addEventListener("ReactMDATLayer", ReactMDATLayer)
+
+function ReactVTRLayer (event){
+  app.viewModel.activateVTRLayer(event.detail.layer)
+}
+
+async function ReactMDATLayer(event) {
+  // var selectedTheme = app.viewModel.themes().find(theme => theme.id === 24);
+
+  // try {
+  //   // Wait for the promise to resolve
+  //   const layers = await selectedTheme.asyncGetLayers();
+  //   console.log(layers); // Now you can see the actual layers data
+  // } catch (error) {
+  //   console.error("Error fetching layers:", error);
+  // }
+  // var layers = selectedTheme.layers();
+
+  var mdatLayer = event.detail.layer
+  var selectedLayer = app.viewModel.layerIndex[event.detail.parentTheme.id]
+  selectedLayer.type = "ArcRest"
+  selectedLayer.url = event.detail.parentTheme.url
+  selectedLayer.mdat_param = event.detail.parentTheme.url + "?f=pjson"
+  mdatLayer.parentDirectory = selectedLayer
+  // console.log(selectedLayer)
+  // selectedLayer.toggleActive(selectedLayer, null);
+  // app.viewModel.activeLayer(selectedLayer);
+  app.viewModel.activateMDATLayer(mdatLayer)
+}
+
+function reactThemeExpanded (event){
+  const themeId = event.detail.themeId
+  var selectedTheme = app.viewModel.themes().find(theme => theme.id === themeId);
+  if (selectedTheme) {
+    // Ensure the layers array is accessible before checking its properties
+    const layers = selectedTheme.layers();
+    if ((layers.length === 1 && layers[0].id == null) || layers.length === 0) {
+      selectedTheme.asyncGetLayers();
+    }
+  } else {
+    console.log(`Theme with ID ${themeId} not found`);
+  }
+}
+
+function findLayerByName(layerName) {
+  // Assuming `app.viewModel.layerIndex` holds all the layers
+  const matchingLayers = Object.values(app.viewModel.layerIndex).filter(layer => (layer.layerName || layer.name) === layerName);
+ 
+  // Return all layers that match the given name
+  return matchingLayers;
+}
+
+function reactLayerActivated(event){
+
+  const topLevelThemeId = event.detail.topLevelThemeId
+  const layerId = event.detail.layerId
+  const theme_id = event.detail.theme_id
+  const layerName = event.detail.layerName
+  // var selectedTheme = app.viewModel.themes().find(theme => theme.id === topLevelThemeId);
+  // selectedTheme.asyncGetLayers()
+  // var layers = selectedTheme.layers();
+
+  const matchingLayers = findLayerByName(layerName);
+     // Loop through each matching layer 
+     matchingLayers.forEach(layer => {
+      layer.toggleActive(layer, null);  
+     });
+  // if (!selectedLayer.active()) {
+  //   selectedLayer.toggleActive(selectedLayer, null);
+  // }
+}
+
+function reactLayerDeactivated(event){
+  const topLevelThemeId = event.detail.topLevelThemeId;
+  const layerId = event.detail.layerId;
+  const theme_id = event.detail.theme_id;
+  const layerName = event.detail.layerName;  // Assuming layerName is passed in the event detail
+  const selectedTheme = app.viewModel.themes().find(theme => theme.id === topLevelThemeId);
+  let layers = selectedTheme.layers();
+
+  // Check if layerId is a string and contains "mdat" or "vtr"
+  if (typeof layerId === 'string' && (layerId.includes("mdat") || layerId.includes("vtr"))) {
+     // Find all layers with the same name
+     const matchingLayers = findLayerByName(layerName);
+
+     // Loop through each matching layer and deactivate if active
+     matchingLayers.forEach(layer => {
+       if (layer.active()) {
+         layer.toggleActive(layer, null);  // Deactivate the layer
+       }
+     });
+  } else {
+    // If no "mdat" or "vtr", or if layerId is not a string, use the normal layerId-based logic
+    if (theme_id !== topLevelThemeId) {
+      var selectedLayer = app.viewModel.layerIndex[layerId];
+      if (selectedLayer && selectedLayer.active()) {
+        selectedLayer.toggleActive(selectedLayer, null);  // Deactivate the layer by ID
+      }
+    } else {
+      var selectedLayer = app.viewModel.layerIndex[layerId];
+      if (selectedLayer && selectedLayer.active()) {
+        selectedLayer.toggleActive(selectedLayer, null);  // Deactivate the layer by ID
+      }
+    }
+  }
+
+}
+
+function reactToggleLayer(layerId, theme_id, topLevelThemeId){
+  var selectedTheme = app.viewModel.themes().find(theme => theme.id === topLevelThemeId);
+  var layers = selectedTheme.layers();
+
+  // Find the specific layer by layerId
+  if (theme_id != topLevelThemeId) {
+    var sublayers = layers.find(layer => layer.id === theme_id);
+    var selectedLayer = sublayers.subLayers.find(layer => layer.id === layerId)
+    selectedLayer.toggleActive(selectedLayer,null);
+  }
+  else {
+    var selectedLayer = layers.find(layer => layer.id === layerId)
+    selectedLayer.toggleActive(selectedLayer,null);
+  }
+}
+
 function themeModel(options) {
     var self = this;
     self.name = options.display_name;
@@ -2007,6 +2174,7 @@ function themeModel(options) {
           layer_objects = [];
           for (var i = 0; i < data.layers.length; i++) {
             new_layer = app.viewModel.getOrCreateLayer(data.layers[i], null, 'return', null);
+            
             new_layer.themes.push(theme);
             layer_objects.push(new_layer);
             if (!new_layer.fullyLoaded) {
@@ -2020,11 +2188,33 @@ function themeModel(options) {
         }
       })
     }
-
+    
+    self.asyncGetLayers = async function() {
+      var theme = this;
+      await $.ajax({
+        url: '/data_manager/get_layers_for_theme/' + theme.id,
+        crossDomain: true,
+        success: function(data) {
+          layer_objects = [];
+          for (var i = 0; i < data.layers.length; i++) {
+            new_layer = app.viewModel.getOrCreateLayer(data.layers[i], null, 'return', null);
+            new_layer.themes.push(theme);
+            layer_objects.push(new_layer);
+            if (!new_layer.fullyLoaded) {
+              new_layer.getFullLayerRecord(null, null);
+            }
+          }
+          theme.layers(layer_objects);
+        },
+        error: function(data) {
+          console.log('error getting layers for Theme "' + theme.name + '".');
+        }
+      })
+    }
     //add to open themes
     self.setOpenTheme = function() {
-        var theme = this;
 
+        var theme = this;
         if (self.isOpenTheme(theme)) {
           app.viewModel.openThemes.remove(theme);
         } else {
@@ -2114,14 +2304,14 @@ function mapLinksModel() {
     };
 
     self.getURL = function() {
-        if (window.location.hostname == "localhost") {
-          return window.location.protocol + '//portal.midatlanticocean.org' + app.viewModel.currentURL();
-        } else {
-          return window.location.origin + app.viewModel.currentURL();
-        }
+      var origin = window.location.origin;  
+
+      
+      return origin + app.viewModel.currentURL();
+      
     };
 
-    self.shrinkURL = ko.observable();
+    self.shrinkURL = ko.observable(false);
     self.shrinkURL.subscribe( function() {
         if (self.shrinkURL()) {
             self.useShortURL();
@@ -2135,23 +2325,39 @@ function mapLinksModel() {
     };
 
     self.useShortURL = function() {
-        var bitly_login = "p97dev",
-            bitly_api_key = 'R_27f2b2cc886e49fb9f35c37b7b633749',
-            long_url = self.getURL();
+        // var bitly_login = "p97dev",
+        //     bitly_api_key = 'R_27f2b2cc886e49fb9f35c37b7b633749',
+        //     long_url = self.getURL();
 
-        $.getJSON(
-            "https://api-ssl.bitly.com/v3/shorten?callback=?",
-            {
-                "format": "json",
-                "apiKey": bitly_api_key,
-                "login": bitly_login,
-                "longUrl": long_url
-            },
-            function(response)
-            {
-                $('#short-url')[0].value = response.data.url;
-            }
-        );
+        // $.getJSON(
+        //     "https://api-ssl.bitly.com/v3/shorten?callback=?",
+        //     {
+        //         "format": "json",
+        //         "apiKey": bitly_api_key,
+        //         "login": bitly_login,
+        //         "longUrl": long_url
+        //     },
+        //     function(response)
+        //     {
+        //         $('#short-url')[0].value = response.data.url;
+        //     }
+        // );
+        app.updateUrl();
+        var long_url = self.getURL();
+      $.ajax({
+          type: "POST",
+          url: "/url_shortener/", 
+          data: {
+              "url": long_url,
+              "csrfmiddlewaretoken": $('input[name="csrfmiddlewaretoken"]').val()  
+          },
+          success: function(response) {
+              $('#short-url')[0].value = response.shortened_url;
+          },
+          error: function(xhr, status, error) {
+              console.log("Error shortening URL:", error);
+          }
+      });
     };
 
     self.getPortalURL = function() {
@@ -2907,6 +3113,18 @@ function viewModel() {
         $('#map-links-modal').modal()
     };
 
+    $(document).ready(function(){
+      // Detect when the modal is closed
+      $('#map-links-modal').on('hidden.bs.modal', function () {
+          // Set shrinkURL to false when the modal is closed
+          if (typeof self.mapLinks.shrinkURL === 'function') {
+              self.mapLinks.shrinkURL(false);  // This assumes shrinkURL is a Knockout observable
+          } else {
+              shrinkURL = false;  // If shrinkURL is a regular variable
+          }
+      });
+    });
+
     self.startNewDrawing = function() {
       $('#designsTab').click();
       if ($('#drawings-header').is(":visible") && $('#drawings-header').find('a.create-new-button').is(":visible") && !app.viewModel.scenarios.loadingDrawingForm()) {
@@ -2974,23 +3192,24 @@ function viewModel() {
         if (layer.proxy_url) {
           export_flag = "%2Fexport";
         }
-
+        let numberAfterLastUnderscore = layer.id.split('_').pop();
         var mdatObj = {
             type: 'ArcRest',
             name: layer.name,
             isMDAT: true,
             parentDirectory: layer.parentDirectory,
             url: layer.url+export_flag,
-            arcgis_layers: layer.id
+            arcgis_layers: numberAfterLastUnderscore
         };
 
         var id_exists = true;
-        for(var i=0; id_exists == true && i < 1000; i++) {
-          mdatObj.id = 'mdat_layer_' + i;
-          if (Object.keys(app.viewModel.layerIndex).indexOf(mdatObj.id) < 0) {
-            id_exists = false;
-          }
-        }
+        mdatObj.id = layer.id;
+        // for(var i=0; id_exists == true && i < 1000; i++) {
+        //   mdatObj.id = 'mdat_layer_' + i;
+        //   if (Object.keys(app.viewModel.layerIndex).indexOf(mdatObj.id) < 0) {
+        //     id_exists = false;
+        //   }
+        // }
 
         var mdatLayer = app.viewModel.getOrCreateLayer(mdatObj, null, 'return', null),
             avianAbundance = '/MDAT/Avian_Abundance',
@@ -3051,6 +3270,7 @@ function viewModel() {
           export_flag = "%2Fexport";
           path_separator = "%2F";
         }
+        let numberAfterLastUnderscore = layer.id.split('_').pop();
 
         var vtrObj = {
             type: 'ArcRest',
@@ -3058,16 +3278,17 @@ function viewModel() {
             isVTR: true,
             dateRangeDirectory: layer.dateRangeDirectory,
             url: layer.url+path_separator+'MapServer'+export_flag,
-            arcgis_layers: layer.id
+            arcgis_layers: numberAfterLastUnderscore
         };
 
         var id_exists = true;
-        for(var i=0; id_exists == true && i < 1000; i++) {
-          vtrObj.id = 'vtr_layer_' + i;
-          if (Object.keys(app.viewModel.layerIndex).indexOf(vtrObj.id) < 0) {
-            id_exists = false;
-          }
-        }
+        vtrObj.id = layer.id;
+        // for(var i=0; id_exists == true && i < 1000; i++) {
+        //   vtrObj.id = 'vtr_layer_' + i;
+        //   if (Object.keys(app.viewModel.layerIndex).indexOf(vtrObj.id) < 0) {
+        //     id_exists = false;
+        //   }
+        // }
 
         var vtrLayer = app.viewModel.getOrCreateLayer(vtrObj, null, 'activateLayer', null);
 
@@ -3244,7 +3465,6 @@ function viewModel() {
     self.layerSearch = function() {
         var found = self.layerSearchIndex[self.searchTerm()];
         if (!found) {
-            console.log("Did not find search term", self.searchTerm());
             return false;
         }
         if (!(found.layer instanceof layerModel)) {
@@ -3272,18 +3492,21 @@ function viewModel() {
         }
         //self.activeTheme(theme);
         if (!(found.theme instanceof themeModel)) {
+
           if (Number.isInteger(found.theme)) {
             found.theme = app.viewModel.getThemeById(found.theme);
-          } else if (found.theme.hasOwnProperty('id')) {
+          } else if (found.theme && found.theme.hasOwnProperty('id')) {
             found.theme = app.viewModel.getThemeById(found.theme.id);
-          } else {
+          } else if (found.theme === null) {
+            console.log("theme is null")
+          }
+          else {
             console.log("Did not find theme for layer indicated.");
             return false;
           }
         }
-        if (self.openThemes.indexOf(found.theme) === -1) {
+        if (self.openThemes.indexOf(found.theme) === -1 && found.theme && found.theme.name != "Companion") {
           // self.openThemes.push(found.theme);
-
           found.theme.setOpenTheme();
           window.setTimeout(function() {
             $('#activeTab').tab('show');
@@ -3291,6 +3514,7 @@ function viewModel() {
         }
         if (found.layer instanceof layerModel) {
           found.layer.activateLayer();
+
         } else {
           var layer_obj = {id:found.layer, name:"Loading..."};
           var parent = null;

@@ -1,6 +1,11 @@
 {% extends "base.html" %}
 {% load static %}
 
+{% block templatename %}
+    {{ block.super }}
+    <!-- PLANNER: mp-visualize/visualize/templates/visualize/planner.html -->
+{% endblock templatename %}
+
 {% block title %}{{ REGION.name }} Data Portal - Marine Planner{% endblock %}
 
 {% block extra_css %}
@@ -272,57 +277,7 @@
                                       <!-- END ACTIVE TAB -->
                                       <!-- DATA TAB -->
                                       <div class="tab-pane active " id="data">
-                                          <div class="accordion-wrapper">
-                                              <!-- data accordion -->
-                                              <div id="data-accordion">
-                                                  <div class="accordion" data-bind="foreach: themes">
-                                                      <!-- ko ifnot: isCompanionTheme() -->
-                                                      <div class="accordion-group">
-                                                          <div class="accordion-heading" data-bind="click: setOpenTheme, css: { 'active': isOpenTheme() }">
-                                                              <div>
-                                                                  <a class="accordion-toggle">
-                                                                      <span data-bind="text: name">Themes</span></a>
-                                                              </div>
-                                                          </div>
-                                                          <div class="accordion-body collapse" data-bind="css: { 'in': isOpenTheme() }">
-                                                              <div class="accordion-inner">
-                                                                  <!-- ko if: isMarineLife() -->
-                                                                  <img src="/static/visualize/img/mdat-ajax.gif"
-                                                                       id="mdat-load">
-                                                                  <ul  class="unstyled" data-bind="foreach: layers ">
-                                                                      <li class="layer dropdown" data-bind="css: {'open': showSublayers() }, attr: {name: name}">
-                                                                          {% include "visualize/includes/mdat-sublayer-search.html" %}
-                                                                      </li>
-                                                                  </ul>
-                                                                  <!-- /ko -->
-                                                                  <!-- ko if: isVTR() -->
-                                                                  <img src="/static/visualize/img/mdat-ajax.gif"
-                                                                       id="vtr-load">
-                                                                  <ul  class="unstyled" data-bind="foreach: layers ">
-                                                                      <li class="layer dropdown" data-bind="css: {'open': showSublayers() }, attr: {name: name}">
-                                                                          {% include "visualize/includes/vtr-cas.html" %}
-                                                                      </li>
-                                                                  </ul>
-                                                                  <!-- /ko -->
-                                                                  <!-- ko ifnot: isMarineLife() -->
-                                                                  <!-- ko ifnot: isVTR() -->
-                                                                  {% block catalog_layer_row %}
-                                                                  <ul  class="unstyled" data-bind="foreach: layers ">
-                                                                      <li class="layer dropdown" data-bind="css: {'open': showSublayers() }, attr: {name: name}">
-                                                                          {% include "visualize/includes/catalog-layer-row.html" %}
-                                                                      </li>
-                                                                  </ul>
-                                                                  {% endblock %}
-                                                                  <!-- /ko -->
-                                                                  <!-- /ko -->
-                                                              </div>
-                                                          </div>
-                                                      </div>
-                                                      <!-- /ko -->
-                                                  </div>
-                                              </div>
-                                              <!-- /data-accordion -->
-                                          </div>
+                                          {% include "picker_wrapper.html"%}
                                       </div>
                                       <!-- END DATA TAB -->
 
@@ -331,7 +286,7 @@
                                       {% include "visualize/scenarios.html" %}
                                       {% else %}
                                       <div class="tab-pane " id="designs">
-                                          <div style="padding: 10px">
+                                          <div style="padding: 20px">
                                               <p>Please log in with your Ocean Data Portal account to access MyPlanner.</p>
                                               <p>MyPlanner provides: </p>
                                                   <ul>

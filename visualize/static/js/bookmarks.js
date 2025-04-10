@@ -159,12 +159,17 @@ function bookmarksModel(options) {
 
     self.getCurrentBookmarkURL = function() {
         if ( self.sharingBookmark() ) {
-            self.shrinkBookmarkURL(true);
-            return self.useShortBookmarkURL();
-            // return self.sharingBookmark().getBookmarkUrl();
+            if (self.shrinkBookmarkURL()) {
+                // If "Short URL" is checked, get the shortened URL
+                self.useShortBookmarkURL();  // This will update currentBookmarkURL with the shortened URL
+            } else {
+                // If "Short URL" is unchecked, use the long URL
+                self.currentBookmarkURL(self.sharingBookmark().getBookmarkUrl());
+            }
         } else {
-            return '';
+            self.currentBookmarkURL('');
         }
+        return self.currentBookmarkURL();
     };
 
     self.shrinkBookmarkURL = ko.observable(true);
@@ -195,33 +200,56 @@ function bookmarksModel(options) {
     };
 
     self.useShortBookmarkURL = function() {
-        var bitly_access_token = '227d50a9d70140483b003a70b1f449e00514c053';
-            long_url = self.sharingBookmark().getBookmarkUrl();
-            params = {
-              "group_guid": "Bec5n80dm93",
-              "domain": "bit.ly",
-              "long_url": long_url
-            };
+        // var bitly_access_token = '227d50a9d70140483b003a70b1f449e00514c053';
+        //     long_url = self.sharingBookmark().getBookmarkUrl();
+        //     params = {
+        //       "group_guid": "Bec5n80dm93",
+        //       "domain": "bit.ly",
+        //       "long_url": long_url
+        //     };
+
+        // $.ajax({
+        //   type: "POST",
+        //   url: "https://api-ssl.bitly.com/v4/shorten",
+        //   data: JSON.stringify(params),
+        //   success: function(response){
+        //       if (response.link != undefined) {
+        //         $('.in #short-url')[0].value = response.link;
+        //       } else {
+        //         $('.in #short-url')[0].value = long_url;
+        //       }
+        //   },
+        //   dataType: 'json',
+        //   contentType: "application/json",
+        //   beforeSend: function(xhr){
+        //     xhr.setRequestHeader("Authorization", "Bearer " + bitly_access_token);
+        //   }
+        // });
+        var long_url = self.sharingBookmark().getBookmarkUrl();  
+
+        var params = {
+            "url": long_url,
+            "csrfmiddlewaretoken": $('input[name="csrfmiddlewaretoken"]').val()  // Including CSRF token for Django's CSRF protection
+        }
 
         $.ajax({
-          type: "POST",
-          url: "https://api-ssl.bitly.com/v4/shorten",
-          data: JSON.stringify(params),
-          success: function(response){
-              if (response.link != undefined) {
-                $('.in #short-url')[0].value = response.link;
-              } else {
-                $('.in #short-url')[0].value = long_url;
-              }
-          },
-          dataType: 'json',
-          contentType: "application/json",
-          beforeSend: function(xhr){
-            xhr.setRequestHeader("Authorization", "Bearer " + bitly_access_token);
-          }
+            type: "POST",
+            url: "/url_shortener/",  
+            data: params,  
+            success: function(response) {
+                console.log(response)
+                if (response.shortened_url != undefined) {
+                    self.currentBookmarkURL(response.shortened_url);  // Set the value directly
+                }
+            },
+            error: function(xhr, status, error) {
+                console.log("Error shortening URL:", error);
+            },
+            dataType: 'json',  
+            contentType: "application/x-www-form-urlencoded",  // Use URL encoding for the data
         });
     };
-
+    self.currentBookmarkURL = ko.observable('');
     self.setBookmarkIFrameHTML = function() {
         var bookmarkState = self.sharingBookmark().getBookmarkHash();
         $('.in #bookmark-iframe-html')[0].value = app.viewModel.mapLinks.getIFrameHTML(bookmarkState);

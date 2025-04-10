@@ -1,7 +1,7 @@
 // represents whether or not restoreState is currently being updated
 // example use:  saveStateMode will be false when a user is viewing a bookmark
 app.saveStateMode = true;
-
+window.app = app;
 // save the state of app
 app.getState = function () {
   if (app.wrapper.map.hasOwnProperty('getCenter')) {

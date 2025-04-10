@@ -165,8 +165,10 @@
                     </span>
                 </div>
                 <div>
-                    <input id="short-url" type="text" style="width: 96%" data-bind="attr: {value: getURL()}, css: {'change-url': shrinkURL}">
+                    <input id="short-url" type="text" style="width: 96%" data-bind="value: getURL(), css: {'change-url': shrinkURL}">
                 </div>
+                <!-- CSRF Token Hidden Input Field -->
+                <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
                 <div style="padding-top: 12px; padding-bottom: 5px">
                     Embedded Map
                 </div>
