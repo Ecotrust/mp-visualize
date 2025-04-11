@@ -542,6 +542,12 @@ app.wrapper.map.addArcRestLayerToMap = function(layer) {
     }
     layer_params['token'] = layer.token();
   }
+  // RDH 20250411: This is a hack to get around the fact that OpenLayers 8 seems to choke when 'MapServer' isn't capitalized like this.
+  if (layer.type == "ArcRest" && (layer.url.toLowerCase().indexOf('mapserver') >= 0 && layer.url.indexOf('MapServer') == -1)) {
+    const mapServerPathIndex = layer.url.toLowerCase().indexOf('mapserver');
+    const newUrl = layer.url.substr(0,mapServerPathIndex) + 'MapServer' + layer.url.substr(mapServerPathIndex+'mapserver'.length,);
+    layer.url = newUrl;
+  }
   let export_idx = layer.url.toLowerCase().indexOf('/export');
   if(export_idx<0) {
     url = layer.url;
