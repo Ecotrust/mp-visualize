@@ -1214,17 +1214,23 @@ function layerModel(options, parent) {
                 }
             });
         }
-        if (layer.hasCompanion && (!layer.hasOwnProperty('companion') || layer.companion.length < 1)) {
-          layer.companion = [];
-          for (var i = 0; i < layer.companionLayers.length; i++) {
-            var companion_description = layer.companionLayers[i];
-            var companion_layer = app.viewModel.getOrCreateLayer(companion_description, null, "return", null);
-            layer.companion.push(companion_layer);
-            if (!companion_layer.active()) {
-              app.viewModel.getOrCreateLayer(companion_description, null, "activateLayer", null);
+        if (layer.hasCompanion) {
+          if (!layer.hasOwnProperty('companion') || layer.companion.length < 1) {
+            layer.companion = [];
+            for (var i = 0; i < layer.companionLayers.length; i++) {
+              var companion_description = layer.companionLayers[i];
+              var companion_layer = app.viewModel.getOrCreateLayer(companion_description, null, "return", null);
+              layer.companion.push(companion_layer);
+              if (!companion_layer.active()) {
+                app.viewModel.getOrCreateLayer(companion_description, null, "activateLayer", null);
+              }
             }
-          }
+          } else {
+            for (var i = 0; i < layer.companion.length; i++) {
+              layer.companion[i].activateLayer();
+            }
         }
+      }
     }
 
     self.getMultilayerIds = function(object, id_list) {
