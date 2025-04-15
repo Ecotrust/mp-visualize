@@ -58,5 +58,13 @@ app.viewModel.getLayerByOLId = function(id) {
             }
         }
     }
+    // RDH 20250415: "companion-only" layers may have been missed.
+    const mpid_keys = Object.keys(app.viewModel.layerIndex);
+    for (var mp_id = 0;  mp_id < mpid_keys.length; mp_id++) {
+      var layer = app.viewModel.layerIndex[mpid_keys[mp_id]];
+      if (layer.hasOwnProperty('layer') && layer.layer && layer.layer.ol_uid === id) {
+        return layer;
+      }
+    }
     return false;
 };
