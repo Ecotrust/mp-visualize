@@ -1059,7 +1059,10 @@ app.wrapper.map.getLayerStyle = function(feature) {
   }
   for (var i = 0; i < lookupDetails.length; i++) {
     var detail = lookupDetails[i];
-    if (lookupField && detail.value.toString() == feature.getProperties()[lookupField].toString()) {
+    if (
+      lookupField && feature.hasProperties() && 
+      detail.value.toString() == feature.getProperties()[lookupField] ? feature.getProperties()[lookupField].toString() : null
+    ) {
       if (detail.fill) {
         var fill_color = detail.color;
         var fill_opacity = default_opacity;
