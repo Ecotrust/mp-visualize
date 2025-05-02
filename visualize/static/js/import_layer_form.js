@@ -72,7 +72,7 @@ madrona.onShow(function(){
                     if (parse_options.keys[key_index].hasOwnProperty('key')) {
                         parse_options.keys[key_index] = parse_options.keys[key_index].key;
                     } else {
-                        parse_options.keys[key_index] = str(parse_options.keys[key_index]);
+                        parse_options.keys[key_index] = String(parse_options.keys[key_index]);
                     }
                 }
             }
