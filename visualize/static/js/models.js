@@ -1012,8 +1012,15 @@ function layerModel(options, parent) {
               }
 
               //activate marine life layers
-              if (layer.isMDAT && self.hasOwnProperty('parentMDATDirectory') && self.parentMDATDirectory) {
-                self.parentMDATDirectory.visible(true);
+              if (layer.isMDAT && self.hasOwnProperty('parentMDATDirectory') && 
+                  self.parentMDATDirectory && 
+                  self.parentMDATDirectory.hasOwnProperty('visible')
+              ) {
+                if (typeof(self.parentMDATDirectory.visible) == "function") {
+                  self.parentMDATDirectory.visible(true);
+                } else {
+                  self.parentMDATDirectory.visible = true;
+                }
               }
 
               if (layer.isVTR || layer.wmsSession()) {
@@ -1207,17 +1214,23 @@ function layerModel(options, parent) {
                 }
             });
         }
-        if (layer.hasCompanion && (!layer.hasOwnProperty('companion') || layer.companion.length < 1)) {
-          layer.companion = [];
-          for (var i = 0; i < layer.companionLayers.length; i++) {
-            var companion_description = layer.companionLayers[i];
-            var companion_layer = app.viewModel.getOrCreateLayer(companion_description, null, "return", null);
-            layer.companion.push(companion_layer);
-            if (!companion_layer.active()) {
-              app.viewModel.getOrCreateLayer(companion_description, null, "activateLayer", null);
+        if (layer.hasCompanion) {
+          if (!layer.hasOwnProperty('companion') || layer.companion.length < 1) {
+            layer.companion = [];
+            for (var i = 0; i < layer.companionLayers.length; i++) {
+              var companion_description = layer.companionLayers[i];
+              var companion_layer = app.viewModel.getOrCreateLayer(companion_description, null, "return", null);
+              layer.companion.push(companion_layer);
+              if (!companion_layer.active()) {
+                app.viewModel.getOrCreateLayer(companion_description, null, "activateLayer", null);
+              }
             }
-          }
+          } else {
+            for (var i = 0; i < layer.companion.length; i++) {
+              layer.companion[i].activateLayer();
+            }
         }
+      }
     }
 
     self.getMultilayerIds = function(object, id_list) {
@@ -1854,7 +1867,11 @@ function layerModel(options, parent) {
           }
 
           if (parentDirArray.length == 0) {
+            if (layer.parentMDATDirectory.hasOwnProperty('visible') && typeof(layer.parentMDATDirectory.visible) == "function") {
               layer.parentMDATDirectory.visible(false);
+            } else {
+              layer.parentMDATDirectory.visible = false;
+            }
           }
       }
     };
@@ -2014,42 +2031,17 @@ function reactToggleTheme(theme_id) {
 }
 
 function reactRemoveLayerFromActive(layerId) {
-  var event = new CustomEvent('LayerDeactivated', { detail: { layerId } });
+  var event = new CustomEvent('layerDeactivated', { detail: { layerId } });
   window.dispatchEvent(event);
 }
 
 window.addEventListener("ReactLayerActivated", reactLayerActivated)
 window.addEventListener("ReactLayerDeactivated", reactLayerDeactivated)
 window.addEventListener("ReactThemeExpanded", reactThemeExpanded)
-window.addEventListener("ReactVTRLayer", ReactVTRLayer)
-window.addEventListener("ReactMDATLayer", ReactMDATLayer)
+window.addEventListener("ReactVisualizeLayer", ReactVisualizeLayer)
 
-function ReactVTRLayer (event){
-  app.viewModel.activateVTRLayer(event.detail.layer)
-}
-
-async function ReactMDATLayer(event) {
-  // var selectedTheme = app.viewModel.themes().find(theme => theme.id === 24);
-
-  // try {
-  //   // Wait for the promise to resolve
-  //   const layers = await selectedTheme.asyncGetLayers();
-  //   console.log(layers); // Now you can see the actual layers data
-  // } catch (error) {
-  //   console.error("Error fetching layers:", error);
-  // }
-  // var layers = selectedTheme.layers();
-
-  var mdatLayer = event.detail.layer
-  var selectedLayer = app.viewModel.layerIndex[event.detail.parentTheme.id]
-  selectedLayer.type = "ArcRest"
-  selectedLayer.url = event.detail.parentTheme.url
-  selectedLayer.mdat_param = event.detail.parentTheme.url + "?f=pjson"
-  mdatLayer.parentDirectory = selectedLayer
-  // console.log(selectedLayer)
-  // selectedLayer.toggleActive(selectedLayer, null);
-  // app.viewModel.activeLayer(selectedLayer);
-  app.viewModel.activateMDATLayer(mdatLayer)
+function ReactVisualizeLayer(event) {
+  new_layer = app.viewModel.getOrCreateLayer(event.detail.layer, null, 'return', event);
 }
 
 function reactThemeExpanded (event){
@@ -2066,68 +2058,20 @@ function reactThemeExpanded (event){
   }
 }
 
-function findLayerByName(layerName) {
-  // Assuming `app.viewModel.layerIndex` holds all the layers
-  const matchingLayers = Object.values(app.viewModel.layerIndex).filter(layer => (layer.layerName || layer.name) === layerName);
- 
-  // Return all layers that match the given name
-  return matchingLayers;
-}
-
 function reactLayerActivated(event){
-
-  const topLevelThemeId = event.detail.topLevelThemeId
-  const layerId = event.detail.layerId
-  const theme_id = event.detail.theme_id
-  const layerName = event.detail.layerName
-  // var selectedTheme = app.viewModel.themes().find(theme => theme.id === topLevelThemeId);
-  // selectedTheme.asyncGetLayers()
-  // var layers = selectedTheme.layers();
-
-  const matchingLayers = findLayerByName(layerName);
-     // Loop through each matching layer 
-     matchingLayers.forEach(layer => {
-      layer.toggleActive(layer, null);  
-     });
-  // if (!selectedLayer.active()) {
-  //   selectedLayer.toggleActive(selectedLayer, null);
-  // }
+  const layerId = event.detail.layerId;
+  let matching_layer = app.viewModel.getLayerById(layerId);
+  if (matching_layer && !matching_layer.active()) {
+    matching_layer.toggleActive(layer, null);  
+  }
 }
 
 function reactLayerDeactivated(event){
-  const topLevelThemeId = event.detail.topLevelThemeId;
   const layerId = event.detail.layerId;
-  const theme_id = event.detail.theme_id;
-  const layerName = event.detail.layerName;  // Assuming layerName is passed in the event detail
-  const selectedTheme = app.viewModel.themes().find(theme => theme.id === topLevelThemeId);
-  let layers = selectedTheme.layers();
-
-  // Check if layerId is a string and contains "mdat" or "vtr"
-  if (typeof layerId === 'string' && (layerId.includes("mdat") || layerId.includes("vtr"))) {
-     // Find all layers with the same name
-     const matchingLayers = findLayerByName(layerName);
-
-     // Loop through each matching layer and deactivate if active
-     matchingLayers.forEach(layer => {
-       if (layer.active()) {
-         layer.toggleActive(layer, null);  // Deactivate the layer
-       }
-     });
-  } else {
-    // If no "mdat" or "vtr", or if layerId is not a string, use the normal layerId-based logic
-    if (theme_id !== topLevelThemeId) {
-      var selectedLayer = app.viewModel.layerIndex[layerId];
-      if (selectedLayer && selectedLayer.active()) {
-        selectedLayer.toggleActive(selectedLayer, null);  // Deactivate the layer by ID
-      }
-    } else {
-      var selectedLayer = app.viewModel.layerIndex[layerId];
-      if (selectedLayer && selectedLayer.active()) {
-        selectedLayer.toggleActive(selectedLayer, null);  // Deactivate the layer by ID
-      }
-    }
+  let matching_layer = app.viewModel.getLayerById(layerId);
+  if (matching_layer && matching_layer.active()) {
+    matching_layer.toggleActive(layer, null);
   }
-
 }
 
 function reactToggleLayer(layerId, theme_id, topLevelThemeId){
@@ -2191,25 +2135,25 @@ function themeModel(options) {
     
     self.asyncGetLayers = async function() {
       var theme = this;
-      await $.ajax({
-        url: '/data_manager/get_layers_for_theme/' + theme.id,
-        crossDomain: true,
-        success: function(data) {
-          layer_objects = [];
-          for (var i = 0; i < data.layers.length; i++) {
-            new_layer = app.viewModel.getOrCreateLayer(data.layers[i], null, 'return', null);
-            new_layer.themes.push(theme);
-            layer_objects.push(new_layer);
-            if (!new_layer.fullyLoaded) {
-              new_layer.getFullLayerRecord(null, null);
-            }
-          }
-          theme.layers(layer_objects);
-        },
-        error: function(data) {
-          console.log('error getting layers for Theme "' + theme.name + '".');
-        }
-      })
+      // await $.ajax({
+      //   url: '/data_manager/get_layers_for_theme/' + theme.id,
+      //   crossDomain: true,
+      //   success: function(data) {
+      //     layer_objects = [];
+      //     for (var i = 0; i < data.layers.length; i++) {
+      //       new_layer = app.viewModel.getOrCreateLayer(data.layers[i], null, 'return', null);
+      //       new_layer.themes.push(theme);
+      //       layer_objects.push(new_layer);
+      //       if (!new_layer.fullyLoaded) {
+      //         new_layer.getFullLayerRecord(null, null);
+      //       }
+      //     }
+      //     theme.layers(layer_objects);
+      //   },
+      //   error: function(data) {
+      //     console.log('error getting layers for Theme "' + theme.name + '".');
+      //   }
+      // })
     }
     //add to open themes
     self.setOpenTheme = function() {
@@ -2382,7 +2326,6 @@ function mapLinksModel() {
             urlOrigin = 'http://' + window.location.host;
         }
         var embedURL = urlOrigin + '/embed/map/' + urlHash;
-        //console.log(embedURL);
         return '<iframe width="600" height="450" frameborder="0" scrolling="no" marginheight="0" marginwidth="0"' +
                                      'src="' + embedURL + '">' + '</iframe>';
         //$('#iframe-html')[0].value = '<iframe width="600" height="450" frameborder="0" scrolling="no" marginheight="0" marginwidth="0"' +
@@ -3177,54 +3120,6 @@ function viewModel() {
       }
     }
 
-    /* marine-life-library, not databased MDAT layers */
-    self.activateMDATLayer = function(layer) {
-        var activeMDATQueryLayers = $.grep(app.viewModel.activeLayers(), function(mdatLyr) {
-            return (mdatLyr.name === layer.name && mdatLyr.url === layer.url);
-        });
-
-        //if this layer is already active, don't create a duplicate layer object
-        if (activeMDATQueryLayers.length > 0) {
-            return false;
-        }
-
-        let export_flag = "/export";
-        if (layer.proxy_url) {
-          export_flag = "%2Fexport";
-        }
-        let numberAfterLastUnderscore = layer.id.split('_').pop();
-        var mdatObj = {
-            type: 'ArcRest',
-            name: layer.name,
-            isMDAT: true,
-            parentDirectory: layer.parentDirectory,
-            url: layer.url+export_flag,
-            arcgis_layers: numberAfterLastUnderscore
-        };
-
-        var id_exists = true;
-        mdatObj.id = layer.id;
-        // for(var i=0; id_exists == true && i < 1000; i++) {
-        //   mdatObj.id = 'mdat_layer_' + i;
-        //   if (Object.keys(app.viewModel.layerIndex).indexOf(mdatObj.id) < 0) {
-        //     id_exists = false;
-        //   }
-        // }
-
-        var mdatLayer = app.viewModel.getOrCreateLayer(mdatObj, null, 'return', null),
-            avianAbundance = '/MDAT/Avian_Abundance',
-            avianOccurrence = '/MDAT/Avian_Occurrence';
-
-        //if the MDAT Query is an AvianOccurence or AvianAbundance service,
-        //activate its companion
-        if (layer.url.indexOf(avianAbundance) > -1 || layer.url.indexOf(avianOccurrence) > -1) {
-            activateAvianQueryCompanion(mdatLayer);
-            mdatLayer['hasCompanion'] = true;
-        }
-
-        mdatLayer.activateLayer();
-    }
-
     function activateAvianQueryCompanion(lyr) {
         /*
             NOTE:
@@ -3253,46 +3148,6 @@ function viewModel() {
             lyr.companion =[companionLyr];
         }
     }
-
-    self.activateVTRLayer = function(layer) {
-        var activeVTRQueryLayers = $.grep(app.viewModel.activeLayers(), function(vtrLyr) {
-            return (vtrLyr.name === layer.name && vtrLyr.url === layer.url);
-        });
-
-        //if this layer is already active, don't create a duplicate layer object
-        if (activeVTRQueryLayers.length > 0) {
-            return false;
-        }
-
-        let export_flag = "/export";
-        let path_separator = "/";
-        if (layer.proxy_url) {
-          export_flag = "%2Fexport";
-          path_separator = "%2F";
-        }
-        let numberAfterLastUnderscore = layer.id.split('_').pop();
-
-        var vtrObj = {
-            type: 'ArcRest',
-            name: layer.name,
-            isVTR: true,
-            dateRangeDirectory: layer.dateRangeDirectory,
-            url: layer.url+path_separator+'MapServer'+export_flag,
-            arcgis_layers: numberAfterLastUnderscore
-        };
-
-        var id_exists = true;
-        vtrObj.id = layer.id;
-        // for(var i=0; id_exists == true && i < 1000; i++) {
-        //   vtrObj.id = 'vtr_layer_' + i;
-        //   if (Object.keys(app.viewModel.layerIndex).indexOf(vtrObj.id) < 0) {
-        //     id_exists = false;
-        //   }
-        // }
-
-        var vtrLayer = app.viewModel.getOrCreateLayer(vtrObj, null, 'activateLayer', null);
-
-    };
 
     self.selectedLayer = ko.observable();
 
@@ -3421,6 +3276,9 @@ function viewModel() {
         layer.password_protected(layer_obj.password_protected);
         if (!layer_obj.url == undefined && !layer_obj.url == null) {
           layer.url = layer_obj.url;
+        }
+        if (layer_obj.hasOwnProperty('isDynamic') && layer_obj.isDynamic) {
+          layer.fullyLoaded = true; // dynamic layers are considered fully loaded by default
         }
         // RDH: calling getFullLayerRecord on sublayers results in infinite loops
         // and that's REAL bad for your memory!

@@ -1875,19 +1875,24 @@ function scenariosModel(options) {
                     for (var collection_index = 0; collection_index < feature.features.length; collection_index++){
                         collection = feature.features[collection_index];
                         if (type != "Polygon" || !scenario_properties) {
-                            for (var feature_index = 0; feature_index < collection.geometry.geometries.length; feature_index++){
-                                if (!scenario_properties) {
-                                    scenario_properties = collection.properties; 
+                            if (collection.geometry.hasOwnProperty('geometries')) {
+                                for (var feature_index = 0; feature_index < collection.geometry.geometries.length; feature_index++){
+                                    if (!scenario_properties) {
+                                        scenario_properties = collection.properties; 
+                                    }
+                                    geometry = collection.geometry.geometries[feature_index];
+                                    if (geometry.type == "Polygon") {
+                                        type = "Polygon";
+                                        break;
+                                    } else if (geometry.type == "Point") {
+                                        type = "Point";
+                                    } else {
+                                        type = geometry.type;
+                                    }
                                 }
-                                geometry = collection.geometry.geometries[feature_index];
-                                if (geometry.type == "Polygon") {
-                                    type = "Polygon";
-                                    break;
-                                } else if (geometry.type == "Point") {
-                                    type = "Point";
-                                } else {
-                                    type = geometry.type;
-                                }
+                            } else {
+                                // FeatureCollection rather than geometry collecion
+                                type = collection.geometry.type;
                             }
                         }
                     }
