@@ -1061,7 +1061,7 @@ app.wrapper.map.getLayerStyle = function(feature) {
     var detail = lookupDetails[i];
     if (
       lookupField && feature.hasProperties() && 
-      detail.value.toString() == feature.getProperties()[lookupField] ? feature.getProperties()[lookupField].toString() : null
+      detail.value.toString() == (feature.getProperties()[lookupField] ? feature.getProperties()[lookupField].toString() : null)
     ) {
       if (detail.fill) {
         var fill_color = detail.color;
