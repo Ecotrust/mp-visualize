@@ -1377,6 +1377,10 @@ function layerModel(options, parent) {
       }
     };
 
+    self.manageDrawSlider = function() {
+      self.drawSlider();
+    };
+
     self.addSlider = function(dimension, value) {
       $( "#" + self.id + "_" + dimension.label + "_multilayerslider" ).slider({
         create: self.multilayerSliderChange,
@@ -1387,7 +1391,9 @@ function layerModel(options, parent) {
         step: 1
       })
       .each(
-          self.drawSlider
+          // In Chrome, loading from a URL this needs to be wrapped in an anonymous function. Loading from a SHORTENED URL breaks
+          // providing a named function to wrap the call seems to fix this issue.
+          self.manageDrawSlider
       );
 
       if (dimension.animated) {
