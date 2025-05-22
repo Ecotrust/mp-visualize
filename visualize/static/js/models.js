@@ -1282,7 +1282,7 @@ function layerModel(options, parent) {
             self.multilayerSliderState[i] = sliderIndex;
             sliderValues.push(self.multilayerValueLookup[dimension][sliderIndex].value.toString());
           } catch(err) {
-            if (self.multilayerSliderState.length > i) {
+            if (self.multilayerSliderState.length > i && self.multilayerValueLookup[dimension][self.multilayerSliderState[i]] != undefined) {
               sliderValues.push(self.multilayerValueLookup[dimension][self.multilayerSliderState[i]].value.toString());
             } else {
               sliderValues.push(self.multilayerValueLookup[dimension][0].value.toString());
@@ -1387,13 +1387,11 @@ function layerModel(options, parent) {
         step: 1
       })
       .each(
-        function() {
-          self.drawSlider();
-        }
+        self.drawSlider.bind(self)
       );
 
       if (dimension.animated) {
-        if (!$._data( $( "#" + self.id + "_animate_multilayerslider" ).get(0), 'events')) {
+        if ($( "#" + self.id + "_animate_multilayerslider" ).length > 0 && !$._data( $( "#" + self.id + "_animate_multilayerslider" ).get(0), 'events')) {
           $( "#" + self.id + "_animate_multilayerslider" ).change(function(evt) {
             var slider = $( "#" + self.id + "_" + dimension.label + "_multilayerslider" );
             self.multilayerAnimateToggle(this, slider);
