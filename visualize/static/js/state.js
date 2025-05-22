@@ -105,23 +105,23 @@ app.establishLayerLoadState = function () {
   *   regardless of what order they come back from the AJAX calls.
   */
 app.activateHashStateLayers = function() {
+  window.setTimeout(function() {
   for (var i = 0; i < app.hashStateLayers.length; i++) {
     var layerStatus = app.hashStateLayers[i].status
     if (layerStatus instanceof layerModel) {
       if (app.viewModel.activeLayers().indexOf(layerStatus) < 0) {
-        window.setTimeout(function() {
           layerStatus.activateLayer("nocompanion", true);
           if (app.hashStateLayers[i].visible == "false" || app.hashStateLayers[i].visible == false) {
             if (layerStatus.visible()){
               layerStatus.toggleVisible();
             }
           }
-        }, 200);
+        }
+      } else {
+        break;
       }
-    } else {
-      break;
     }
-  }
+  }, 200);
 }
 
 app.updateHashStateLayers = function(id, status, visible) {
