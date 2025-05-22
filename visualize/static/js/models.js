@@ -1387,9 +1387,7 @@ function layerModel(options, parent) {
         step: 1
       })
       .each(
-        function() {
-          self.drawSlider();
-        }
+          self.drawSlider
       );
 
       if (dimension.animated) {
