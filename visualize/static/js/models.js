@@ -1282,7 +1282,7 @@ function layerModel(options, parent) {
             self.multilayerSliderState[i] = sliderIndex;
             sliderValues.push(self.multilayerValueLookup[dimension][sliderIndex].value.toString());
           } catch(err) {
-            if (self.multilayerSliderState.length > i) {
+            if (self.multilayerSliderState.length > i && self.multilayerValueLookup[dimension][self.multilayerSliderState[i]] != undefined) {
               sliderValues.push(self.multilayerValueLookup[dimension][self.multilayerSliderState[i]].value.toString());
             } else {
               sliderValues.push(self.multilayerValueLookup[dimension][0].value.toString());
@@ -1377,10 +1377,6 @@ function layerModel(options, parent) {
       }
     };
 
-    self.manageDrawSlider = function() {
-      self.drawSlider();
-    };
-
     self.addSlider = function(dimension, value) {
       $( "#" + self.id + "_" + dimension.label + "_multilayerslider" ).slider({
         create: self.multilayerSliderChange,
@@ -1391,13 +1387,11 @@ function layerModel(options, parent) {
         step: 1
       })
       .each(
-          // In Chrome, loading from a URL this needs to be wrapped in an anonymous function. Loading from a SHORTENED URL breaks
-          // providing a named function to wrap the call seems to fix this issue.
-          self.manageDrawSlider
+        self.drawSlider
       );
 
       if (dimension.animated) {
-        if (!$._data( $( "#" + self.id + "_animate_multilayerslider" ).get(0), 'events')) {
+        if ($( "#" + self.id + "_animate_multilayerslider" ).length > 1 && !$._data( $( "#" + self.id + "_animate_multilayerslider" ).get(0), 'events')) {
           $( "#" + self.id + "_animate_multilayerslider" ).change(function(evt) {
             var slider = $( "#" + self.id + "_" + dimension.label + "_multilayerslider" );
             self.multilayerAnimateToggle(this, slider);

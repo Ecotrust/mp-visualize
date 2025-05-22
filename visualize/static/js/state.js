@@ -109,12 +109,14 @@ app.activateHashStateLayers = function() {
     var layerStatus = app.hashStateLayers[i].status
     if (layerStatus instanceof layerModel) {
       if (app.viewModel.activeLayers().indexOf(layerStatus) < 0) {
-        layerStatus.activateLayer("nocompanion", true);
-        if (app.hashStateLayers[i].visible == "false" || app.hashStateLayers[i].visible == false) {
-          if (layerStatus.visible()){
-            layerStatus.toggleVisible();
+        window.setTimeout(function() {
+          layerStatus.activateLayer("nocompanion", true);
+          if (app.hashStateLayers[i].visible == "false" || app.hashStateLayers[i].visible == false) {
+            if (layerStatus.visible()){
+              layerStatus.toggleVisible();
+            }
           }
-        }
+        }, 200);
       }
     } else {
       break;
