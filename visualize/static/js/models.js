@@ -1391,7 +1391,7 @@ function layerModel(options, parent) {
       );
 
       if (dimension.animated) {
-        if ($( "#" + self.id + "_animate_multilayerslider" ).length > 1 && !$._data( $( "#" + self.id + "_animate_multilayerslider" ).get(0), 'events')) {
+        if ($( "#" + self.id + "_animate_multilayerslider" ).length > 0 && !$._data( $( "#" + self.id + "_animate_multilayerslider" ).get(0), 'events')) {
           $( "#" + self.id + "_animate_multilayerslider" ).change(function(evt) {
             var slider = $( "#" + self.id + "_" + dimension.label + "_multilayerslider" );
             self.multilayerAnimateToggle(this, slider);
