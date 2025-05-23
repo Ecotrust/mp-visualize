@@ -121,7 +121,7 @@ app.activateHashStateLayers = function() {
         break;
       }
     }
-  }, 200);
+  }, 400);
 }
 
 app.updateHashStateLayers = function(id, status, visible) {
