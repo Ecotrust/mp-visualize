@@ -42,6 +42,14 @@ let postKOBindingCleanup = function() {
 // RDH 2022-10-20: Async Issue -- sometimes only part of one theme would load, then upon hitting a call to 'app.map.zoom()' the function
 //  could not be found and numerous bindings would fail. Delaying applying bindings by a second seems to resolve the issue. Attempts at
 //  shorter timeouts (~800ms) didn't consistently fix the issue.
+/** 
+ * DLP 2025-06-11: Potential solution to replace the window.setTimeout is to use ko.cleanNode(document.body) before ko.applyBindings(app.viewModel)
+ * i.e.,
+ * ko.cleanNode(document.body);
+ * ko.applyBindings(app.viewModel);
+ * postKOBindingCleanup();
+ */
+
 window.setTimeout(function() {
   ko.applyBindings(app.viewModel);
   postKOBindingCleanup();
