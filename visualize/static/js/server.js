@@ -224,7 +224,7 @@ app.viewModel.getSearchData = function() {
       // See bootstrap3-typeahead docs
 
       // detect if user sees the 'loading' message (waiting for results)
-      let show_search = $('#data-search-input').val().length > 0 && $('#data-search-input').is(":focus");
+      // let show_search = $('#data-search-input').val().length > 0 && $('#data-search-input').is(":focus");
 
       $('#data-search-input').typeahead({
         source: app.typeAheadSource,
@@ -249,13 +249,14 @@ app.viewModel.getSearchData = function() {
       $('#data-search-spinner').hide();
       $('#data-search-input').prop('placeholder', 'Search data');
 
+      // RDH removed auto-show results: selections were not triggering layer loads.
       // if user is actively typing or waiting with focus...
-      if (show_search) {
-        // open the typeahead options box (if matches exist)
-        $('#data-search-input').typeahead('lookup');
-        // ensure focus to prevent options from disappearing on hover
-        $('#data-search-input').focus();
-      }
+      // if (show_search) {
+      //   // open the typeahead options box (if matches exist)
+      //   $('#data-search-input').typeahead('lookup');
+      //   // ensure focus to prevent options from disappearing on hover
+      //   $('#data-search-input').focus();
+      // }
     },
     error: function(data) {
       console.log('failed to get layer search typeahead data');
