@@ -197,10 +197,13 @@
                               <form class="form-search hide-collapsed" data-bind="submit: layerSearch">
                                   <div class="input-group inner-addon">
                                       <!-- data-provide="typeahead"  -->
+                                      <span id="data-search-spinner">
+                                        <i class="fas fa-spinner fa-spin" style="margin-top:7px;"></i>
+                                      </span>
                                       <input type="text" class="search-box main-search form-control"
                                              data-bind="value: searchTerm, event: { keyup: keySearch }"
                                              style="text-overflow: ellipsis;"
-                                             placeholder="Search data" id="data-search-input">
+                                             placeholder="Loading Search..." id="data-search-input">
                                       <i class="fa fa-search right search-icon" data-bind="visible: !searchTermInput()"></i>
                                       <i class="btn fa fa-close right" style="display:none" data-bind="visible: searchTermInput(), click: clearSearch"></i>
                                   </div>

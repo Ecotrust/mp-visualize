@@ -173,13 +173,6 @@ app.viewModel.loadThemes = function(data) {
 
 app.viewModel.getSearchData = function() {
 
-  // let users know search results aren't available yet (bootstrap-3-typeahead)
-  $('.main-search').typeahead({
-    source: [],
-    addItem: {'id': null, name: "Loading..."},
-    minLength: 1
-  });
-
   $.ajax({
     url: '/data_manager/get_layer_search_data',
     success: function(data) {
@@ -231,12 +224,9 @@ app.viewModel.getSearchData = function() {
       // See bootstrap3-typeahead docs
 
       // detect if user sees the 'loading' message (waiting for results)
-      let show_search = $('ul.typeahead').is(":visible");
+      let show_search = $('#data-search-input').val().length > 0 && $('#data-search-input').is(":focus");
 
-      // kill old typeahead
-      $('.main-search').typeahead('destroy');
-      // replace typeahead with real data
-      $('.main-search').typeahead({
+      $('#data-search-input').typeahead({
         source: app.typeAheadSource,
         displayText: function(item) {
           return item.name;
@@ -253,12 +243,18 @@ app.viewModel.getSearchData = function() {
         },
         autoSelect: true,
         items: 20,
-        minLength: 2
+        minLength: 1
       });
-      // if user had "loading" message showing...
+
+      $('#data-search-spinner').hide();
+      $('#data-search-input').prop('placeholder', 'Search data');
+
+      // if user is actively typing or waiting with focus...
       if (show_search) {
-        // re-open the typeahead options box (if matches exist)
-        $('.main-search').typeahead('lookup');
+        // open the typeahead options box (if matches exist)
+        $('#data-search-input').typeahead('lookup');
+        // ensure focus to prevent options from disappearing on hover
+        $('#data-search-input').focus();
       }
     },
     error: function(data) {
