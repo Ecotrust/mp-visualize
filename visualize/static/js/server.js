@@ -172,6 +172,14 @@ app.viewModel.loadThemes = function(data) {
 };
 
 app.viewModel.getSearchData = function() {
+
+  // let users know search results aren't available yet (bootstrap-3-typeahead)
+  $('.main-search').typeahead({
+    source: [],
+    addItem: {'id': null, name: "Loading..."},
+    minLength: 1
+  });
+
   $.ajax({
     url: '/data_manager/get_layer_search_data',
     success: function(data) {
@@ -221,6 +229,13 @@ app.viewModel.getSearchData = function() {
       })();
       // autocomplete for filter
       // See bootstrap3-typeahead docs
+
+      // detect if user sees the 'loading' message (waiting for results)
+      let show_search = $('ul.typeahead').is(":visible");
+
+      // kill old typeahead
+      $('.main-search').typeahead('destroy');
+      // replace typeahead with real data
       $('.main-search').typeahead({
         source: app.typeAheadSource,
         displayText: function(item) {
@@ -240,6 +255,11 @@ app.viewModel.getSearchData = function() {
         items: 20,
         minLength: 2
       });
+      // if user had "loading" message showing...
+      if (show_search) {
+        // re-open the typeahead options box (if matches exist)
+        $('.main-search').typeahead('lookup');
+      }
     },
     error: function(data) {
       console.log('failed to get layer search typeahead data');
