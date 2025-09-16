@@ -1658,8 +1658,13 @@ function layerModel(options, parent) {
         layer.performAction(callbackType, evt);
       } else {
 
+        let details_api_point = 'get_layer_details';
+        if (layer.has_sublayers) {
+          details_api_point = 'get_theme_details';
+        }
+
         $.ajax({
-          url: '/data_manager/get_layer_details/' + layer.id,
+          url: '/data_manager/' + details_api_point + '/' + layer.id,
           crossDomain: true,
           success: function(data) {
             if (data === undefined) {
