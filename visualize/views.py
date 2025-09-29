@@ -1,24 +1,14 @@
-# Create your views here.
+from django.conf import settings
 from django.contrib.auth.models import Group
 from django.http import HttpResponse
-from django.shortcuts import get_object_or_404, render
-from django.template import RequestContext
-from querystring_parser import parser
-import json
-from json import dumps
-from features.registry import user_sharing_groups
-from functools import cmp_to_key
-import locale
+from django.shortcuts import render #,get_object_or_404
 from django.views.decorators.clickjacking import xframe_options_exempt
-
-from django.conf import settings
-from .models import *
-from data_manager.models import *
-from django.views.decorators.csrf import csrf_exempt
-from django.http.response import JsonResponse
-from visualize import settings as viz_settings
-
+import importlib
+from json import dumps
 import urllib
+
+from visualize import settings as viz_settings
+from .models import *
 
 def proxy_request(request):
     content = ''
@@ -132,6 +122,25 @@ def show_planner(request, template='visualize/planner.html'):
         if len(Content.objects.filter(name='disclaimer_decline_url',live=True)) > 0:
             disclaimer_content['decline_url'] = strip_tags(Content.objects.filter(name='disclaimer_decline_url',live=True)[0].content)
 
+    planner_js = ''
+    planner_css = ''
+    planner_html = ''
+    for planner_app in settings.PLANNER_APPS:
+        if planner_app not in settings.INSTALLED_APPS:
+            print('WARNING: PLANNER_APPS must be in INSTALLED_APPS. "{}" is not found.'.format(planner_app))
+            continue
+        try:
+            module_views = importlib.import_module('{}.views'.format(planner_app))
+            if hasattr(module_views, 'get_myplanner_js'):
+                planner_js += getattr(module_views, 'get_myplanner_js')(request)
+            if hasattr(module_views, 'get_myplanner_html'):
+                planner_html += getattr(module_views, 'get_myplanner_html')(request)
+            if hasattr(module_views, 'get_myplanner_css'):
+                planner_css += getattr(module_views, 'get_myplanner_css')(request)
+        except ModuleNotFoundError:
+            print('WARNING: Could not import {}.views'.format(planner_app))
+            continue
+
     context = {
         'MEDIA_URL': settings.MEDIA_URL,
         'SOCKET_URL': socket_url,
@@ -158,6 +167,11 @@ def show_planner(request, template='visualize/planner.html'):
         'MAP_LIBRARY': settings.MAP_LIBRARY,
         'USER_GEN_PREFIX': settings.USER_GEN_PREFIX,
         'USER_GEN_NOTICE': settings.USER_GEN_NOTICE,
+        'PLANNER_CONTENT': {
+            'PLANNER_JS': planner_js,
+            'PLANNER_CSS': planner_css, 
+            'PLANNER_HTML': planner_html
+        }
     }
 
     if request.user.is_authenticated:

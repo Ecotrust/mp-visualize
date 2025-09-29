@@ -52,6 +52,7 @@
         {% if not MAP_LIBRARY == 'ol2' %}
           <link href="{% static 'visualize/css/' %}{{ MAP_LIBRARY }}.css" rel="stylesheet">
         {% endif %}
+        {{ PLANNER_CONTENT.PLANNER_CSS|safe }}
 
 {% endblock%}
 
@@ -286,7 +287,7 @@
 
                                       <!-- DESIGNS TAB -->
                                       {% if user.is_authenticated %}
-                                      {% include "visualize/scenarios.html" %}
+                                      {% include "visualize/scenarios.html" with PLANNER_CONTENT=PLANNER_CONTENT %}
                                       {% else %}
                                       <div class="tab-pane " id="designs">
                                           <div style="padding: 20px">
@@ -515,4 +516,5 @@
     <script src="{% static 'js/lib/html2canvas.min.js' %}"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <!--<script src="{% static 'js/html2canvas.svg.js' %}"></script>-->
+    {{ PLANNER_CONTENT.PLANNER_JS|safe }}
 {% endblock %}

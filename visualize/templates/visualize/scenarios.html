@@ -527,6 +527,8 @@
                         </div>
                         <!-- end user layers-->
 
+                        {{ PLANNER_CONTENT.PLANNER_HTML|safe }}
+
                         <!-- LEASE BLOCK COLLECTIONS - removed 5/17 by RDH under KV's request -->
                         {% if False %}
                         <div data-bind="with: app.viewModel.scenarios">
