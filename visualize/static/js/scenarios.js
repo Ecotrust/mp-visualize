@@ -1390,6 +1390,8 @@ function scenariosModel(options) {
 
     self.userLayerForm = ko.observable(false);
 
+    self.externalForm = ko.observable(false);
+
     /** return true if normal MyPlanner content should be shown, false
         otherwise (when a form is active and assuming control of MyPlanner's
         space).
@@ -1404,7 +1406,8 @@ function scenariosModel(options) {
                  // and they live in their own place.
                  app.viewModel.addBookmarksDialogVisible() ||
                  self.userLayerForm() ||
-                 self.selectionForm());
+                 self.selectionForm() ||
+                 self.externalForm());
     }
 
 

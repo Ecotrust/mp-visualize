@@ -125,6 +125,7 @@ def show_planner(request, template='visualize/planner.html'):
     planner_js = ''
     planner_css = ''
     planner_html = ''
+    planner_dialog = ''
     for planner_app in settings.PLANNER_APPS:
         if planner_app not in settings.INSTALLED_APPS:
             print('WARNING: PLANNER_APPS must be in INSTALLED_APPS. "{}" is not found.'.format(planner_app))
@@ -137,6 +138,8 @@ def show_planner(request, template='visualize/planner.html'):
                 planner_html += getattr(module_views, 'get_myplanner_html')(request)
             if hasattr(module_views, 'get_myplanner_css'):
                 planner_css += getattr(module_views, 'get_myplanner_css')(request)
+            if hasattr(module_views, 'get_myplanner_dialog'):
+                planner_dialog += getattr(module_views, 'get_myplanner_dialog')(request)
         except ModuleNotFoundError:
             print('WARNING: Could not import {}.views'.format(planner_app))
             continue
@@ -170,7 +173,8 @@ def show_planner(request, template='visualize/planner.html'):
         'PLANNER_CONTENT': {
             'PLANNER_JS': planner_js,
             'PLANNER_CSS': planner_css, 
-            'PLANNER_HTML': planner_html
+            'PLANNER_HTML': planner_html,
+            'PLANNER_DIALOG': planner_dialog
         }
     }
 
