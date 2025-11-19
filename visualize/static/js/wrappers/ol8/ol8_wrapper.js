@@ -74,18 +74,22 @@ app.init_map = function(base, target, srid, center_x, center_y, zoom, maxZoom){
     return true;
   }
 
-  map.on('singleclick', function (evt) {
-    app.wrapper.map.clearMarkers();
-    app.viewModel.closeAttribution();
-    app.wrapper.map.event = evt;
-    app.wrapper.map.clickOutput = {
-        attributes: []
-    };
-    var overlays = app.wrapper.map.getOverlays();
-    for (var i = 0; i < overlays.length; i++) {
-      layerClickCallback(overlays[i]);
+  app.wrapper.listeners = {
+    'singleclick': function (evt) {
+      app.wrapper.map.clearMarkers();
+      app.viewModel.closeAttribution();
+      app.wrapper.map.event = evt;
+      app.wrapper.map.clickOutput = {
+          attributes: []
+      };
+      var overlays = app.wrapper.map.getOverlays();
+      for (var i = 0; i < overlays.length; i++) {
+        layerClickCallback(overlays[i]);
+      }
     }
-  });
+  };
+
+  map.on('singleclick', app.wrapper.listeners['singleclick']);
 
   return map;
 }

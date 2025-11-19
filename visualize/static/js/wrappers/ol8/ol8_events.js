@@ -41,18 +41,22 @@ app.wrapper.events.addFeatureClickEvent = function(){
     // var selected_features = e.selected;
     if (selected_features.length > 0) {
       for (var i = 0; i < selected_features.length; i++) {
-        var layer = selected_features[i].getLayer(app.map);
-        if (!layer && e.target.getLayer(selected_features[i]) && e.target.getLayer(selected_features[i]).hasOwnProperty('ol_uid')) {
-          layer = app.viewModel.getLayerByOLId(e.target.getLayer(selected_features[i]).ol_uid).layer;
-        }
-        if (layer){
-          var mp_layer = layer.get('mp_layer');
-          if (mp_layer.attributeEvent == "click"){
-            if (app.wrapper.events.hasOwnProperty('clickOnVectorLayerEvent')) {
-              app.wrapper.events.clickOnVectorLayerEvent(layer, e);
+        if (selected_features[i].getLayer != undefined) {
+          var layer = selected_features[i].getLayer(app.map);
+          if (!layer && e.target.getLayer(selected_features[i]) && e.target.getLayer(selected_features[i]).hasOwnProperty('ol_uid')) {
+            layer = app.viewModel.getLayerByOLId(e.target.getLayer(selected_features[i]).ol_uid).layer;
+          }
+          if (layer){
+            var mp_layer = layer.get('mp_layer');
+            if (mp_layer != undefined) {
+              if (mp_layer.attributeEvent == "click"){
+                if (app.wrapper.events.hasOwnProperty('clickOnVectorLayerEvent')) {
+                  app.wrapper.events.clickOnVectorLayerEvent(layer, e);
+                }
+              } else if (mp_layer.isDrawingModel){
+                app.wrapper.events.clickOnVectorLayerEvent(layer, e);
+              }
             }
-          } else if (mp_layer.isDrawingModel){
-            app.wrapper.events.clickOnVectorLayerEvent(layer, e);
           }
         }
       }
