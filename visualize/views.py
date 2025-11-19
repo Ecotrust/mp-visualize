@@ -5,10 +5,12 @@ from django.shortcuts import render #,get_object_or_404
 from django.views.decorators.clickjacking import xframe_options_exempt
 import importlib
 from json import dumps
+import logging
 import urllib
 
 from visualize import settings as viz_settings
-from .models import *
+from layers.models import Layer
+from .models import Content, UserLayer
 
 def proxy_request(request):
     content = ''
@@ -63,6 +65,7 @@ def proxy_request(request):
         return HttpResponse(content, status=status_code, content_type=mimetype)
 
 def show_planner(request, template='visualize/planner.html'):
+    logger = logging.getLogger(__name__)
     try:
         socket_url = settings.SOCKET_URL
     except AttributeError:
@@ -126,9 +129,9 @@ def show_planner(request, template='visualize/planner.html'):
     planner_css = ''
     planner_html = ''
     planner_dialog = ''
-    for planner_app in settings.PLANNER_APPS:
+    for planner_app in getattr(settings, 'PLANNER_APPS', []):
         if planner_app not in settings.INSTALLED_APPS:
-            print('WARNING: PLANNER_APPS must be in INSTALLED_APPS. "{}" is not found.'.format(planner_app))
+            logger.warning('PLANNER_APPS must be in INSTALLED_APPS. "%s" is not found.', planner_app)
             continue
         try:
             module_views = importlib.import_module('{}.views'.format(planner_app))
@@ -140,10 +143,15 @@ def show_planner(request, template='visualize/planner.html'):
                 planner_css += getattr(module_views, 'get_myplanner_css')(request)
             if hasattr(module_views, 'get_myplanner_dialog'):
                 planner_dialog += getattr(module_views, 'get_myplanner_dialog')(request)
-        except ModuleNotFoundError:
-            print('WARNING: Could not import {}.views'.format(planner_app))
+        except ModuleNotFoundError as e:
+            if e.name == '{}.views'.format(planner_app):
+                logger.warning('Could not import %s.views', planner_app)
+                continue
+            else:
+                raise
+        except Exception as e:
+            logger.error('Error importing %s.views: %s', planner_app, str(e))
             continue
-
     context = {
         'MEDIA_URL': settings.MEDIA_URL,
         'SOCKET_URL': socket_url,
@@ -172,7 +180,7 @@ def show_planner(request, template='visualize/planner.html'):
         'USER_GEN_NOTICE': settings.USER_GEN_NOTICE,
         'PLANNER_CONTENT': {
             'PLANNER_JS': planner_js,
-            'PLANNER_CSS': planner_css, 
+            'PLANNER_CSS': planner_css,
             'PLANNER_HTML': planner_html,
             'PLANNER_DIALOG': planner_dialog
         }

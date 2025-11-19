@@ -2,7 +2,7 @@ from django.contrib.gis.db import models
 from django.conf import settings
 from features.registry import register
 from features.models import Feature
-from data_manager.models import Layer
+from layers.models import Layer
 from drawing.models import AOI
 from tinymce.models import HTMLField
 from django.contrib.postgres.fields import JSONField
