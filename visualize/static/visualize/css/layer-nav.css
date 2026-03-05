@@ -6,12 +6,16 @@ body.template-visualize .layer-info .layer-text {
 }
 
 body.template-visualize .layer-info .layer-text ul,
-body.template-visualize .layer-info .layer-text ol {
+body.template-visualize .layer-info .layer-text ol,
+.description-box ul,
+.description-box ol {
   padding-left: 2rem;
 }
 
 body.template-visualize .layer-info .layer-text ul li,
-body.template-visualize .layer-info .layer-text ol li {
+body.template-visualize .layer-info .layer-text ol li,
+.description-box ul li,
+.description-box ol li {
   margin: 0.25rem 0;
 }
 
