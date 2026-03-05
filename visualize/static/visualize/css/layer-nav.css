@@ -5,6 +5,20 @@ body.template-visualize .layer-info .layer-text {
   border-radius: 0.3rem;
 }
 
+body.template-visualize .layer-info .layer-text ul,
+body.template-visualize .layer-info .layer-text ol,
+.description-box ul,
+.description-box ol {
+  padding-left: 2rem;
+}
+
+body.template-visualize .layer-info .layer-text ul li,
+body.template-visualize .layer-info .layer-text ol li,
+.description-box ul li,
+.description-box ol li {
+  margin: 0.25rem 0;
+}
+
 body.template-visualize .layer-info .layer-text div.sharing-info {
   text-decoration: none;
   cursor: default;
