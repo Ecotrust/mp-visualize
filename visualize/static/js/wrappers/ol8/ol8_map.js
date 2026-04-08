@@ -974,7 +974,11 @@ app.wrapper.map.getLayerStyle = function(feature) {
     var styles = app.wrapper.map.createOLStyleMap(layer, feature);
     if (layer.type == 'ArcFeatureServer' && layer.hasOwnProperty('defaultStyleFunction')) {
       var styles = {};
-      styles[feature.getGeometry().getType()] = layer.defaultStyleFunction(feature)[0];
+      let styleFunctionResult = layer.defaultStyleFunction(feature);
+      if (styleFunctionResult == null) {
+        layer.defaultStyleFunction(feature);
+      }
+      styles[feature.getGeometry().getType()] = styleFunctionResult !== null ? styleFunctionResult[0] : new ol.style.Style();
       if (layer.hasOwnProperty('color') && layer.color){
         var fill_color = app.wrapper.map.cartoGetLayerFill(layer);
         if (layer.override_color && fill_color) {
