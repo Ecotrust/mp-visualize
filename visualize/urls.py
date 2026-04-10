@@ -7,6 +7,11 @@ from django.views.generic.base import TemplateView
 from rest_framework import routers, serializers, viewsets, permissions
 from .models import Bookmark
 
+from .api import (
+    BookmarkListView, BookmarkDetailView, BookmarkShareView,
+    UserLayerListView, UserLayerDetailView, UserLayerShareView,
+)
+
 class BookmarkSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Bookmark
@@ -31,4 +36,14 @@ urlpatterns = [
     re_path('^rest/', include(router.urls)),
     re_path('^get_user_layers', get_user_layers),
     re_path(r'^$', show_planner, name="planner"),
+]
+
+# DRF API patterns — mounted at /api/ by the project urls.py
+api_urlpatterns = [
+    re_path(r'^bookmarks/$', BookmarkListView.as_view()),
+    re_path(r'^bookmarks/(?P<pk>\d+)/$', BookmarkDetailView.as_view()),
+    re_path(r'^bookmarks/(?P<uid>\w+)/share/$', BookmarkShareView.as_view()),
+    re_path(r'^user-layers/$', UserLayerListView.as_view()),
+    re_path(r'^user-layers/(?P<pk>\d+)/$', UserLayerDetailView.as_view()),
+    re_path(r'^user-layers/(?P<uid>\w+)/share/$', UserLayerShareView.as_view()),
 ]
