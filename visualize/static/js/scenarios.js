@@ -2390,12 +2390,18 @@ $('#designsTab').on('show.bs.tab', function (e) {
             }
         });
 
-        $.jsonrpc('get_sharing_groups', [], {
+        $.ajax({
+            url: '/api/sharing-groups/',
+            method: 'GET',
+            dataType: 'json',
             success: function(result) {
                 app.viewModel.scenarios.sharingGroups(result);
                 if (result.length) {
                     app.viewModel.scenarios.hasSharingGroups(true);
                 }
+            },
+            error: function(result) {
+                console.error('Failed to load sharing groups:', result);
             }
         });
     }

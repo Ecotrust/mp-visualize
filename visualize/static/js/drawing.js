@@ -118,9 +118,39 @@ function drawingModel(options) {
         app.viewModel.scenarios.drawingList.remove(drawing);
 
         //remove from server-side db (this should provide error message to the user on fail)
-        $.jsonrpc('delete_drawing', [drawing.uid], {
-            //complete: drawingModel.loadDrawingList
-        });
+        // Get CSRF token for DRF endpoint
+        function getCsrfToken() {
+            var name = 'csrftoken=';
+            var decodedCookie = decodeURIComponent(document.cookie);
+            var ca = decodedCookie.split(';');
+            for(var i = 0; i < ca.length; i++) {
+                var c = ca[i];
+                while (c.charAt(0) == ' ') {
+                    c = c.substring(1);
+                }
+                if (c.indexOf(name) == 0) {
+                    return c.substring(name.length, c.length);
+                }
+            }
+            return null;
+        }
+
+        var csrfToken = getCsrfToken();
+        var ajaxOptions = {
+            url: '/api/drawings/' + drawing.uid + '/',
+            method: 'DELETE',
+            success: function() {
+                // Drawing successfully deleted from server
+            },
+            error: function(result) {
+                console.error('Failed to delete drawing:', result);
+                // Could add drawing back to lists on error if needed
+            }
+        };
+        if (csrfToken) {
+            ajaxOptions.headers = { 'X-CSRFToken': csrfToken };
+        }
+        $.ajax(ajaxOptions);
     };
 
     self.shapefileDownloadLink = function() {

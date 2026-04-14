@@ -41,6 +41,7 @@ class BookmarkListView(APIView):
                 g.mapgroup_set.get().name for g in bookmark.sharing_groups.all()
             ]
             content.append({
+                'id': bookmark.pk,  # Add primary key for DELETE operations
                 'uid': bookmark.uid,
                 'name': bookmark.name,
                 'description': bookmark.description,
@@ -55,6 +56,7 @@ class BookmarkListView(APIView):
                 groups = bookmark.sharing_groups.filter(user__in=[request.user])
                 shared_groups = [g.mapgroup_set.get().name for g in groups]
                 content.append({
+                    'id': bookmark.pk,  # Add primary key for DELETE operations
                     'uid': bookmark.uid,
                     'name': bookmark.name,
                     'description': bookmark.description,
@@ -82,6 +84,7 @@ class BookmarkListView(APIView):
         bookmark.save()
         sharing_groups = [g.name for g in bookmark.sharing_groups.all()]
         return Response([{
+            'id': bookmark.pk,  # Add primary key for consistency
             'uid': bookmark.uid,
             'name': bookmark.name,
             'description': bookmark.description,
@@ -262,6 +265,12 @@ class UserLayerListView(APIView):
             url=data['url'],
             layer_type=data['layer_type'],
             arcgis_layers=data.get('arcgis_layers', ''),
+            wms_slug=data.get('wms_slug'),
+            wms_srs=data.get('wms_srs'),
+            wms_params=data.get('wms_params'),
+            wms_version=data.get('wms_version'),
+            wms_format=data.get('wms_format'),
+            wms_styles=data.get('wms_styles'),
         )
         ul.save()
         sharing_groups = [g.name for g in ul.sharing_groups.all()]
