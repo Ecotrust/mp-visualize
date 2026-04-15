@@ -141,7 +141,17 @@ class BookmarkShareView(APIView):
 
         bookmark.share_with(None)
         group_names: list[str] = request.data.get('group_names', [])
-        groups = [Group.objects.get(mapgroup__name=gname) for gname in group_names]
+        
+        # Find groups by their mapgroup names, handling cases where groups don't exist
+        groups = []
+        for gname in group_names:
+            try:
+                group = Group.objects.get(mapgroup__name=gname)
+                groups.append(group)
+            except Group.DoesNotExist:
+                # Continue processing other groups even if this one doesn't exist
+                pass
+        
         bookmark.share_with(groups, append=False)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
@@ -348,6 +358,16 @@ class UserLayerShareView(APIView):
 
         ul.share_with(None)
         group_names: list[str] = request.data.get('group_names', [])
-        groups = [Group.objects.get(mapgroup__name=gname) for gname in group_names]
+        
+        # Find groups by their mapgroup names, handling cases where groups don't exist
+        groups = []
+        for gname in group_names:
+            try:
+                group = Group.objects.get(mapgroup__name=gname)
+                groups.append(group)
+            except Group.DoesNotExist:
+                # Continue processing other groups even if this one doesn't exist
+                pass
+        
         ul.share_with(groups, append=False)
         return Response(status=status.HTTP_204_NO_CONTENT)

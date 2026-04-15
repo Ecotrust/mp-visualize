@@ -532,9 +532,10 @@ function bookmarksModel(options) {
         var ajaxOptions = {
             url: '/api/bookmarks/' + self.sharingBookmark().uid + '/share/',
             method: 'POST',
-            data: {
-                'group_names': self.sharingBookmark().selectedGroups()
-            },
+            contentType: 'application/json',
+            data: JSON.stringify({
+                group_names: self.sharingBookmark().selectedGroups()
+            }),
             success: function() {
                 self.getBookmarks();
             },
