@@ -3,6 +3,7 @@ function userLayerModel(options) {
 
     scenarioModel.apply(this, arguments);
 
+    self.id = options.id;
     self.uid = options.uid;
     self.name = options.name;
     self.description = options.description;
@@ -182,6 +183,23 @@ function userLayerModel(options) {
 
 function userLayersModel(options) {
     var self = this;
+
+    // Helper function to get CSRF token (same as jsonrpc.js)
+    function getCsrfToken() {
+        var name = 'csrftoken=';
+        var decodedCookie = decodeURIComponent(document.cookie);
+        var ca = decodedCookie.split(';');
+        for(var i = 0; i < ca.length; i++) {
+            var c = ca[i];
+            while (c.charAt(0) == ' ') {
+                c = c.substring(1);
+            }
+            if (c.indexOf(name) == 0) {
+                return c.substring(name.length, c.length);
+            }
+        }
+        return null;
+    }
 
     self.userLayersList = ko.observableArray();
 
@@ -380,29 +398,59 @@ function userLayersModel(options) {
             "Remove Layer?", 
             `Are you sure you wish to delete your imported layer "${userLayer.name}"?`,
             function(){
-                $.jsonrpc('remove_user_layer', [userLayer.uid],
-                  {complete: self.getUserLayers});
+                var csrfToken = getCsrfToken();
+                console.log('DELETE CSRF Token:', csrfToken ? csrfToken.substring(0, 10) + '...' : 'null');
+                var ajaxOptions = {
+                    url: '/api/user-layers/' + userLayer.id + '/',
+                    method: 'DELETE',
+                    success: function() {
+                        self.getUserLayers();
+                    },
+                    error: function(result) {
+                        console.error('Failed to remove user layer:', result);
+                        self.getUserLayers();
+                    }
+                };
+                if (csrfToken) {
+                    ajaxOptions.headers = { 'X-CSRFToken': csrfToken };
+                }
+                $.ajax(ajaxOptions);
             }
         );
     };
 
     self.addUserLayer = function(name, description, layer_type, url, arcgis_layers, wms_slug, wms_srs, wms_params, wms_version, wms_format, wms_styles) {
-        $.jsonrpc('add_user_layer', 
-            [
-                name,
-                description,
-                layer_type,
-                url,
-                arcgis_layers,
-                wms_slug,
-                wms_srs,
-                wms_params,
-                wms_version,
-                wms_format,
-                wms_styles,
-            ],
-            {complete: self.getUserLayers}
-        );
+        var csrfToken = getCsrfToken();
+        console.log('ADD CSRF Token:', csrfToken ? csrfToken.substring(0, 10) + '...' : 'null');
+        var ajaxOptions = {
+            url: '/api/user-layers/',
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({
+                name: name,
+                description: description,
+                layer_type: layer_type,
+                url: url,
+                arcgis_layers: arcgis_layers,
+                wms_slug: wms_slug,
+                wms_srs: wms_srs,
+                wms_params: wms_params,
+                wms_version: wms_version,
+                wms_format: wms_format,
+                wms_styles: wms_styles
+            }),
+            success: function() {
+                self.getUserLayers();
+            },
+            error: function(result) {
+                console.error('Failed to add user layer:', result);
+                self.getUserLayers();
+            }
+        };
+        if (csrfToken) {
+            ajaxOptions.headers = { 'X-CSRFToken': csrfToken };
+        }
+        $.ajax(ajaxOptions);
     }
 
     // get user layer sharing groups for this user
@@ -446,13 +494,17 @@ function userLayersModel(options) {
             }
         }
 
-        $.jsonrpc('get_user_layers', [], {
+        $.ajax({
+            url: '/api/user-layers/',
+            method: 'GET',
+            dataType: 'json',
             success: function(result) {
                 self.userLayersList.removeAll();
                 var user_layers = result || [];
                 var ullist = [];
                 for (var i=0; i < user_layers.length; i++) {
                     var user_layer = new userLayerModel( {
+                        id: user_layers[i].id,
                         name: user_layers[i].name,
                         description: user_layers[i].description,
                         url: user_layers[i].url,
@@ -481,7 +533,7 @@ function userLayersModel(options) {
                 self.showUnloadedUserLayers();
             },
             error: function(result) {
-
+                console.error('Failed to load user layers:', result);
             }
         });
 
@@ -552,10 +604,27 @@ function userLayersModel(options) {
             'user_layer': self.sharingUserLayer().uid,
             'groups': self.sharingUserLayer().selectedGroups() };
 
-        $.jsonrpc('share_user_layer',
-                  [self.sharingUserLayer().uid,
-                   self.sharingUserLayer().selectedGroups()],
-                  {complete: self.getUserLayers});
+        var csrfToken = getCsrfToken();
+        console.log('SHARE CSRF Token:', csrfToken ? csrfToken.substring(0, 10) + '...' : 'null');
+        var ajaxOptions = {
+            url: '/api/user-layers/' + self.sharingUserLayer().uid + '/share/',
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({
+                group_names: self.sharingUserLayer().selectedGroups()
+            }),
+            success: function() {
+                self.getUserLayers();
+            },
+            error: function(result) {
+                console.error('Failed to share user layer:', result);
+                self.getUserLayers();
+            }
+        };
+        if (csrfToken) {
+            ajaxOptions.headers = { 'X-CSRFToken': csrfToken };
+        }
+        $.ajax(ajaxOptions);
     };
 
     self.populateLayerIndexCallback = function() {
