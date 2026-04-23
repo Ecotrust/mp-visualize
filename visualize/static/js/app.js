@@ -52,11 +52,11 @@ function waitForMenusLoadToApplyKOBindings(maxWaitTime) {
       ) {
         try {
           ko.applyBindings(app.viewModel);
-          postKOBindingCleanup();
         } catch (e) {
           console.warn('Error applying KO bindings:', e);
           console.warn('if this is about "cannot apply bindings multiple times to the same element", this is expected. menuModel should already have been applied to the context menu');
         }
+        postKOBindingCleanup();
       } else if (Date.now() - startTime < maxWaitTime) {
           setTimeout(checkElement, 50); // Check every 50ms
           return false;
