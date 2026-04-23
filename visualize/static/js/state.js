@@ -146,7 +146,7 @@ app.updateHashStateLayers = function(id, status, visible) {
   // Helper function to wait for element to exist, then activate layers
   // replaces clunky setTimeout call; we need app.map.zoom to exist before we can activate layers.
   function waitForMapLoad(maxWaitTime) {
-    maxWaitTime = maxWaitTime || 5000; // Default 5 second max wait
+    maxWaitTime = maxWaitTime || 20000; // Default 20 second max wait
     var startTime = Date.now();
     
     function checkElement() {
