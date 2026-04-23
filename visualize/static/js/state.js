@@ -105,7 +105,6 @@ app.establishLayerLoadState = function () {
   *   regardless of what order they come back from the AJAX calls.
   */
 app.activateHashStateLayers = function() {
-  window.setTimeout(function() {
   for (var i = 0; i < app.hashStateLayers.length; i++) {
     var layerStatus = app.hashStateLayers[i].status
     if (layerStatus instanceof layerModel) {
@@ -121,7 +120,6 @@ app.activateHashStateLayers = function() {
         break;
       }
     }
-  }, 200);
 }
 
 app.updateHashStateLayers = function(id, status, visible) {
@@ -145,7 +143,30 @@ app.updateHashStateLayers = function(id, status, visible) {
     });
   }
 
-  app.activateHashStateLayers();
+  // Helper function to wait for element to exist, then activate layers
+  // replaces clunky setTimeout call; we need app.map.zoom to exist before we can activate layers.
+  function waitForMapLoad(maxWaitTime) {
+    maxWaitTime = maxWaitTime || 5000; // Default 5 second max wait
+    var startTime = Date.now();
+    
+    function checkElement() {
+        if (typeof app !== 'undefined' && app.hasOwnProperty('map') && app.map.hasOwnProperty('zoom') && typeof app.map.zoom === 'function') {
+          app.activateHashStateLayers();
+        } else if (Date.now() - startTime < maxWaitTime) {
+            setTimeout(checkElement, 50); // Check every 50ms
+            return false;
+        } else {
+            console.warn('map.zoom not found after waiting:', maxWaitTime/1000, 'seconds');
+            return false;
+        }
+    }
+    
+    checkElement();
+  }
+
+  waitForMapLoad();  
+
+  
 
 }
 
@@ -258,21 +279,17 @@ app.loadCompressedState = function(state) {
     app.establishLayerLoadState();
     // data tab and open themes
     if (state.themes) {
-        //$('#dataTab').tab('show');
-        if (state.themes) {
-            $.each(app.viewModel.themes(), function (i, theme) {
-                if ( $.inArray(theme.id, state.themes.ids) !== -1 || $.inArray(theme.id.toString(), state.themes.ids) !== -1 ) {
-                    if ( app.viewModel.openThemes.indexOf(theme) === -1 ) {
-                        //app.viewModel.openThemes.push(theme);
-                        theme.setOpenTheme();
-                    }
-                } else {
-                    if ( app.viewModel.openThemes.indexOf(theme) !== -1 ) {
-                        app.viewModel.openThemes.remove(theme);
-                    }
+        $.each(app.viewModel.themes(), function (i, theme) {
+            if ( $.inArray(theme.id, state.themes.ids) !== -1 || $.inArray(theme.id.toString(), state.themes.ids) !== -1 ) {
+                if ( app.viewModel.openThemes.indexOf(theme) === -1 ) {
+                    theme.setOpenTheme();
                 }
-            });
-        }
+            } else {
+                if ( app.viewModel.openThemes.indexOf(theme) !== -1 ) {
+                    app.viewModel.openThemes.remove(theme);
+                }
+            }
+        });
     }
 
     //if (app.embeddedMap) {
@@ -280,19 +297,51 @@ app.loadCompressedState = function(state) {
         state.tab = "data";
     }
 
-    // active tab -- the following prevents theme and data layers from loading in either tab (not sure why...disbling for now)
-    // it appears the dataTab show in state.themes above was causing the problem...?
-    // timeout worked, but then realized that removing datatab show from above worked as well...
-    // now reinstating the timeout which seems to fix the toggling between tours issue (toggling to ActiveTour while already in ActiveTab)
+    // Helper function to wait for element to exist, then show tab
+    function waitForElementAndShowTab(selector, maxWaitTime) {
+        maxWaitTime = maxWaitTime || 5000; // Default 5 second max wait
+        var startTime = Date.now();
+        
+        function checkElement() {
+            var element = $(selector);
+            if (element.length > 0 && typeof element.tab === 'function') {
+                try {
+                    element.tab('show');
+                    return true;
+                } catch (e) {
+                    console.warn('Error showing tab:', selector, e);
+                    return false;
+                }
+            } else if (element.length > 0 && typeof element.tab !== 'function') {
+                // Element exists but tab functionality not available yet
+                if (Date.now() - startTime < maxWaitTime) {
+                    setTimeout(checkElement, 50); // Check every 50ms
+                    return false;
+                } else {
+                    console.warn('Tab element found but tab functionality not available:', selector);
+                    return false;
+                }
+            } else if (Date.now() - startTime < maxWaitTime) {
+                setTimeout(checkElement, 50); // Check every 50ms
+                return false;
+            } else {
+                console.warn('Tab element not found after waiting:', selector);
+                return false;
+            }
+        }
+        
+        checkElement();
+    }
+
+    // active tab -- wait for element to exist before showing
     if (state.tab && state.tab === "active") {
-        //$('#activeTab').tab('show');
-        setTimeout( function() { $('#activeTab').tab('show'); }, 200 );
+        waitForElementAndShowTab('#activeTab');
     } else if (state.tab && state.tab === "designs") {
-        setTimeout( function() { $('#designsTab').tab('show'); }, 200 );
+        waitForElementAndShowTab('#designsTab');
     } else if (state.tab && state.tab === "legend") {
-        setTimeout( function() { $('#legendTab').tab('show'); }, 200 );
+        waitForElementAndShowTab('#legendTab');
     } else {
-        setTimeout( function() { $('#dataTab').tab('show'); }, 200 );
+        waitForElementAndShowTab('#dataTab');
     }
 
     if ( state.legends && state.legends === 'true' ) {
