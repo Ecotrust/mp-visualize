@@ -4,6 +4,7 @@ function bookmarkModel(options) {
 
     scenarioModel.apply(this, arguments);
 
+    self.id = options.id;  // Primary key for DELETE operations
     self.uid = options.uid;
     self.name = options.name;
     self.description = options.description;
@@ -76,7 +77,7 @@ function bookmarkModel(options) {
     // get the url from a bookmark
     self.getBookmarkUrl = function() {
         var host = window.location.href.split('#')[0];
-        return host + "#bookmark=" + self.id.replace(/\D/g,''); //We just want the integer ID, this strips away all non-numeric text
+        return host + "#bookmark=" + self.id; // Now self.id is the numeric primary key
     };
 
     self.getBookmarkState = function() {
@@ -92,6 +93,23 @@ function bookmarkModel(options) {
 
 function bookmarksModel(options) {
     var self = this;
+
+    // Get CSRF token for DRF endpoints - defined once for reuse
+    function getCsrfToken() {
+        var name = 'csrftoken=';
+        var decodedCookie = decodeURIComponent(document.cookie);
+        var ca = decodedCookie.split(';');
+        for(var i = 0; i < ca.length; i++) {
+            var c = ca[i];
+            while (c.charAt(0) == ' ') {
+                c = c.substring(1);
+            }
+            if (c.indexOf(name) == 0) {
+                return c.substring(name.length, c.length);
+            }
+        }
+        return null;
+    }
 
     // list of bookmarks
     self.bookmarksList = ko.observableArray();
@@ -147,14 +165,21 @@ function bookmarksModel(options) {
     };
 
     self.loadBookmarkFromHash = function(bookmark_id) {
-      $.jsonrpc('load_bookmark', [bookmark_id], {
-          success: function(result) {
-            app.loadState(JSON.parse(result[0].json));
-          },
-          error: function(result) {
-
-          }
-      });
+        var csrfToken = getCsrfToken();
+        var ajaxOptions = {
+            url: '/api/bookmarks/' + bookmark_id + '/',
+            method: 'GET',
+            success: function(result) {
+                app.loadState(JSON.parse(result[0].json));
+            },
+            error: function(result) {
+                console.error('Failed to load bookmark:', result);
+            }
+        };
+        if (csrfToken) {
+            ajaxOptions.headers = { 'X-CSRFToken': csrfToken };
+        }
+        $.ajax(ajaxOptions);
     };
 
     self.getCurrentBookmarkURL = function() {
@@ -303,8 +328,22 @@ function bookmarksModel(options) {
             "Remove Bookmark?", 
             `Are you sure you wish to delete your bookmark "${bookmark.name}"?`,
             function(){
-                $.jsonrpc('remove_bookmark', [bookmark.uid],
-                        {complete: self.getBookmarks});
+                var csrfToken = getCsrfToken();
+                var ajaxOptions = {
+                    url: '/api/bookmarks/' + bookmark.id + '/',  // Using bookmark.id (pk) not uid
+                    method: 'DELETE',
+                    success: function() {
+                        self.getBookmarks();
+                    },
+                    error: function(result) {
+                        console.error('Failed to remove bookmark:', result);
+                        self.getBookmarks(); // Refresh list anyway
+                    }
+                };
+                if (csrfToken) {
+                    ajaxOptions.headers = { 'X-CSRFToken': csrfToken };
+                }
+                $.ajax(ajaxOptions);
             }
         );
     };
@@ -373,15 +412,28 @@ function bookmarksModel(options) {
         order++;
 
       }
-      $.jsonrpc('add_bookmark',
-               [
-                 name,
-                 description,
-                 window.location.hash.slice(1),
-                 JSON.stringify(state_json),
-               ],
-               {complete: self.getBookmarks}
-      );
+        var csrfToken = getCsrfToken();
+        var ajaxOptions = {
+            url: '/api/bookmarks/',
+            method: 'POST',
+            data: {
+                'name': name,
+                'description': description,
+                'url_hash': window.location.hash.slice(1),
+                'json': JSON.stringify(state_json)
+            },
+            success: function(result) {
+                self.getBookmarks();
+            },
+            error: function(result) {
+                console.error('Failed to add bookmark:', result);
+                self.getBookmarks(); // Refresh list anyway
+            }
+        };
+        if (csrfToken) {
+            ajaxOptions.headers = { 'X-CSRFToken': csrfToken };
+        }
+        $.ajax(ajaxOptions);
     }
 
     // get bookmark sharing groups for this user
@@ -420,13 +472,16 @@ function bookmarksModel(options) {
         }
 
         // load bookmarks from server while syncing with client
-        //if the user is logged in, ajax call to sync bookmarks with server
-        $.jsonrpc('get_bookmarks', [], {
+        var csrfToken = getCsrfToken();
+        var ajaxOptions = {
+            url: '/api/bookmarks/',
+            method: 'GET',
             success: function(result) {
                 var bookmarks = result || [];
                 var blist = [];
                 for (var i=0; i < bookmarks.length; i++) {
                     var bookmark = new bookmarkModel( {
+                        id: bookmarks[i].id,  // Add primary key for DELETE operations
                         state: $.deparam(bookmarks[i].hash),
                         name: bookmarks[i].name,
                         description: bookmarks[i].description,
@@ -456,9 +511,13 @@ function bookmarksModel(options) {
                 self.bookmarksList(blist);
             },
             error: function(result) {
-
+                console.error('Failed to get bookmarks:', result);
             }
-        });
+        };
+        if (csrfToken) {
+            ajaxOptions.headers = { 'X-CSRFToken': csrfToken };
+        }
+        $.ajax(ajaxOptions);
 
         self.getSharingGroups();
     };
@@ -469,10 +528,26 @@ function bookmarksModel(options) {
         var data = { 'bookmark': self.sharingBookmark().uid,
         'groups': self.sharingBookmark().selectedGroups() };
 
-        $.jsonrpc('share_bookmark',
-                  [self.sharingBookmark().uid,
-                   self.sharingBookmark().selectedGroups()],
-                  {complete: self.getBookmarks});
+        var csrfToken = getCsrfToken();
+        var ajaxOptions = {
+            url: '/api/bookmarks/' + self.sharingBookmark().uid + '/share/',
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({
+                group_names: self.sharingBookmark().selectedGroups()
+            }),
+            success: function() {
+                self.getBookmarks();
+            },
+            error: function(result) {
+                console.error('Failed to share bookmark:', result);
+                self.getBookmarks(); // Refresh list anyway
+            }
+        };
+        if (csrfToken) {
+            ajaxOptions.headers = { 'X-CSRFToken': csrfToken };
+        }
+        $.ajax(ajaxOptions);
     };
 
     self.restoreState = function() {

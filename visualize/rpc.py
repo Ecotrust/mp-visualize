@@ -1,10 +1,12 @@
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse, HttpResponse
 from django.shortcuts import get_object_or_404
+from django.views.decorators.csrf import csrf_protect
 from rpc4django import rpcmethod
 from django.conf import settings
 
 
+@csrf_protect
 @rpcmethod(login_required=True)
 def add_bookmark(name, description, url_hash, json, **kwargs):
     from visualize.models import Bookmark
@@ -99,6 +101,7 @@ def load_bookmark(bookmark_id, **kwargs):
     }]
     return content
 
+@csrf_protect
 @rpcmethod(login_required=True)
 def remove_bookmark(key, **kwargs):
     from visualize.models import Bookmark
@@ -108,6 +111,7 @@ def remove_bookmark(key, **kwargs):
     bookmark = get_object_or_404(Bookmark, id=key, user=request.user)
     bookmark.delete()
 
+@csrf_protect
 @rpcmethod(login_required=True)
 def share_bookmark(bookmark_uid, group_names, **kwargs):
     from django.contrib.auth.models import Group
@@ -137,6 +141,7 @@ def share_bookmark(bookmark_uid, group_names, **kwargs):
 ######################################################
 
 
+@csrf_protect
 @rpcmethod(login_required=True)
 def add_user_layer(name, description, url, layer_type, arcgis_layers, **kwargs):
     from visualize.models import UserLayer
@@ -163,6 +168,7 @@ def add_user_layer(name, description, url, layer_type, arcgis_layers, **kwargs):
     return content
 
 @rpcmethod(login_required=False)
+@csrf_protect
 def get_user_layers(**kwargs):
     """Return a list of user layer objects for the current user.
     """
@@ -294,6 +300,7 @@ def load_user_layer(user_layer_id, **kwargs):
     }]
     return content
 
+@csrf_protect
 @rpcmethod(login_required=True)
 def remove_user_layer(key, **kwargs):
     from visualize.models import UserLayer
@@ -303,6 +310,7 @@ def remove_user_layer(key, **kwargs):
     userLayer = get_object_or_404(UserLayer, id=key, user=request.user)
     userLayer.delete()
 
+@csrf_protect
 @rpcmethod(login_required=True)
 def share_user_layer(user_layer_uid, group_names, **kwargs):
     from django.contrib.auth.models import Group
