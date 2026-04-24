@@ -143,31 +143,47 @@ app.updateHashStateLayers = function(id, status, visible) {
     });
   }
 
-  // Helper function to wait for element to exist, then activate layers
-  // replaces clunky setTimeout call; we need app.map.zoom to exist before we can activate layers.
-  function waitForMapLoad(maxWaitTime) {
-    maxWaitTime = maxWaitTime || 20000; // Default 20 second max wait
-    var startTime = Date.now();
-    
-    function checkElement() {
-        if (typeof app !== 'undefined' && app.hasOwnProperty('map') && typeof app.map !== 'undefined' && app.map.hasOwnProperty('zoom') && typeof app.map.zoom === 'function') {
-          app.activateHashStateLayers();
-        } else if (Date.now() - startTime < maxWaitTime) {
-            setTimeout(checkElement, 50); // Check every 50ms
-            return false;
-        } else {
-            console.warn('map.zoom not found after waiting:', maxWaitTime/1000, 'seconds');
-            return false;
-        }
-    }
-    
-    checkElement();
+  // Wait for app.map.zoom to exist before activating layers, but ensure
+  // only one polling loop is active at a time during state restoration.
+  var maxWaitTime = 20000; // Default 20 second max wait
+  var startTime = Date.now();
+
+  function isMapZoomReady() {
+    return typeof app !== 'undefined' &&
+      app.hasOwnProperty('map') &&
+      typeof app.map !== 'undefined' &&
+      app.map.hasOwnProperty('zoom') &&
+      typeof app.map.zoom === 'function';
   }
 
-  waitForMapLoad();  
+  if (isMapZoomReady()) {
+    app.activateHashStateLayers();
+    return;
+  }
 
-  
+  if (app._waitingForMapZoom) {
+    return;
+  }
 
+  app._waitingForMapZoom = true;
+
+  function checkElement() {
+    if (isMapZoomReady()) {
+      app._waitingForMapZoom = false;
+      app._mapZoomWaitTimer = null;
+      app.activateHashStateLayers();
+    } else if (Date.now() - startTime < maxWaitTime) {
+      app._mapZoomWaitTimer = setTimeout(checkElement, 50); // Check every 50ms
+      return false;
+    } else {
+      app._waitingForMapZoom = false;
+      app._mapZoomWaitTimer = null;
+      console.warn('map.zoom not found after waiting:', maxWaitTime/1000, 'seconds');
+      return false;
+    }
+  }
+
+  checkElement();
 }
 
 app.addKnownLayerFromState = function(id, opacity, isVisible, unloadedDesigns) {
