@@ -501,7 +501,6 @@ app.init = function () {
         // manually bind up the context menu here, otherwise ko will complain
         // that we're binding the same element twice (MP's viewmodel applies
         // to the entire page
-        //ContextualMenu.Init(app.menus, document.querySelector('#context-menu'))
         app.menuModel = new ContextualMenu.Model(app.menus, document.querySelector('#context-menu'));
         // fix for top nav's negative margin
         app.menuModel.setCorrectionOffset(0, 0);
