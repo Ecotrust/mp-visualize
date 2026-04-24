@@ -39,21 +39,41 @@ let postKOBindingCleanup = function() {
   $('#user-content-notice').css('visibility','unset');
 }
 
-// RDH 2022-10-20: Async Issue -- sometimes only part of one theme would load, then upon hitting a call to 'app.map.zoom()' the function
-//  could not be found and numerous bindings would fail. Delaying applying bindings by a second seems to resolve the issue. Attempts at
-//  shorter timeouts (~800ms) didn't consistently fix the issue.
-/** 
- * DLP 2025-06-11: Potential solution to replace the window.setTimeout is to use ko.cleanNode(document.body) before ko.applyBindings(app.viewModel)
- * i.e.,
- * ko.cleanNode(document.body);
- * ko.applyBindings(app.viewModel);
- * postKOBindingCleanup();
- */
+// Helper function to wait for element to exist, then activate layers
+// replaces clunky setTimeout call; we need app.menus and app.menuModel.menuItems to exist before we can activate layers.
+function waitForMenusLoadToApplyKOBindings(maxWaitTime) {
+  maxWaitTime = maxWaitTime || 20000; // Default 20 second max wait
+  var startTime = Date.now();
+  
+  function checkElement() {
+      if (
+        (typeof app !== 'undefined' && app.hasOwnProperty('menus') &&  typeof app.menus === 'object') 
+        && (app.hasOwnProperty('menuModel') && typeof app.menuModel !== 'undefined' && app.menuModel.hasOwnProperty('menuItems') && typeof app.menuModel.menuItems === 'function')
+      ) {
+        try {
+          ko.applyBindings(app.viewModel, document.querySelector('#primary-content'));
+        } catch (e) {
+          console.error('Error applying KO bindings:', e);
+        }
+        try {
+          ko.applyBindings(app.viewModel, document.querySelector('#modal-container'));
+        } catch (e) {
+          console.error('Error applying KO bindings:', e);
+        }
+        postKOBindingCleanup();
+      } else if (Date.now() - startTime < maxWaitTime) {
+          setTimeout(checkElement, 50); // Check every 50ms
+          return false;
+      } else {
+          console.warn('app.menus not found after waiting:', maxWaitTime/1000, 'seconds');
+          return false;
+      }
+  }
+  
+  checkElement();
+}
 
-window.setTimeout(function() {
-  ko.applyBindings(app.viewModel);
-  postKOBindingCleanup();
-}, 1000)
+waitForMenusLoadToApplyKOBindings();  
 
 // app.viewModel.loadLayersFromServer().done(function() {
 app.viewModel.initLeftNav().done(function () {
