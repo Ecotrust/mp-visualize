@@ -150,7 +150,7 @@ app.updateHashStateLayers = function(id, status, visible) {
     var startTime = Date.now();
     
     function checkElement() {
-        if (typeof app !== 'undefined' && app.hasOwnProperty('map') && app.map.hasOwnProperty('zoom') && typeof app.map.zoom === 'function') {
+        if (typeof app !== 'undefined' && app.hasOwnProperty('map') && typeof app.map !== 'undefined' && app.map.hasOwnProperty('zoom') && typeof app.map.zoom === 'function') {
           app.activateHashStateLayers();
         } else if (Date.now() - startTime < maxWaitTime) {
             setTimeout(checkElement, 50); // Check every 50ms

@@ -40,7 +40,7 @@ let postKOBindingCleanup = function() {
 }
 
 // Helper function to wait for element to exist, then activate layers
-// replaces clunky setTimeout call; we need app.map.zoom to exist before we can activate layers.
+// replaces clunky setTimeout call; we need app.menus and app.menuModel.menuItems to exist before we can activate layers.
 function waitForMenusLoadToApplyKOBindings(maxWaitTime) {
   maxWaitTime = maxWaitTime || 20000; // Default 20 second max wait
   var startTime = Date.now();
@@ -48,7 +48,7 @@ function waitForMenusLoadToApplyKOBindings(maxWaitTime) {
   function checkElement() {
       if (
         (typeof app !== 'undefined' && app.hasOwnProperty('menus') &&  typeof app.menus === 'object') 
-        && (app.hasOwnProperty('menuModel') && app.menuModel.hasOwnProperty('menuItems') && typeof app.menuModel.menuItems === 'function')
+        && (app.hasOwnProperty('menuModel') && typeof app.menuModel !== 'undefined' && app.menuModel.hasOwnProperty('menuItems') && typeof app.menuModel.menuItems === 'function')
       ) {
         try {
           ko.applyBindings(app.viewModel);
