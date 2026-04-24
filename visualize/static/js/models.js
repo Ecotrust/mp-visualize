@@ -3480,13 +3480,17 @@ function viewModel() {
               layer._sliderBuilding = true; // Flag to prevent duplicate calls
               try {
                 setTimeout(function() {
-                  layer.buildMultilayerValueLookup();
-                  layer._sliderBuilding = false; // Reset flag after completion
+                  try {
+                    layer.buildMultilayerValueLookup();
+                  }
+                  finally {
+                    layer._sliderBuilding = false; // Reset flag after completion or failure
+                  }
                 }, 30)
               }
               catch (err) {
                 console.log('pass: ' + layer );
-                layer._sliderBuilding = false; // Reset flag on error too
+                layer._sliderBuilding = false; // Reset flag if scheduling the timeout fails
               }
             }
           }
