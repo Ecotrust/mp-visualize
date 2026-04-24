@@ -72,10 +72,12 @@
 
 {% block outer_content %}
 
+    <div id="modal-container">
     {% include "visualize/modals.html" %}
     {% if user.is_authenticated %}
         {% include "visualize/bookmark-modals.html" %}
     {% endif %}
+    </div>
 
     <div class="container-fluid" id="primary-content">
         <div id="fullscreen">
@@ -392,6 +394,9 @@
 
         {% include "visualize/bookmarks.html" %}
     </div>
+{% endblock %}
+
+{% block footer %}
 {% endblock %}
 
 {% block extra_js %}

@@ -51,10 +51,14 @@ function waitForMenusLoadToApplyKOBindings(maxWaitTime) {
         && (app.hasOwnProperty('menuModel') && typeof app.menuModel !== 'undefined' && app.menuModel.hasOwnProperty('menuItems') && typeof app.menuModel.menuItems === 'function')
       ) {
         try {
-          ko.applyBindings(app.viewModel);
+          ko.applyBindings(app.viewModel, document.querySelector('#primary-content'));
         } catch (e) {
-          console.warn('Error applying KO bindings:', e);
-          console.warn('if this is about "cannot apply bindings multiple times to the same element", this is expected. menuModel should already have been applied to the context menu');
+          console.error('Error applying KO bindings:', e);
+        }
+        try {
+          ko.applyBindings(app.viewModel, document.querySelector('#modal-container'));
+        } catch (e) {
+          console.error('Error applying KO bindings:', e);
         }
         postKOBindingCleanup();
       } else if (Date.now() - startTime < maxWaitTime) {
