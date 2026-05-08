@@ -3472,14 +3472,25 @@ function viewModel() {
 
         $.each(self.activeLayers(), function(i, layer) {
           if (layer instanceof layerModel && layer.is_multilayer_parent()) {
-            if ($('#'+ layer.id + '_' + layer.dimensions[0].label + '_multilayerslider').length == 0 || $('#'+ layer.id + '_' + layer.dimensions[0].label + '_multilayerslider').html() == "") {
+            var sliderId = '#'+ layer.id + '_' + layer.dimensions[0].label + '_multilayerslider';
+            var sliderElement = $(sliderId);
+            
+            // Check if slider exists but hasn't been built yet, and hasn't been flagged as processing
+            if ((sliderElement.length == 0 || sliderElement.html() == "") && !layer._sliderBuilding) {
+              layer._sliderBuilding = true; // Flag to prevent duplicate calls
               try {
                 setTimeout(function() {
-                  layer.buildMultilayerValueLookup();
+                  try {
+                    layer.buildMultilayerValueLookup();
+                  }
+                  finally {
+                    layer._sliderBuilding = false; // Reset flag after completion or failure
+                  }
                 }, 30)
               }
               catch (err) {
                 console.log('pass: ' + layer );
+                layer._sliderBuilding = false; // Reset flag if scheduling the timeout fails
               }
             }
           }
