@@ -593,11 +593,16 @@ app.wrapper.map.addArcFeatureServerLayerToMap = function(layer) {
   var esrijsonFormat = new ol.format.EsriJSON();
 
   var layerSource = new ol.source.Vector({
-    loader: function(extent, resolution, projection) {
-      let path_suffix = layer.arcgislayers + '/query/';
-      let geom_string = 'f=json&returnGeometry=true&spatialRel=esriSpatialRelIntersects&geometry=';
-      let extent_string = encodeURIComponent(
-        '{"xmin":' +
+    format: esrijsonFormat,
+    url: function(extent, resolution, projection) { 
+      const srid = projection.getCode().split(/:(?=\d+$)/).pop();
+      let url =
+        layer.url +
+        '/' +
+        layer.arcgislayers +
+        '/query?f=json&returnGeometry=true&spatialRel=esriSpatialRelIntersects&geometry=' +
+        encodeURIComponent(
+            '{"xmin":' +
           extent[0] +
           ',"ymin":' +
           extent[1] +
@@ -605,55 +610,78 @@ app.wrapper.map.addArcFeatureServerLayerToMap = function(layer) {
           extent[2] +
           ',"ymax":' +
           extent[3] +
-          ',"spatialReference":{"wkid":102100}}'
-      );
-      let envelope_string = '&geometryType=esriGeometryEnvelope&inSR=102100&outFields=*&outSR=102100';
-      let query_suffix = geom_string +
-        extent_string +
-        envelope_string;
+          ',"spatialReference":{"wkid":' + srid + '}}',
+        ) +
+        '&geometryType=esriGeometryEnvelope&inSR=' + srid + '&outFields=*&outSR=' + srid;
       if (layer.password_protected()) {
         if (!layer.token() || layer.token() === null){
           layer.token(app.viewModel.getCookie(layer.id + "_token"));
-          query_suffix += '&token=' + (layer.token() || '');
+          url += '&token=' + (layer.token() || '');
         }
       }
-      let url = layer.url + path_suffix + '?' + query_suffix;
-      if (layer.proxy_url) {
-        path_suffix = encodeURIComponent(path_suffix);
-        // query_suffix = encodeURIComponent(query_suffix);
-        let split_url = layer.url.split(encodeURIComponent('?'));
-        split_url[0] = split_url[0] + path_suffix;
-        url = split_url.join(encodeURIComponent('?'))
-        if (url.indexOf(encodeURIComponent('?')) >= 0) {
-          url = url + query_suffix;
-        } else {
-          url = url + encodeURIComponent('?') + query_suffix;
-        }
-      }
+      return url;
+    },
+    // loader: function(extent, resolution, projection) {
+    //   let path_suffix = layer.arcgislayers + '/query/';
+    //   let geom_string = 'f=json&returnGeometry=true&spatialRel=esriSpatialRelIntersects&geometry=';
+    //   let extent_string = encodeURIComponent(
+    //     '{"xmin":' +
+    //       extent[0] +
+    //       ',"ymin":' +
+    //       extent[1] +
+    //       ',"xmax":' +
+    //       extent[2] +
+    //       ',"ymax":' +
+    //       extent[3] +
+    //       ',"spatialReference":{"wkid":102100}}'
+    //   );
+    //   let envelope_string = '&geometryType=esriGeometryEnvelope&inSR=102100&outFields=*&outSR=102100';
+    //   let query_suffix = geom_string +
+    //     extent_string +
+    //     envelope_string;
+    //   if (layer.password_protected()) {
+    //     if (!layer.token() || layer.token() === null){
+    //       layer.token(app.viewModel.getCookie(layer.id + "_token"));
+    //       query_suffix += '&token=' + (layer.token() || '');
+    //     }
+    //   }
+    //   let url = layer.url + path_suffix + '?' + query_suffix;
+    //   if (layer.proxy_url) {
+    //     path_suffix = encodeURIComponent(path_suffix);
+    //     // query_suffix = encodeURIComponent(query_suffix);
+    //     let split_url = layer.url.split(encodeURIComponent('?'));
+    //     split_url[0] = split_url[0] + path_suffix;
+    //     url = split_url.join(encodeURIComponent('?'))
+    //     if (url.indexOf(encodeURIComponent('?')) >= 0) {
+    //       url = url + query_suffix;
+    //     } else {
+    //       url = url + encodeURIComponent('?') + query_suffix;
+    //     }
+    //   }
       
 
         
-      $.ajax({
-        url: url,
-        dataType: 'jsonp',
-        crossDomain: true,
-        success: function (response) {
-          if (response.error) {
-            alert(
-              response.error.message + '\n' + response.error.details.join('\n')
-            );
-          } else {
-            // dataProjection will be read from document
-            var features = esrijsonFormat.readFeatures(response, {
-              featureProjection: projection,
-            });
-            if (features.length > 0) {
-              layerSource.addFeatures(features);
-            }
-          }
-        },
-      });
-    },
+    //   $.ajax({
+    //     url: url,
+    //     dataType: 'jsonp',
+    //     crossDomain: true,
+    //     success: function (response) {
+    //       if (response.error) {
+    //         alert(
+    //           response.error.message + '\n' + response.error.details.join('\n')
+    //         );
+    //       } else {
+    //         // dataProjection will be read from document
+    //         var features = esrijsonFormat.readFeatures(response, {
+    //           featureProjection: projection,
+    //         });
+    //         if (features.length > 0) {
+    //           layerSource.addFeatures(features);
+    //         }
+    //       }
+    //     },
+    //   });
+    // },
     strategy: ol.loadingstrategy.tile(
       ol.tilegrid.createXYZ({
         tileSize: 512,
@@ -665,7 +693,7 @@ app.wrapper.map.addArcFeatureServerLayerToMap = function(layer) {
   layer.layer = new ol.layer.Vector({
     source: layerSource,
     style: app.wrapper.map.getLayerStyle,
-    declutter: true,
+    // declutter: true,
   });
   if (layer.minZoom != null && layer.minZoom != undefined) {
     layer.layer.setMinZoom(layer.minZoom);

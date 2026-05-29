@@ -89,7 +89,8 @@ const createStyleFunction = (esriLayerInfoJson) => {
       const featureStyle = featureStyles.find(({ filters }) => {
         if (filters) {
           return filters.every(({ field, value, operator }) => {
-            const currentValue = feature.get(field);
+            let currentValue = feature.get(field);
+            if (currentValue === undefined || currentValue === null) currentValue = '';
             switch (operator) {
               case 'in':
                 // Values can have commas in them... I'm not sure when we'd need to split...
