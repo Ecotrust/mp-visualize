@@ -768,17 +768,26 @@ app.wrapper.map.normalizeColor = function(color) {
     return color;
   }
 
+  // Match ESRI/OpenLayers-style rgba strings such as "rgba(112,168,0,254)".
+  // The first three capture groups are the red/green/blue channels and the fourth
+  // is the alpha value, which may be expressed as 0-255 in older style data.
+  // in our example, rgbaMatch would be ["rgba(112,168,0,254)", "112", "168", "0", "254"]
   var rgbaMatch = color.match(/^rgba\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*,\s*([^)]+)\s*\)$/i);
   if (!rgbaMatch) {
     return color;
   }
 
   var parsedAlpha = parseFloat(rgbaMatch[4]);
+  // OpenLayers 10 expects alpha in the 0-1 range, so values greater than 1 are
+  // normalized before the color is used in a style object.
   if (isNaN(parsedAlpha) || parsedAlpha <= 1) {
     return color;
   }
 
+  // Note the edge case: 0 is 0, >1 means the value is in the 0-255 range, but what about ==1?
+  // For now, we'll treat 1 as a valid alpha value, as it is a likely value, where 1/255 is not.
   var normalizedAlpha = Math.max(0, Math.min(1, parsedAlpha / 255));
+  // Trim to 4-digits past decimal, remove trailing zeros, and remove trailing decimal if no digits remain.
   var alphaText = normalizedAlpha.toFixed(4).replace(/0+$/, '').replace(/\.$/, '');
   return 'rgba(' + rgbaMatch[1] + ',' + rgbaMatch[2] + ',' + rgbaMatch[3] + ',' + alphaText + ')';
 }
