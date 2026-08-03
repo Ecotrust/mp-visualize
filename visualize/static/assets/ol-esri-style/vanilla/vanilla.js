@@ -39,6 +39,36 @@ const lineDashPattern = {
   esriSLSSolid: [], // _________
 };
 
+const normalizeColor = (color) => {
+  if (typeof color !== 'string') {
+    return color;
+  }
+
+  // Match ESRI/OpenLayers-style rgba strings such as "rgba(112,168,0,254)".
+  // The first three capture groups are the red/green/blue channels and the fourth
+  // is the alpha value, which may be expressed as 0-255 in older style data.
+  // in our example, rgbaMatch would be ["rgba(112,168,0,254)", "112", "168", "0", "254"]
+  const rgbaMatch = color.match(/^rgba\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*,\s*([^)]+)\s*\)$/i);
+  if (!rgbaMatch) {
+    return color;
+  }
+
+  const [, r, g, b, alphaValue] = rgbaMatch;
+  const parsedAlpha = parseFloat(alphaValue);
+  // OpenLayers 10 expects alpha in the 0-1 range, so values above 1 need to be
+  // normalized before the color is used in a style object.
+  if (Number.isNaN(parsedAlpha) || parsedAlpha <= 1) {
+    return color;
+  }
+
+  // Note the edge case: 0 is 0, >1 means the value is in the 0-255 range, but what about ==1?
+  // For now, we'll treat 1 as a valid alpha value, as it is a likely value, where 1/255 is not.
+  const normalizedAlpha = Math.max(0, Math.min(1, parsedAlpha / 255));
+  // Trim to 4-digits past decimal, remove trailing zeros, and remove trailing decimal if no digits remain.
+  const alphaText = normalizedAlpha.toFixed(4).replace(/0+$/, '').replace(/\.$/, '');
+  return `rgba(${r},${g},${b},${alphaText})`;
+};
+
 /**
  * Set map projection used for labeling features
  * @param {import('ol/proj/Projection')} projection
@@ -314,12 +344,12 @@ const readSymbol = (symbol) => {
           radius: symbol.size / 2,
           fill: symbol.color
             ? {
-                color: `rgba(${symbol.color.join(',')})`,
+                color: normalizeColor(`rgba(${symbol.color.join(',')})`),
               }
             : null,
           stroke: symbol.outline
             ? {
-                color: `rgba(${symbol.outline.color.join(',')})`,
+                color: normalizeColor(`rgba(${symbol.outline.color.join(',')})`),
                 width: symbol.outline.width,
               }
             : null,
@@ -328,14 +358,14 @@ const readSymbol = (symbol) => {
     case 'esriSLS':
       return {
         stroke: {
-          color: `rgba(${symbol.color.join(',')})`,
+          color: normalizeColor(`rgba(${symbol.color.join(',')})`),
           width: symbol.width,
           lineDash: lineDashPattern[symbol.style],
         },
       };
     case 'esriSFS':
       let style = symbol.outline ? readSymbol(symbol.outline) : {};
-      style.fill = { color: `rgba(${symbol.color.join(',')})` };
+      style.fill = { color: normalizeColor(`rgba(${symbol.color.join(',')})`) };
       return style;
     case 'esriPMS':
       var size = false;
