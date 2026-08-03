@@ -763,6 +763,26 @@ app.wrapper.map.convertHexToRGB = function(hex) {
   return {'red': red, 'green': green, 'blue': blue};
 }
 
+app.wrapper.map.normalizeColor = function(color) {
+  if (typeof color !== 'string') {
+    return color;
+  }
+
+  var rgbaMatch = color.match(/^rgba\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*,\s*([^)]+)\s*\)$/i);
+  if (!rgbaMatch) {
+    return color;
+  }
+
+  var parsedAlpha = parseFloat(rgbaMatch[4]);
+  if (isNaN(parsedAlpha) || parsedAlpha <= 1) {
+    return color;
+  }
+
+  var normalizedAlpha = Math.max(0, Math.min(1, parsedAlpha / 255));
+  var alphaText = normalizedAlpha.toFixed(4).replace(/0+$/, '').replace(/\.$/, '');
+  return 'rgba(' + rgbaMatch[1] + ',' + rgbaMatch[2] + ',' + rgbaMatch[3] + ',' + alphaText + ')';
+}
+
 app.wrapper.map.cartoGetLayerFill = function(layer, feature) {
   // The below will set all shapes to the same random color.
   // This is an improvement over assuming all vector layers should be orange.
@@ -786,6 +806,8 @@ app.wrapper.map.cartoGetLayerFill = function(layer, feature) {
       fill_color = 'rgba(180,180,0,' + layer.fillOpacity + ')';
     }
   }
+
+  fill_color = app.wrapper.map.normalizeColor(fill_color);
 
   var fill = new ol.style.Fill({
     color: fill_color
@@ -826,7 +848,7 @@ app.wrapper.map.createOLStyleMap = function(layer, feature){
   }
 
   var stroke = new ol.style.Stroke({
-    color: layer.outline_color,
+    color: app.wrapper.map.normalizeColor(layer.outline_color),
     width: layer.outline_width
   });
 

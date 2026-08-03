@@ -39,6 +39,27 @@ const lineDashPattern = {
   esriSLSSolid: [], // _________
 };
 
+const normalizeColor = (color) => {
+  if (typeof color !== 'string') {
+    return color;
+  }
+
+  const rgbaMatch = color.match(/^rgba\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*,\s*([^)]+)\s*\)$/i);
+  if (!rgbaMatch) {
+    return color;
+  }
+
+  const [, r, g, b, alphaValue] = rgbaMatch;
+  const parsedAlpha = parseFloat(alphaValue);
+  if (Number.isNaN(parsedAlpha) || parsedAlpha <= 1) {
+    return color;
+  }
+
+  const normalizedAlpha = Math.max(0, Math.min(1, parsedAlpha / 255));
+  const alphaText = normalizedAlpha.toFixed(4).replace(/0+$/, '').replace(/\.$/, '');
+  return `rgba(${r},${g},${b},${alphaText})`;
+};
+
 /**
  * Set map projection used for labeling features
  * @param {import('ol/proj/Projection')} projection
@@ -314,12 +335,12 @@ const readSymbol = (symbol) => {
           radius: symbol.size / 2,
           fill: symbol.color
             ? {
-                color: `rgba(${symbol.color.join(',')})`,
+                color: normalizeColor(`rgba(${symbol.color.join(',')})`),
               }
             : null,
           stroke: symbol.outline
             ? {
-                color: `rgba(${symbol.outline.color.join(',')})`,
+                color: normalizeColor(`rgba(${symbol.outline.color.join(',')})`),
                 width: symbol.outline.width,
               }
             : null,
@@ -328,14 +349,14 @@ const readSymbol = (symbol) => {
     case 'esriSLS':
       return {
         stroke: {
-          color: `rgba(${symbol.color.join(',')})`,
+          color: normalizeColor(`rgba(${symbol.color.join(',')})`),
           width: symbol.width,
           lineDash: lineDashPattern[symbol.style],
         },
       };
     case 'esriSFS':
       let style = symbol.outline ? readSymbol(symbol.outline) : {};
-      style.fill = { color: `rgba(${symbol.color.join(',')})` };
+      style.fill = { color: normalizeColor(`rgba(${symbol.color.join(',')})`) };
       return style;
     case 'esriPMS':
       var size = false;
