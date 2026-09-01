@@ -128,8 +128,12 @@ if (!app.wrapper.events.hasOwnProperty('clickOnArcRESTLayerEvent')) {
                     }
                   }
                   if (data && app.utils.trim(data) !== "") {
+                    let display_name = field.alias;
+                    if (attribute_rules.display !== '' && attribute_rules.display !== null) {
+                      display_name = attribute_rules.display;
+                    }
                     attributeObjs.push({
-                      'display': field.alias,
+                      'display': display_name,
                       'data': data
                     });
                   }
