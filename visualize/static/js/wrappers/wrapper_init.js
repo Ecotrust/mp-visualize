@@ -102,7 +102,7 @@ app.wrapper = {
       'verboseName': 'Carto Positron Gray',
       // 'url': 'https://services.arcgisonline.com/arcgis/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}?token=' + app.ARCGIS_API_KEY,
       // 'attribution': 'Sources: Esri, GEBCO, NOAA, National Geographic, DeLorme, NAVTEQ, Geonames.org, and others',
-      'url': 'https://a.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png',
+      'url': 'https://a.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png?key=' + app.CARTO_API_KEY,
       'attribution': '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>, &copy; <a href="https://carto.com/attributions">CARTO</a>',
       'minZoom': null,
       'maxZoom': 13,
