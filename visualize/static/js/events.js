@@ -128,12 +128,12 @@ if (!app.wrapper.events.hasOwnProperty('clickOnArcRESTLayerEvent')) {
                     }
                   }
                   if (data && app.utils.trim(data) !== "") {
-                    let display_name = field.alias;
-                    if (attribute_rules && attribute_rules.hasOwnProperty('display') && !!attribute_rules.display) {
-                      display_name = attribute_rules.display;
+                    let field_label = field.alias;
+                    if (attribute_rules && attribute_rules.hasOwnProperty('label') && !!attribute_rules.label) {
+                      field_label = attribute_rules.label;
                     }
                     attributeObjs.push({
-                      'display': display_name,
+                      'display': field_label,
                       'data': data
                     });
                   }
