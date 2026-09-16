@@ -157,6 +157,7 @@ def show_planner(request, template='visualize/planner.html'):
         'SOCKET_URL': socket_url,
         'REGION': settings.PROJECT_REGION,
         'ARCGIS_API_KEY': settings.ARCGIS_API_KEY,
+        'CARTO_API_KEY': settings.CARTO_API_KEY,
         'login': 'true',
         'disclaimer': disclaimer_content,
         # WMS Proxy support:
