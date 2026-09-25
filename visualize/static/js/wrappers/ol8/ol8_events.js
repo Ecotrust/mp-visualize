@@ -499,9 +499,14 @@ app.wrapper.events.formatAttributeReportEntry = function(feature, mp_layer) {
   var attr_keys = Object.keys(feature);
   var attr_fields = mp_layer.attributes;
   var report_attributes = {};
+  let field_label = '';
   for (var i = 0; i < attr_fields.length; i++) {
+    field_label = attr_fields[i].display;
+    if (attr_fields[i].hasOwnProperty('label') && !!attr_fields[i].label) {
+      field_label = attr_fields[i].label;
+    }
     report_attributes[attr_fields[i].field] = {
-      display: attr_fields[i].display,
+      display: field_label,
       // mp_layer.attributes is ordered by 'order' on the server side. We can derive effective order from the list's own order
       order: i,
       precision: attr_fields[i].precision
