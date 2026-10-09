@@ -4,6 +4,7 @@ from django.http import HttpResponse
 from django.shortcuts import render #,get_object_or_404
 from django.views.decorators.clickjacking import xframe_options_exempt
 import importlib
+import ssl
 from json import dumps
 import logging
 import urllib
@@ -40,7 +41,10 @@ def proxy_request(request):
             content = str(e)
         pass
     try:
-        proxied_request = urllib.request.urlopen(url)
+        ssl_ctx = ssl.create_default_context()
+        ssl_ctx.check_hostname = False
+        ssl_ctx.verify_mode = ssl.CERT_NONE
+        proxied_request = urllib.request.urlopen(url, context=ssl_ctx)
         status_code = proxied_request.code
         mimetype = proxied_request.info().get_content_type()
         content = proxied_request.read()
